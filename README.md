@@ -4,6 +4,8 @@ POC del hackathon DevSecOps 2026. Un agente que guía al equipo por los estánda
 
 > **Versión 1.0.0 (POC)** · [Qué hace y qué resuelve, en simple](documentacion/09-version-1.0.0.md) · [Análisis de seguridad](documentacion/08-analisis-funcional-y-seguridad.md) · [Cambios](CHANGELOG.md)
 >
+> ¿Vas a continuar el proyecto (por ejemplo con GitHub Copilot)? Empieza por [`AGENTS.md`](AGENTS.md) y la [guía de continuidad](documentacion/15-guia-de-continuidad.md).
+>
 > Documentación completa para el equipo en [`documentacion/`](documentacion/README.md): contexto, arquitectura, guion de demo, guía para equipos y hoja de ruta.
 
 ## El problema
