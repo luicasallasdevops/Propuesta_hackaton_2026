@@ -1,0 +1,33 @@
+{
+  "version": "0.1.0-poc",
+  "criticidad": {"Alta": 25, "Media": 12, "Baja": 4},
+  "tamano": {"Grande": 15, "Mediano": 7, "Pequeño": 2},
+  "rollback": {"No": 20, "Sí, sin probar": 10, "Sí, probado": 0},
+  "diasRiesgo": {"Viernes": 12, "Sábado": 15, "Domingo": 15},
+  "controles": {
+    "qa":        {"etiqueta": "Pruebas QA aprobadas", "peso": 10, "bloquea": true},
+    "sast":      {"etiqueta": "SAST sin hallazgos críticos o altos", "peso": 10, "bloquea": true},
+    "sca":       {"etiqueta": "SCA sin vulnerabilidades críticas o altas", "peso": 8, "bloquea": true},
+    "secretos":  {"etiqueta": "Escaneo de secretos limpio", "peso": 10, "bloquea": true},
+    "aprobacionSquad": {"etiqueta": "Aprobación del squad de QA", "peso": 8, "bloquea": true},
+    "runbook":   {"etiqueta": "Runbook actualizado", "peso": 4, "bloquea": false},
+    "monitoreo": {"etiqueta": "Alertas y monitoreo definidos", "peso": 6, "bloquea": false},
+    "red":       {"etiqueta": "Grupos de red solicitados", "peso": 4, "bloquea": false},
+    "licencias": {"etiqueta": "Licencias GitHub y GHAS verificadas", "peso": 4, "bloquea": false}
+  },
+  "historial": {"puntosPorIncidente": 6, "maximo": 18, "ventanaDias": 90},
+  "niveles": [
+    {"hasta": 29, "nivel": "Bajo",    "aprobaciones": ["QA del squad"]},
+    {"hasta": 54, "nivel": "Medio",   "aprobaciones": ["QA del squad", "Líder técnico"]},
+    {"hasta": 74, "nivel": "Alto",    "aprobaciones": ["QA del squad", "Líder técnico", "SecOps", "CAB"]},
+    {"hasta": 100,"nivel": "Crítico", "aprobaciones": ["QA del squad", "Líder técnico", "SecOps", "CAB", "Delegado CIO"]}
+  ],
+  "recomendaciones": {
+    "sin-rollback": "Definir y probar el rollback en un ambiente previo.",
+    "dependencia-vulnerable": "Resolver las vulnerabilidades de SCA o actualizar la dependencia afectada.",
+    "sin-monitoreo": "Definir alertas de latencia y errores y vigilar 30 minutos tras el pase.",
+    "cambio-grande": "Dividir el cambio en entregas más pequeñas y reforzar pruebas de regresión.",
+    "red-no-solicitada": "Solicitar los grupos de red con 3 días hábiles de anticipación.",
+    "secreto-expuesto": "Activar Push Protection, escanear el historial y rotar credenciales expuestas."
+  }
+}

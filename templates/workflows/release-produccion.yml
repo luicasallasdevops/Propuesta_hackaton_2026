@@ -1,0 +1,35 @@
+# Plantilla oficial SecOps (POC): despliegue a producción con ambiente protegido.
+name: release-produccion
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticket:
+        description: "Número del ticket de pase aprobado"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-produccion
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux]     # runner autoalojado en la red de la entidad
+    environment: production           # exige aprobadores configurados en el ambiente
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Desplegar
+        env:
+          TICKET: ${{ inputs.ticket }}
+        run: |
+          echo "Desplegando bajo el ticket ${TICKET}"
+          # ./scripts/deploy.sh
+      - name: Verificación posterior (30 min)
+        run: echo "Revisar métricas y alertas antes de cerrar el ticket"

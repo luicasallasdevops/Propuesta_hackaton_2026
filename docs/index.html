@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Asistente DevSecOps · Anticiparse a los problemas</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <div>
+      <h1>Asistente DevSecOps</h1>
+      <p class="sub">Pregunta, valida tu pase y obtén plantillas listas. Antes de que el problema llegue a producción.</p>
+    </div>
+    <span class="badge" title="Todo el contenido es simulado">POC · datos simulados</span>
+  </div>
+  <nav class="wrap" role="tablist" aria-label="Secciones">
+    <button role="tab" aria-selected="true" aria-controls="p-chat" id="t-chat">Preguntar</button>
+    <button role="tab" aria-selected="false" aria-controls="p-pase" id="t-pase">Validar mi pase</button>
+    <button role="tab" aria-selected="false" aria-controls="p-plant" id="t-plant">Plantillas</button>
+    <button role="tab" aria-selected="false" aria-controls="p-como" id="t-como">Cómo funciona</button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section id="p-chat" role="tabpanel" aria-labelledby="t-chat">
+    <div id="log" class="log" aria-live="polite"></div>
+    <div class="chips" id="chips"></div>
+    <form id="chat-form" class="ask">
+      <label for="q" class="sr">Tu pregunta</label>
+      <input id="q" autocomplete="off" placeholder="Ej: ¿Cómo creo el ticket de pase? ¿Qué rol necesito? Dame un workflow de CodeQL">
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <section id="p-pase" role="tabpanel" aria-labelledby="t-pase" hidden>
+    <div class="grid2">
+      <form id="pase-form" class="card">
+        <h2>Datos del cambio</h2>
+        <label>Servicio <input name="servicio" list="svc" value="pagos-api" required maxlength="80"></label>
+        <datalist id="svc"><option value="pagos-api"><option value="canal-web"><option value="core-cuentas"></datalist>
+        <div class="row">
+          <label>Criticidad <select name="criticidad"><option>Alta<option>Media<option>Baja</select></label>
+          <label>Tamaño <select name="tamano"><option>Grande<option>Mediano<option>Pequeño</select></label>
+        </div>
+        <div class="row">
+          <label>Día de despliegue <select name="dia"><option>Viernes<option>Lunes<option>Martes<option>Miércoles<option>Jueves<option>Sábado<option>Domingo</select></label>
+          <label>Rollback <select name="rollback"><option>No<option>Sí, sin probar<option>Sí, probado</select></label>
+        </div>
+        <fieldset><legend>Evidencias y controles que ya tengo</legend><div id="checks"></div></fieldset>
+        <button type="submit">Evaluar</button>
+      </form>
+      <div id="resultado" class="card" aria-live="polite"><p class="muted">Completa el formulario y pulsa Evaluar. El agente te dirá qué falta, qué riesgo tiene y qué aprobaciones necesitas.</p></div>
+    </div>
+  </section>
+
+  <section id="p-plant" role="tabpanel" aria-labelledby="t-plant" hidden>
+    <p class="muted">Plantillas oficiales del equipo SecOps con permisos mínimos. Cópialas a tu repositorio sin cambiar umbrales.</p>
+    <div id="plantillas"></div>
+  </section>
+
+  <section id="p-como" role="tabpanel" aria-labelledby="t-como" hidden>
+    <div class="card prose">
+      <h2>De semanas a minutos</h2>
+      <ol>
+        <li><strong>Conocimiento centralizado:</strong> los estándares de SecOps viven como Markdown versionado en el repositorio. Un cambio de política se aprueba por pull request.</li>
+        <li><strong>Agente en el portal:</strong> responde con la sección exacta del estándar y la cita como fuente. Corre en el navegador, sin enviar datos a terceros.</li>
+        <li><strong>Agente en GitHub Actions:</strong> al abrir un ticket de pase, evalúa evidencias, historial de incidentes y día de despliegue. Publica el informe, etiqueta el riesgo y bloquea lo que no cumple.</li>
+        <li><strong>Resumen con IA (opcional):</strong> GitHub Models redacta los siguientes pasos usando solo la política recuperada, con permisos mínimos y sin secretos.</li>
+        <li><strong>Aprende del pasado:</strong> cada incidente cerrado se agrega a <code>knowledge/incidents.json</code> y ajusta el riesgo de los próximos pases.</li>
+      </ol>
+      <h2>Escalabilidad</h2>
+      <p>Para otras tribus basta cambiar <code>policy.json</code> y los documentos. Para pasar de la POC a producción: conectar el tablero Kanban y la gestión de incidentes por API, y alimentar el historial automáticamente.</p>
+    </div>
+  </section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

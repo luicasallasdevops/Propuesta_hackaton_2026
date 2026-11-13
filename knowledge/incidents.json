@@ -1,0 +1,8 @@
+[
+  {"id":"INC-1042","fecha":"2026-09-18","servicio":"pagos-api","severidad":"alta","dia":"Viernes","causa":"sin-rollback","resumen":"Despliegue en viernes sin rollback probado; 3 h de caída en pagos.","accion":"Exigir rollback probado y evitar viernes."},
+  {"id":"INC-1057","fecha":"2026-10-02","servicio":"pagos-api","severidad":"media","dia":"Martes","causa":"dependencia-vulnerable","resumen":"Librería con CVE alta llegó a producción; se revirtió el pase.","accion":"Bloquear el pase con SCA crítico o alto."},
+  {"id":"INC-1063","fecha":"2026-10-14","servicio":"canal-web","severidad":"alta","dia":"Miércoles","causa":"sin-monitoreo","resumen":"Degradación de latencia sin alerta; detectada por clientes tras 90 min.","accion":"Definir alertas y revisar métricas 30 min tras el pase."},
+  {"id":"INC-1071","fecha":"2026-10-21","servicio":"core-cuentas","severidad":"critica","dia":"Jueves","causa":"cambio-grande","resumen":"Cambio grande sin pruebas de regresión; inconsistencias de saldo.","accion":"Dividir cambios grandes y exigir QA aprobado."},
+  {"id":"INC-1080","fecha":"2026-10-29","servicio":"pagos-api","severidad":"media","dia":"Lunes","causa":"red-no-solicitada","resumen":"Falló conexión al registro por grupo de red pendiente; pase retrasado 5 días.","accion":"Solicitar grupos de red antes de abrir el ticket de pase."},
+  {"id":"INC-1088","fecha":"2026-11-05","servicio":"canal-web","severidad":"media","dia":"Martes","causa":"secreto-expuesto","resumen":"Token detectado en el historial del repositorio; rotación de emergencia.","accion":"Activar Push Protection y escanear secretos antes del pase."}
+]

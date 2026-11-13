@@ -1,0 +1,66 @@
+name: Pase a Producción
+description: Solicita un pase. El agente lo evalúa al instante y te dice qué falta.
+title: "[Pase] "
+labels: ["pase-produccion"]
+body:
+  - type: input
+    id: servicio
+    attributes:
+      label: Servicio
+      description: Nombre del servicio. Ejemplos de la demo, pagos-api, canal-web, core-cuentas
+    validations:
+      required: true
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo de cambio
+      options: [Estándar, Normal, Emergencia]
+    validations:
+      required: true
+  - type: dropdown
+    id: criticidad
+    attributes:
+      label: Criticidad del servicio
+      options: [Alta, Media, Baja]
+    validations:
+      required: true
+  - type: dropdown
+    id: tamano
+    attributes:
+      label: Tamaño del cambio
+      options: [Pequeño, Mediano, Grande]
+    validations:
+      required: true
+  - type: dropdown
+    id: dia
+    attributes:
+      label: Día de despliegue
+      options: [Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo]
+    validations:
+      required: true
+  - type: dropdown
+    id: rollback
+    attributes:
+      label: Plan de rollback
+      options: ["Sí, probado", "Sí, sin probar", "No"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: controles
+    attributes:
+      label: Evidencias y controles
+      description: Marca lo que ya tienes. El agente indica lo que falta.
+      options:
+        - label: Pruebas QA aprobadas
+        - label: SAST sin hallazgos críticos o altos
+        - label: SCA sin vulnerabilidades críticas o altas
+        - label: Escaneo de secretos limpio
+        - label: Aprobación del squad de QA
+        - label: Runbook actualizado
+        - label: Alertas y monitoreo definidos
+        - label: Grupos de red solicitados
+        - label: Licencias GitHub y GHAS verificadas
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción del cambio

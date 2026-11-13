@@ -1,0 +1,48 @@
+name: agente-pase
+
+# Agente de pre-validación: evalúa cada ticket de pase y publica el informe en el Issue.
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions: {}
+
+concurrency:
+  group: agente-pase-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  evaluar:
+    if: contains(github.event.issue.labels.*.name, 'pase-produccion')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      models: read      # solo para el resumen opcional con GitHub Models
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ github.event.issue.number }}
+      AI_ENABLED: ${{ vars.AI_ENABLED }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Evaluar el pase
+        run: node scripts/agent.mjs
+      - name: Publicar informe y etiquetas
+        run: |
+          set -euo pipefail
+          gh label create "pase-produccion" --color 1D76DB --force >/dev/null
+          for l in "riesgo:bajo:2DA44E" "riesgo:medio:D4A72C" "riesgo:alto:E16F24" "riesgo:crítico:CF222E" "bloqueado:CF222E" "listo-para-aprobacion:2DA44E"; do
+            name="${l%:*}"; color="${l##*:}"
+            gh label create "$name" --color "$color" --force >/dev/null
+          done
+          gh issue edit "$ISSUE" --remove-label "riesgo:bajo,riesgo:medio,riesgo:alto,riesgo:crítico,bloqueado,listo-para-aprobacion" >/dev/null 2>&1 || true
+          gh issue edit "$ISSUE" --add-label "$(cat /tmp/labels.txt)"
+          gh issue comment "$ISSUE" --body-file /tmp/report.md --edit-last --create-if-none
