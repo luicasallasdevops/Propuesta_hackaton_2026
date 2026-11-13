@@ -26,3 +26,18 @@ fieldset label{display:flex;gap:8px;align-items:center;color:var(--fg);margin:4p
 pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12px;overflow:auto;font-size:.82rem;max-height:340px}
 .tpl{margin-bottom:16px}.tpl header{border:0;display:flex;justify-content:space-between;align-items:center;background:none;gap:8px}.tpl button{background:var(--card);color:var(--fg);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
 .prose li{margin-bottom:8px}.sr{position:absolute;left:-9999px}code{background:var(--bg);padding:1px 5px;border-radius:5px}
+/* Guía interactiva */
+.hero{margin-bottom:16px}.prog{display:flex;align-items:center;gap:12px;flex-wrap:wrap}progress{flex:1;min-width:160px;height:12px;accent-color:var(--ok)}
+.steps{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{display:flex;gap:14px;background:var(--card);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px}
+.steps li.current{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}.steps li.done{opacity:.65}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--bg);border:1px solid var(--bd);display:grid;place-items:center;font-weight:700}
+.steps li.current .num{background:var(--acc);color:#fff;border-color:var(--acc)}.steps li.done .num{background:var(--ok);color:#fff;border-color:var(--ok)}
+.body{flex:1;min-width:0}.body h3{margin:0 0 4px;font-size:1.02rem}.body p{margin:.3rem 0}
+.chip{font-size:.74rem;font-weight:500;color:var(--mut);border:1px solid var(--bd);border-radius:99px;padding:1px 8px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.expect{font-size:.9rem;color:var(--mut)}
+.mark{display:flex;gap:6px;align-items:center;font-size:.85rem;color:var(--mut);margin:6px 0 0}
+.btn.ghost{background:var(--card);color:var(--fg);border:1px solid var(--bd)}button.btn{border:0;font:inherit;cursor:pointer}button.btn.ghost{border:1px solid var(--bd)}
+.live-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.live{list-style:none;padding:0;margin:.3rem 0}.live li{padding:4px 0;border-bottom:1px solid var(--bd);font-size:.9rem}
+.live a{color:var(--acc)}.live-box h3{font-size:.9rem;margin:10px 0 2px;color:var(--mut)}.pill.muted{background:var(--mut)}
+.pill{font-size:.72rem;padding:1px 8px}
