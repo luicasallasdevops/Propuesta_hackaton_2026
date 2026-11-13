@@ -14,6 +14,7 @@ Los equipos tardan semanas en entender cómo crear tickets, qué roles pedir, qu
 |---|---|---|
 | Portal (GitHub Pages) | Chat con citas de la fuente, validador de pase y plantillas con botón Copiar | `docs/` |
 | Agente en Actions | Al abrir un ticket de pase evalúa riesgo, bloquea incumplimientos, etiqueta y comenta | `.github/workflows/agente-pase.yml`, `scripts/agent.mjs` |
+| Flujo OCD | 11 estados, 6 roles y 4 modalidades (Automatizado, Manual, Híbrido, DeployGO) con comandos `/ocd`, eventos de git y avisos | `knowledge/ocd-flujo.json`, `.github/workflows/ocd-flujo.yml`, [documento 13](documentacion/13-flujo-ocd.md) |
 | Base de conocimiento | Estándares en Markdown versionados, política de riesgo e historial de incidentes | `knowledge/` |
 | Plantillas SecOps | CI de seguridad (CodeQL, Dependency Review), release protegido, Dependabot | `templates/` |
 | Agentes de Copilot | Instrucciones y agente personalizado que leen la misma base de conocimiento | `.github/copilot-instructions.md`, `.github/agents/` |

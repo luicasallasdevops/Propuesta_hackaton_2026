@@ -25,6 +25,14 @@
 | Caso "✅ OCD listo" y el calendario | "Calcula hacia atrás qué día revisa el líder, qué día Seguridad, el CAB y cuándo se avisa a las áreas." |
 | **Simulador**, escenario "OCD bloqueado que se corrige" | "La tarjeta pasa por el tablero: bloqueado, corregido, aprobado, en producción." |
 
+## Extra (versión 1.3.0): el flujo real del OCD, 1 minuto
+| Paso | Qué decir |
+|---|---|
+| Chat: «¿Cuál es el flujo del OCD?» y luego «¿qué me toca como líder técnico?» | "El agente conoce los 11 estados, quién mueve cada uno y qué le toca a cada rol." |
+| Simulador de Jira: Mateo, Autocompletar, Usar plantillas, Crear. En «Flujo del OCD» actuar como QE y pulsar Revisiones técnicas | "Solo el Developer puede mover este estado: el agente hace cumplir los roles." |
+| Volver a Developer y avanzar; elegir modalidad Automatizado para ver cómo el congelamiento corre solo | "En una modalidad automatizada los estados de agileOps se ejecutan solos y la falla va sola a la reversión." |
+| En GitHub, comentar `/ocd estado` en un Issue `[OCD]` | "Lo mismo, desde el Issue: estado, requisitos y cómo seguir." |
+
 ## Plan B
 - Si Actions tarda, mostrar los Issues #1 y #2, que ya están evaluados.
 - Si el portal no carga, ejecutar localmente `npm run build && python3 -m http.server -d docs 8080`.

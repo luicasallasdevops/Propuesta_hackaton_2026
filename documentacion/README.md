@@ -19,3 +19,4 @@ Lee en este orden:
 
 Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **simulado**.
 12. [Migración a Grupo11](12-migracion-grupo11.md): qué configurar en el repositorio de la organización.
+13. [Flujo del OCD](13-flujo-ocd.md): estados, roles, modalidades, comandos `/ocd`, DeployGO y avisos (versión 1.3.0).

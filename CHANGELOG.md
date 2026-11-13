@@ -1,5 +1,13 @@
 # Cambios
 
+## 1.3.0-poc
+Flujo OCD real en tres fases, todo guiado por un solo archivo de datos (`knowledge/ocd-flujo.json`).
+- **Fase 1, flujo y agente por estado y rol:** 11 estados (Inicio codificación, Revisiones técnicas, Aprobación de seguridad, Congelamiento, Gestión de pase, Ejecución, Ratificación, Done y las ramas de reversión), 6 roles y 4 modalidades (Automatizado, Manual, Híbrido, DeployGO). Cuatro conjuntos de instrucciones (congelamiento, despliegue, reversión de congelamiento, reversión de despliegue) validados según la modalidad (`[AUTO]` y `[MANUAL]`). El chat explica el flujo y responde «¿qué me toca?» según el rol; la guía interactiva recorre los estados reales, con las ramas de falla. El formulario `[OCD]` pide la modalidad y los tres conjuntos nuevos; el informe del agente incluye el estado, los requisitos y cómo moverlo.
+- **Fase 2, estados reales en GitHub:** etiquetas `estado:*` y `modalidad:*`, comandos de comentario `/ocd estado|mover|falla|devolver` que validan el rol del actor (`knowledge/ocd-roles.json`) y los requisitos de salida, estados automáticos que corren solos según la modalidad, cierre del Issue en Done y tarjeta del tablero siguiendo el estado (columna con el nombre del estado o, si no existe, su columna agrupadora). El simulador de Jira trae el panel «Flujo del OCD» con el selector de rol.
+- **Fase 3, DeployGO y avisos:** los eventos de git mueven el estado (PR abierto, PR aprobado por rol, tags `ocd-N-cert|prod|ratificado|revertir`), una historia `[HU-####]` crea su OCD DeployGO y un aviso diario por días hábiles de estancamiento menciona al rol que debe actuar. Un job de sincronización alinea el tablero con las etiquetas.
+- El informe del agente se actualiza por marca (`<!-- agente-pase -->`) y no por ser el último comentario. El motor expone `esc`, `SECRETOS` y `PELIGROSO` para el módulo del flujo.
+- 33 pruebas nuevas (56 en total). Supuestos del flujo documentados en el documento 13.
+
 ## 1.2.2-poc
 - Corrige la consulta del tablero (llave faltante) y añade una prueba que la valida. Permisos `pages: read` y `actions: read` para repositorios privados.
 
