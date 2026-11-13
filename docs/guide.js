@@ -99,8 +99,8 @@ const STEPS = [
   },
   {
     id: "ocd", icono: "📅", c: "c10", tiempo: "5 min", titulo: "Crea tu primer OCD en Jira (simulado)",
-    texto: "Un OCD es el pase a producción que se agenda. Elige quién eres: el asistente revisa si tienes los grupos de red del servicio, te dice quiénes deben aprobar (líder técnico, Product Owner, Seguridad y Change Management) y calcula las fechas.",
-    acciones: [{ t: "Abrir el simulador de Jira", fn: () => { goTab("t-ocd"); setTimeout(() => $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); } }, { t: "¿Qué grupos de red necesito?", fn: () => ask("¿Qué grupos de red necesito para un OCD?") }, { t: "¿Quién aprueba un OCD?", fn: () => ask("¿Quién aprueba un OCD?") }],
+    texto: "Un OCD es el pase a producción que se agenda. Elige quién eres: el asistente verifica con tu matrícula si tienes los grupos de red del servicio, te dice quiénes deben aprobar (líder técnico, Product Owner, Seguridad y Change Management) y calcula las fechas.",
+    acciones: [{ t: "Abrir el simulador de Jira", fn: () => { goTab("t-ocd"); setTimeout(() => $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); } }, { t: "Que el agente me ayude a crear mi OCD", fn: () => ask("Ayúdame a crear mi OCD") }, { t: "¿Qué grupos de red necesito?", fn: () => ask("¿Qué grupos de red necesito para un OCD?") }, { t: "¿Quién aprueba un OCD?", fn: () => ask("¿Quién aprueba un OCD?") }],
     resultado: "Con el perfil de Valentina (nueva) verás qué te falta; con el de Mateo, el camino sin tropiezos. Al crear el ticket, el agente comenta, calcula el calendario y pide las aprobaciones.",
   },
   {

@@ -1,7 +1,7 @@
 // Agente de pre-validación: se ejecuta en GitHub Actions al abrir/editar un Issue de pase ([Pase]) o de OCD ([OCD]).
 // 1) Lee el formulario  2) Evalúa con la política, el historial y (en OCD) el calendario  3) Escribe el informe en /tmp para publicarlo con gh. El texto del Issue se trata solo como DATO.
 import { readFile, writeFile } from "node:fs/promises";
-import { parseIssueForm, changeFromForm, assess, renderReport, ocdFromForm, assessOcd, renderOcdReport } from "./engine.mjs";
+import { parseIssueForm, changeFromForm, assess, renderReport, ocdFromForm, assessOcd, renderOcdReport, revisarSolicitanteOcd, combinarSolicitante } from "./engine.mjs";
 
 const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"));
 const read = async (f) => JSON.parse(await readFile(f, "utf8"));
@@ -14,9 +14,11 @@ let result, report;
 if (esOcd) {
   const cfg = await read("knowledge/ocd.json");
   const calendario = await read("knowledge/ocd-calendario.json");
+  const dir = await read("knowledge/ocd-directorio.json");
   const ocd = ocdFromForm(fields, policy, cfg);
-  result = assessOcd({ ...ocd, id: `#${event.issue.number}` }, incidents, policy, cfg, calendario, new Date().toISOString().slice(0, 10));
-  report = renderOcdReport(ocd, result, policy, cfg);
+  const sol = revisarSolicitanteOcd({ servicio: ocd.change.servicio, matricula: ocd.matricula }, dir);
+  result = combinarSolicitante(assessOcd({ ...ocd, id: `#${event.issue.number}` }, incidents, policy, cfg, calendario, new Date().toISOString().slice(0, 10)), sol);
+  report = renderOcdReport(ocd, result, policy, cfg, sol);
 } else {
   const change = changeFromForm(fields, policy);
   result = assess(change, incidents, policy);

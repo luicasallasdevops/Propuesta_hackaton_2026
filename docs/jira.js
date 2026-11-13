@@ -16,7 +16,7 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
   const sel = (name, opts, val) => { const s = el("select", { name }, opts.map((o) => (Array.isArray(o) ? el("option", { value: o[0], textContent: o[1] }) : el("option", { textContent: o })))); if (val) s.value = val; return s; };
   const campo = (rotulo, control, extra = "") => el("label", {}, rotulo, extra ? el("small", { className: "hint", textContent: ` ${extra}` }) : "", control);
 
-  const quien = sel("usuario", Object.entries(dir.usuarios).map(([k, u]) => [k, `${u.nombre} · ${u.detalle}`]), "nueva");
+  const quien = sel("usuario", Object.entries(dir.usuarios).map(([k, u]) => [k, `${u.nombre} · ${u.matricula} · ${u.detalle}`]), "nueva");
   const form = el("form", { className: "card jira", id: "jira-form" });
   const roles = ["Líder técnico", "Product Owner", "Seguridad", "Change Management"];
   const opcionesRol = (rol) => [["", "— elige —"], ...Object.entries(dir.personas).filter(([, p]) => p.rol === rol).map(([id, p]) => [id, p.nombre])];
@@ -133,6 +133,13 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
     estado.creado.nombres = new Proxy(estado.creado.nombres, { get: (t, k) => t[String(k).replace(/\s*\(.*\)$/, "")] ?? "" });
     pintarTicket();
     ticket.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  // El asistente del chat puede dejar el formulario cargado con lo que el usuario ya contestó.
+  document.addEventListener("ocd:prefill", (e) => {
+    const x = e.detail || {};
+    for (const k of ["usuario", "servicio", "tipo", "fecha"]) if (x[k]) form.elements[k].value = x[k];
+    auto.click();
   });
 
   pintar();

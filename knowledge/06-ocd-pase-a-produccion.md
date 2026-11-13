@@ -7,12 +7,18 @@
 - Tiene tres tipos: Estándar (repetible y de bajo riesgo), Normal (planificado, pasa por el CAB) y Emergencia (corrige un incidente activo).
 - Se crea en Jira (en esta POC se simula en la pestaña Pase OCD). El agente lo revisa al instante y te dice qué falta.
 
+## Quiero que me ayuden a crear el OCD
+- Escribe «ayúdame a crear mi OCD» en el chat. El asistente te pide tu matrícula (formato M-12345) y con ella verifica los grupos de red del servicio.
+- Después te pregunta el servicio, el tipo de cambio y la noche. Te muestra los aprobadores del servicio y revisa el calendario.
+- Al final puede abrir el simulador de Jira con tus datos ya cargados.
+- En el OCD real, el agente repite esa verificación con la matrícula del formulario y bloquea el OCD si falta un grupo de red.
+
 ## Cómo crear un OCD en Jira paso a paso
 1. Verifica que tienes los grupos de red del servicio. Si falta alguno, pídelo antes de abrir el OCD.
 2. Reúne las evidencias: pruebas QA, SAST, SCA, escaneo de secretos, runbook y monitoreo.
 3. Define el rollback y pruébalo en un ambiente previo. Sin rollback el OCD se bloquea.
 4. En Jira elige el proyecto OCD y el tipo de incidencia Pase a Producción.
-5. Completa servicio, tipo de cambio, criticidad, tamaño, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
+5. Completa tu matrícula, servicio, tipo de cambio, criticidad, tamaño, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
 6. Elige a los aprobadores del servicio: líder técnico, Product Owner, Seguridad y Change Management.
 7. Crea el ticket. El agente publica el informe con bloqueos, calendario y aprobadores, y mueve el estado.
 8. Corrige lo que el agente marque y edita el ticket. El informe se actualiza solo.

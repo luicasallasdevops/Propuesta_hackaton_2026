@@ -125,3 +125,8 @@ ol.lst{list-style:decimal;padding-left:1.3rem}ol.lst li{color:var(--fg)}
 .asistente{align-self:start;position:sticky;top:8px;border-top:4px solid #6f42c1}
 .ticket{margin-top:14px;border-top:4px solid #0052cc}.chico{padding:3px 10px;font-size:.82rem}.btn:disabled{opacity:.45;cursor:default}
 .jira form .acts,.ticket .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* ---------- Asistente OCD en el chat ---------- */
+.qrs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.qr{border:1px solid var(--acc);background:var(--card);color:var(--acc);border-radius:99px;padding:5px 12px;font:inherit;font-size:.86rem;cursor:pointer}
+.qr:hover{background:var(--acc);color:#fff}

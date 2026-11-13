@@ -60,6 +60,23 @@ Fecha de la simulación: **lunes 16 de noviembre de 2026** (campo "Hoy" del plan
 | OCD-2001 | canal-web | Normal | Mar 10 nov | En producción | Ya ejecutado |
 | OCD-2007 | notificaciones | Emergencia | Lun 16 nov | En producción | Aprobación a posteriori pendiente |
 
+## El agente ofrece ayuda y valida con la matrícula
+Cuando el usuario pregunta cómo crear un OCD, el agente responde y cierra con: **"¿Quieres que te ayude a crear el OCD?"**. Si acepta (o escribe "ayúdame a crear mi OCD"):
+1. Pide la **matrícula** (formato M-12345) y busca a la persona en el directorio.
+2. Pregunta el servicio y muestra qué **grupos de red** exige y cuáles tiene esa matrícula. Si falta alguno, explica cómo pedirlo (Solicitud de red, 3 días hábiles).
+3. Pregunta el tipo de cambio y propone la primera noche válida.
+4. Muestra los **aprobadores del servicio** y el calendario, y puede abrir el simulador de Jira con todo cargado.
+
+El agente real hace la misma verificación: el formulario del OCD pide la **Matrícula** y el informe añade la sección "Solicitante y grupos de red". Bloquea el OCD si la matrícula falta, tiene formato inválido, no existe o no tiene los grupos del servicio. Un servicio que no está en el directorio solo genera una advertencia.
+
+Matrículas ficticias de la demo (`knowledge/ocd-directorio.json`):
+
+| Matrícula | Persona | Grupos de red |
+|---|---|---|
+| M-10458 | Valentina Ríos, nueva | Solo GR-APP |
+| M-10212 | Mateo Díaz, con experiencia | GR-APP, GR-DB, GR-DEPLOY |
+| M-10777 | Camilo Ortiz | Ninguno |
+
 ## El OCD se crea en Jira (simulado)
 El usuario real crea el OCD en **Jira** (proyecto OCD, tipo de incidencia Pase a Producción). En la POC no hay Jira: el portal lo **simula** con una pantalla estilo Jira y el motor real corre en GitHub (Issue `[OCD]` + Actions + tablero). En producción, el mismo agente leería el ticket de Jira por su API y escribiría el comentario y el estado allí.
 
@@ -70,9 +87,7 @@ El asistente de la pantalla enseña al usuario nuevo en 3 chequeos antes de crea
 
 Al crear el ticket, el agente comenta, calcula el calendario y mueve el estado. Se puede simular cada aprobación y la ejecución en la ventana.
 
-Datos ficticios en `knowledge/ocd-directorio.json`: 5 servicios, 3 grupos de red, 10 personas y dos perfiles:
-- **Valentina Ríos** (nueva en pagos-api): solo tiene GR-APP. Verá qué le falta.
-- **Mateo Díaz** (con experiencia): tiene los tres grupos. Verá el camino sin tropiezos.
+Datos ficticios en `knowledge/ocd-directorio.json`: 5 servicios, 3 grupos de red, 10 personas y tres perfiles con matrícula. Valentina (nueva en pagos-api) verá qué le falta; Mateo (con experiencia) verá el camino sin tropiezos; Camilo no tiene ningún grupo.
 
 ## Dónde verlo en el portal
 Pestaña **📅 Pase OCD**:
@@ -85,11 +100,14 @@ Pestaña **📅 Pase OCD**:
 ## Cómo probar el agente real en GitHub
 Abre el formulario **Pase a Producción tipo OCD** (equivale al ticket de Jira en la POC) (el portal lo enlaza con servicio, fecha y hora precargados). El título empieza con `[OCD]`. Los desplegables no se precargan por URL: elígelos a mano.
 
-| Caso | Servicio | Tipo | Crit. | Tamaño | Fecha | Hora | Rollback | Casillas | Resultado |
-|---|---|---|---|---|---|---|---|---|---|
-| Listo | core-cuentas | Normal | Media | Pequeño | 2026-11-24 | 22:00 | Sí, probado | las 9 + las 2 de requisitos | Listo para aprobaciones, Bajo |
-| Bloqueado | pagos-api | Normal | Alta | Grande | 2026-11-20 | 22:00 | No | ninguna | Bloqueado, Crítico 100/100 |
-| Noche llena | notificaciones | Estándar | Baja | Pequeño | 2026-11-18 | 23:30 | Sí, probado | las 9 + las 2 | Bloqueado: ventana llena y propone el jueves 19 |
+| Caso | Matrícula | Servicio | Tipo | Crit. | Tamaño | Fecha | Hora | Rollback | Casillas | Resultado |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Listo | M-10212 | core-cuentas | Normal | Media | Pequeño | 2026-11-24 | 22:00 | Sí, probado | las 9 + las 2 de requisitos | Listo para aprobaciones, Bajo |
+| Faltan grupos de red | M-10458 | pagos-api | Normal | Media | Pequeño | 2026-11-24 | 22:00 | Sí, probado | las 9 + las 2 | Bloqueado: faltan GR-DB y GR-DEPLOY |
+| Bloqueado | M-10212 | pagos-api | Normal | Alta | Grande | 2026-11-20 | 22:00 | No | ninguna | Bloqueado, Crítico 100/100 |
+| Noche llena | M-10212 | notificaciones | Estándar | Baja | Pequeño | 2026-11-18 | 23:30 | Sí, probado | las 9 + las 2 | Bloqueado: ventana llena y propone el jueves 19 |
+
+El Issue #3 de prueba se creó antes del campo Matrícula: si se edita, el agente lo bloqueará por falta de matrícula hasta que se agregue `M-10212`.
 
 Si ya pasó el 16 de noviembre, usa un martes a jueves con al menos 7 días hábiles de anticipación: el agente compara contra la fecha real del día.
 

@@ -1,6 +1,7 @@
 # OCD: solicitud de pase a producción (campos del ticket en Jira)
 Proyecto: OCD · Tipo de incidencia: Pase a Producción
 Servicio: <nombre>
+Matrícula: M-12345 (el agente verifica con ella tus grupos de red)
 Tipo de cambio: Estándar | Normal | Emergencia
 Criticidad: Alta | Media | Baja
 Tamaño: Pequeño | Mediano | Grande

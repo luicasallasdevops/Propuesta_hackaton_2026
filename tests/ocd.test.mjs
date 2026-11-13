@@ -111,3 +111,28 @@ test("fechas extremas o basura no rompen el agente", () => {
     }
   }
 });
+
+test("la matrícula identifica al solicitante y se validan sus grupos de red", async () => {
+  const { normalizarMatricula, buscarPorMatricula, revisarSolicitanteOcd, combinarSolicitante } = await import("../scripts/engine.mjs");
+  const dir = await J("knowledge/ocd-directorio.json");
+  assert.equal(normalizarMatricula(" m10458 "), "M-10458");
+  assert.equal(normalizarMatricula("10458; drop"), "");
+  assert.equal(buscarPorMatricula(dir, "m-10212").id, "experto");
+  assert.equal(buscarPorMatricula(dir, "M-99999"), null);
+  assert.deepEqual(new Set(Object.values(dir.usuarios).map((u) => u.matricula)).size, Object.keys(dir.usuarios).length);
+
+  const faltan = revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "M-10458" }, dir);
+  assert.deepEqual(faltan.bloqueos.map((b) => b.match(/GR-\w+/)[0]), ["GR-DB", "GR-DEPLOY"]);
+  assert.ok(faltan.acciones[0].includes("Solicitud de red"));
+  assert.equal(revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "M-10212" }, dir).bloqueos.length, 0);
+  assert.equal(revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "" }, dir).bloqueos[0], "Falta la matrícula del solicitante");
+  assert.ok(revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "M-99999" }, dir).bloqueos[0].includes("no existe"));
+  assert.equal(revisarSolicitanteOcd({ servicio: "app-x", matricula: "M-10212" }, dir).bloqueos.length, 0);
+
+  const o = { change: { ...base }, fecha: "2026-11-24", hora: "22:00", ocdChecks: ok };
+  const r = assessOcd(o, incidents, policy, cfg, [], "2026-11-16");
+  assert.equal(r.estado, "Listo para aprobaciones");
+  assert.equal(combinarSolicitante(r, faltan).estado, "Bloqueado");
+  const md = renderOcdReport(o, combinarSolicitante(r, faltan), policy, cfg, faltan);
+  assert.ok(md.includes("Solicitante y grupos de red") && md.includes("❌ GR-DB"));
+});

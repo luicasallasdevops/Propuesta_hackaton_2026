@@ -247,6 +247,7 @@ export function ocdFromForm(fields, policy, cfg) {
   const marks = parseChecklist(fields["Requisitos del OCD"]);
   return {
     change: changeFromForm(fields, policy),
+    matricula: clean(fields["Matrícula"]).slice(0, 12),
     fecha: clean(fields["Fecha de ejecución"]).slice(0, 10),
     hora: clean(fields["Hora de inicio"]).slice(0, 5),
     ocdChecks: Object.fromEntries(Object.entries(cfg.controles).map(([k, c]) => [k, marks[c.etiqueta] === true])),
@@ -320,12 +321,13 @@ export function assessOcd(o, incidents, policy, cfg, calendario, hoy) {
 }
 
 /** Informe Markdown del OCD para el Issue. */
-export function renderOcdReport(o, r, policy, cfg) {
+export function renderOcdReport(o, r, policy, cfg, sol = null) {
   const icon = r.estado === "Bloqueado" ? "🛑" : "✅";
   const L = [];
   L.push(`## ${icon} Evaluación del OCD: ${esc(o.change.servicio || "sin servicio")}`);
   L.push(`**Estado:** ${r.estado} · **Riesgo:** ${r.nivel} (${r.score}/100) · **Tipo:** ${esc(o.change.tipo || "sin tipo")}${r.tipoEfectivo !== o.change.tipo ? ` (tratado como ${r.tipoEfectivo})` : ""} · **Ejecución:** ${esc(o.fecha || "sin fecha")} ${r.dia ? `(${r.dia})` : ""} ${esc(o.hora || "")} · política \`${policy.version}\` / OCD \`${cfg.version}\``, "");
   if (r.blockers.length) L.push("### Bloqueos", ...r.blockers.map((b) => `- 🛑 ${esc(b)}`), "");
+  if (sol?.encontrado) L.push("### Solicitante y grupos de red", `- 👤 ${esc(sol.usuario.nombre)} (${sol.matricula})`, ...sol.grupos.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id}: ${esc(g.nombre)}`), "");
   if (r.advertencias.length) L.push("### Advertencias", ...r.advertencias.map((a) => `- ⚠️ ${esc(a)}`), "");
   if (r.actions.length) L.push("### Qué hacer ahora", ...r.actions.map((a, i) => `${i + 1}. ${esc(a)}`), "");
   if (r.plan.length) {
@@ -362,4 +364,41 @@ export function validarEquipoOcd({ servicio, usuarioId, elegidos = {}, tipo = "N
     if (r.estado === "incorrecto") mensajes.push(`${r.elegidoNombre} no es el ${r.rol} de ${servicio}. Corresponde a ${r.esperadoNombre}.`);
   }
   return { servicioConocido: true, grupos, roles, mensajes, completo: mensajes.length === 0 };
+}
+
+/* ---------- Solicitante: matrícula y grupos de red ---------- */
+
+const RE_MATRICULA = /^M-?(\d{5})$/;
+/** Normaliza una matrícula escrita como "m10458" o "M-10458". Devuelve "" si no tiene el formato. */
+export const normalizarMatricula = (t) => { const m = String(t ?? "").trim().toUpperCase().match(RE_MATRICULA); return m ? `M-${m[1]}` : ""; };
+/** Busca a la persona por su matrícula en el directorio (ficticio en la POC). */
+export function buscarPorMatricula(dir, texto) {
+  const mat = normalizarMatricula(texto);
+  const id = mat && Object.keys(dir.usuarios).find((k) => dir.usuarios[k].matricula === mat);
+  return id ? { id, matricula: mat, ...dir.usuarios[id] } : null;
+}
+
+/** Verifica que la matrícula exista y que tenga los grupos de red que exige el servicio. */
+export function revisarSolicitanteOcd({ servicio, matricula }, dir) {
+  const out = { encontrado: false, matricula: "", usuario: null, grupos: [], bloqueos: [], advertencias: [], acciones: [] };
+  const mat = normalizarMatricula(matricula);
+  if (!String(matricula ?? "").trim()) { out.bloqueos.push("Falta la matrícula del solicitante"); return out; }
+  if (!mat) { out.bloqueos.push("Matrícula inválida: usa el formato M-12345"); return out; }
+  out.matricula = mat;
+  const u = buscarPorMatricula(dir, mat);
+  if (!u) { out.bloqueos.push(`La matrícula ${mat} no existe en el directorio`); return out; }
+  out.encontrado = true; out.usuario = u;
+  const svc = dir.servicios[servicio];
+  if (!svc) { out.advertencias.push("No tengo los grupos de red de este servicio: verifícalos con la mesa de red."); return out; }
+  out.grupos = svc.grupos.map((id) => ({ id, ...dir.gruposRed[id], tiene: u.gruposRed.includes(id) }));
+  const faltan = out.grupos.filter((g) => !g.tiene);
+  for (const g of faltan) out.bloqueos.push(`La matrícula ${mat} no tiene el grupo de red ${g.id} (${g.nombre})`);
+  if (faltan.length) out.acciones.push(`Pide los grupos de red ${faltan.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}.`);
+  return out;
+}
+
+/** Suma al resultado del OCD lo que encontró la revisión del solicitante. */
+export function combinarSolicitante(r, sol) {
+  const blockers = [...new Set([...r.blockers, ...sol.bloqueos])];
+  return { ...r, blockers, advertencias: [...r.advertencias, ...sol.advertencias], actions: [...sol.acciones, ...r.actions], estado: blockers.length ? "Bloqueado" : r.estado };
 }

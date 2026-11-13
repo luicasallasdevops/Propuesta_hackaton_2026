@@ -136,7 +136,8 @@
    "detalle": "Recién ingresó al squad de pagos-api",
    "gruposRed": [
     "GR-APP"
-   ]
+   ],
+   "matricula": "M-10458"
   },
   "experto": {
    "nombre": "Mateo Díaz (ficticio)",
@@ -145,7 +146,14 @@
     "GR-APP",
     "GR-DB",
     "GR-DEPLOY"
-   ]
+   ],
+   "matricula": "M-10212"
+  },
+  "sin-grupos": {
+   "nombre": "Camilo Ortiz (ficticio)",
+   "detalle": "Sin grupos de red asignados todavía",
+   "matricula": "M-10777",
+   "gruposRed": []
   }
  }
 }

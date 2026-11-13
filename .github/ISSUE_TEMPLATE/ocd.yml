@@ -10,6 +10,14 @@ body:
       description: Nombre del servicio. Ejemplos de la demo, pagos-api, canal-web, core-cuentas, tarjetas-api
     validations:
       required: true
+  - type: input
+    id: matricula
+    attributes:
+      label: Matrícula
+      description: Tu matrícula de empleado, formato M-12345. El agente verifica con ella que tengas los grupos de red del servicio.
+      placeholder: "M-10212"
+    validations:
+      required: true
   - type: dropdown
     id: tipo
     attributes:

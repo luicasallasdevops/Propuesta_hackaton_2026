@@ -1,4 +1,5 @@
 import { splitSections, search, assess } from "./engine.mjs";
+import { crearAsistenteOcd } from "./ocd-assistant.js";
 
 const $ = (s) => document.querySelector(s);
 const el = (tag, props = {}, ...kids) => {
@@ -7,7 +8,7 @@ const el = (tag, props = {}, ...kids) => {
   return n;
 };
 const load = (f) => fetch(`data/${f}`).then((r) => { if (!r.ok) throw new Error(f); return r.json(); });
-const [kb, tpl, incidents, policy] = await Promise.all(["kb.json", "templates.json", "incidents.json", "policy.json"].map(load));
+const [kb, tpl, incidents, policy, ocdCfg, ocdCal, ocdDir] = await Promise.all(["kb.json", "templates.json", "incidents.json", "policy.json", "ocd.json", "ocd-calendario.json", "ocd-directorio.json"].map(load));
 const sections = splitSections(kb);
 
 /* Pestañas */
@@ -39,6 +40,11 @@ function renderText(text) {
 const log = $("#log");
 const say = (who, ...content) => { const m = el("div", { className: `msg ${who}` }, content); log.append(m); m.scrollIntoView({ block: "end" }); };
 
+const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, ir: (prefill) => {
+  $("#t-ocd").click();
+  setTimeout(() => { document.dispatchEvent(new CustomEvent("ocd:prefill", { detail: prefill })); $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 200);
+} });
+
 function copyButton(text) {
   const b = el("button", { type: "button", textContent: "Copiar" });
   b.addEventListener("click", async () => { await navigator.clipboard.writeText(text); b.textContent = "¡Copiado!"; setTimeout(() => (b.textContent = "Copiar"), 1500); });
@@ -49,6 +55,7 @@ const templateCard = (name, body) => el("div", { className: "tpl card" },
   el("pre", {}, el("code", { textContent: body })));
 
 function answer(q) {
+  if (asistenteOcd.manejar(q)) return;
   const wantsTpl = /workflow|action|pipeline|plantilla|yaml|codeql|dependabot|release/i.test(q);
   const hits = wantsTpl ? [] : search(sections, q, 2);
   if (!hits.length && !wantsTpl) {
@@ -62,7 +69,10 @@ function answer(q) {
     const key = /dependabot/i.test(q) ? ["dependabot.yml"] : /release|produccion|producción|despleg/i.test(q) ? ["workflows/release-produccion.yml"] : ["workflows/ci-seguridad.yml"];
     say("bot", el("p", { textContent: "Plantilla oficial lista para copiar:" }), ...key.map((k) => templateCard(k, tpl[k])));
   }
-  if (/ocd/i.test(q)) say("bot", el("p", {}, "Practica creando un OCD en el simulador de Jira de la pestaña Pase OCD, o prueba el agente real en GitHub: ", el("a", { href: issueUrl().replace("pase-produccion.yml", "ocd.yml"), textContent: "abrir OCD", rel: "noopener" })));
+  if (/ocd/i.test(q)) {
+    say("bot", el("p", {}, "Practica creando un OCD en el simulador de Jira de la pestaña Pase OCD, o prueba el agente real en GitHub: ", el("a", { href: issueUrl().replace("pase-produccion.yml", "ocd.yml"), textContent: "abrir OCD", rel: "noopener" })));
+    asistenteOcd.ofrecer();
+  }
   else if (/ticket|pase/i.test(q)) say("bot", el("p", {}, "Crea el ticket con el formulario y el agente lo evalúa al instante: ", el("a", { href: issueUrl(), textContent: "abrir ticket de pase", rel: "noopener" })));
 }
 
@@ -78,7 +88,7 @@ $("#chat-form").addEventListener("submit", (e) => {
   if (!q) return;
   say("user", q); $("#q").value = ""; answer(q);
 });
-for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué grupos de red necesito para un OCD?", "¿Qué reglas de calendario tiene un OCD?"]) {
+for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué grupos de red necesito para un OCD?", "¿Qué reglas de calendario tiene un OCD?", "Ayúdame a crear mi OCD"]) {
   const b = el("button", { type: "button", textContent: s });
   b.addEventListener("click", () => { say("user", s); answer(s); });
   $("#chips").append(b);
