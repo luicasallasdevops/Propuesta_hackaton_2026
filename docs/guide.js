@@ -100,7 +100,7 @@ const STEPS = [
   {
     id: "tuyo", icono: "🚀", c: "c8", tiempo: "5 min", titulo: "Hazlo tuyo y escálalo",
     texto: "Ajusta los estándares, las reglas de riesgo y el historial de incidentes. Otras áreas solo cambian su carpeta de conocimiento.",
-    acciones: [{ t: "Guía para equipos", href: gh("/blob/main/documentacion/04-guia-para-equipos.md") }, { t: "Hoja de ruta", href: gh("/blob/main/documentacion/05-seguridad-decisiones-roadmap.md") }],
+    acciones: [{ t: "Ver beneficios y pilares", fn: () => goTab("t-ben") }, { t: "Guía para equipos", href: gh("/blob/main/documentacion/04-guia-para-equipos.md") }, { t: "Hoja de ruta", href: gh("/blob/main/documentacion/05-seguridad-decisiones-roadmap.md") }],
     resultado: "Sabes cómo ampliar el conocimiento, ajustar el riesgo y replicarlo en tu área.",
   },
 ];

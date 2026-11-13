@@ -23,6 +23,7 @@ La 0.2.0 responde con un **tablero visual del flujo del pase**, que se mueve sol
 | Quién entra al tablero | No aplica | Solo tickets del equipo (dueño, miembros, colaboradores) |
 | Seguridad del token | No aplica | Token en un **entorno protegido** (`kanban`), limitado a la rama `main` |
 | Guía interactiva | 8 pasos, diseño básico | **9 pasos**, iconos, colores, anillo de progreso, recorrido fijo y botón "Volver a la guía" |
+| Portal | Sin sección de valor | **Pestaña Beneficios**: pilares, gráfico de riesgo en vivo, antes/después y criterios del reto |
 | Producción | Hoja de ruta general | **Recomendación detallada de GitHub App** para bancos |
 | Pruebas automáticas | 6 | **8** |
 

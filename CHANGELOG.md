@@ -5,6 +5,7 @@
 - No mueve tarjetas que una persona ya avanzó; solo procesa tickets del equipo.
 - Token en el entorno protegido `kanban` (solo `main`), nombre `GH_PROJECT_TOKEN`.
 - Guía interactiva visual de 9 pasos, con iconos, progreso y botón de regreso.
+- Pestaña Beneficios: 6 pilares, gráfico de riesgo en vivo con el motor real, antes/después, cifras de la POC y criterios del reto.
 - Documentación: resumen simple 0.2.0 y recomendación de GitHub App para producción.
 
 ## 0.1.0-poc
