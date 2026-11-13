@@ -42,8 +42,9 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   const opciones = (...b) => el("div", { className: "qrs" }, b);
   let pre = {};     // datos que el usuario ya dio en la conversación (servicio, fecha, rollback…)
   let pausa = null; // OCD a medias cuando el usuario hace una pregunta en medio
-  const reiniciar = () => { st = "idle"; d = {}; pausa = null; };
-  const salir = (t) => { if (st !== "idle" && st !== "fin" && !pausa) pausa = { st, d }; st = "idle"; d = {}; return interno(t); };
+  const fuera = () => document.dispatchEvent(new CustomEvent("ocd:fuera"));
+  const reiniciar = () => { st = "idle"; d = {}; pausa = null; fuera(); };
+  const salir = (t) => { if (st !== "idle" && st !== "fin" && !pausa) pausa = { st, d }; st = "idle"; d = {}; fuera(); return interno(t); };
 
   /* ---------- Escenario 1: matrícula, rol y grupos de red ---------- */
   const grupos = () => revisarGruposDevsecops(d.u, dir, d.extra ?? [], d.perfil);
@@ -268,6 +269,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   function crearOcd() {
     const { r } = datosOcd();
     d.key = `OCD-${++nOCD}`; d.r = r; d.fechaOk = false;
+    document.dispatchEvent(new CustomEvent("ocd:info", { detail: { key: d.key, modalidad: d.modalidad, servicio: d.svc } }));
     const tecnicos = r.blockers.filter((b) => !CALENDARIO_RX.test(b));
     say("bot", el("h3", { textContent: `${d.key} creado en Jira` }),
       p(`${nombreCorto(d.u)} (${d.perfil}) · ${d.svc} · ${d.tipo} · modalidad ${d.modalidad} · historia ${d.historia.id}`),
@@ -555,5 +557,5 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     return false;
   }
 
-  return { ofrecer, iniciar: iniciarCrear, iniciarConDatos, manejar, ofrecerRetomar, preguntarRol, explicarFlujo, explicarModalidades, pausar: () => { if (st !== "idle" && st !== "fin" && !pausa) pausa = { st, d }; st = "idle"; d = {}; }, get pausado() { return !!pausa; }, get activo() { return st !== "idle"; } };
+  return { ofrecer, iniciar: iniciarCrear, iniciarConDatos, manejar, ofrecerRetomar, preguntarRol, explicarFlujo, explicarModalidades, pausar: () => { if (st !== "idle" && st !== "fin" && !pausa) pausa = { st, d }; st = "idle"; d = {}; fuera(); }, get pausado() { return !!pausa; }, get activo() { return st !== "idle"; } };
 }

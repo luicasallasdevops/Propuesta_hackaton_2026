@@ -21,6 +21,7 @@ tabs.forEach((t) => t.addEventListener("click", () => {
     x.setAttribute("aria-selected", on);
     $("#" + x.getAttribute("aria-controls")).hidden = !on;
   });
+  window.scrollTo({ top: 0, behavior: "auto" });
 }));
 
 /* Renderizado seguro de texto Markdown simple (solo nodos DOM, sin innerHTML) */
@@ -61,7 +62,31 @@ function bombear() {
   t.scrollIntoView({ block: "end", behavior: "auto" });
   setTimeout(() => { t.remove(); mostrar(it); ocupado = false; bombear(); }, Math.min(2200, 900 + textoDe(it.content) * 5));
 }
-const say = (who, ...content) => { gpt.dataset.vacio = "false"; cola.push({ who, content }); bombear(); };
+/* Transición suave al enviar el primer mensaje: lo de la portada se desvanece y el campo se desliza hacia abajo. */
+const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let saliendo = false;
+function salirDeVacio() {
+  saliendo = true; ocupado = true;
+  const comp = $(".composer");
+  const antes = comp.getBoundingClientRect().top;
+  gpt.classList.add("saliendo");
+  setTimeout(() => {
+    gpt.dataset.vacio = "false"; gpt.classList.remove("saliendo");
+    if (!reducido) {
+      const despues = comp.getBoundingClientRect().top;
+      comp.style.transition = "none"; comp.style.transform = `translateY(${antes - despues}px)`;
+      comp.getBoundingClientRect();
+      comp.style.transition = "transform .5s cubic-bezier(.2,.8,.2,1)"; comp.style.transform = "";
+      setTimeout(() => { comp.style.transition = ""; }, 520);
+    }
+    saliendo = false; ocupado = false; bombear();
+  }, reducido ? 0 : 220);
+}
+const say = (who, ...content) => {
+  cola.push({ who, content });
+  if (gpt.dataset.vacio === "true") { if (!saliendo) salirDeVacio(); return; }
+  bombear();
+};
 
 const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, historias: ocdHist, flujo: ocdFlujo, ir: (prefill) => {
   $("#t-ocd").click();

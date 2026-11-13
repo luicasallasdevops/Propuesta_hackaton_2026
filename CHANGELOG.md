@@ -1,5 +1,12 @@
 # Cambios
 
+## 1.5.1-poc
+Portal aún más minimalista y con progreso visible durante la guía del OCD.
+- El menú de secciones pasa al pie y se retira la etiqueta de «Entorno de demostración». La caja de chat es más grande.
+- **Panel de progreso** durante la creación del OCD: requisitos (matrícula, grupos, historia, modalidad, datos), porcentaje, clave del OCD y estado actual. Las preguntas comunes no lo muestran y se retoma al volver al OCD.
+- Transición suave al enviar el primer mensaje: la portada se desvanece y el campo se desliza hacia abajo.
+- Documento 16: análisis para mover el tablero del OCD de GitHub Projects a Jira.
+
 ## 1.5.0-poc
 Portal más limpio, con el chat como protagonista, y una guía del OCD que acompaña el flujo real.
 - **Diseño tipo ChatGPT:** buscador grande al centro, atajos como tarjetas y, al conversar, el chat ocupa la página con el campo fijo abajo. El aviso de demostración pasa a una etiqueta discreta.

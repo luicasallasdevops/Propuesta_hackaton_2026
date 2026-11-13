@@ -8,23 +8,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top">
-  <div class="wrap bar">
-    <div class="brand"><span class="logo" aria-hidden="true">🤖</span><h1>Asistente DevSecOps</h1></div>
-    <nav role="tablist" aria-label="Secciones">
-      <button role="tab" aria-selected="true" aria-controls="p-chat" id="t-chat">Asistente</button>
-      <button role="tab" aria-selected="false" aria-controls="p-guia" id="t-guia">Guía</button>
-      <button role="tab" aria-selected="false" aria-controls="p-ben" id="t-ben">Beneficios</button>
-      <button role="tab" aria-selected="false" aria-controls="p-ocd" id="t-ocd">Pase OCD</button>
-      <button role="tab" aria-selected="false" aria-controls="p-pase" id="t-pase">Validar mi pase</button>
-      <button role="tab" aria-selected="false" aria-controls="p-plant" id="t-plant">Plantillas</button>
-      <button role="tab" aria-selected="false" aria-controls="p-como" id="t-como">Cómo funciona</button>
-    </nav>
-    <details class="demo-pill" role="note"><summary><span aria-hidden="true">🧪</span> Entorno de demostración</summary>
-      <p><strong>Real:</strong> los Issues, el agente en GitHub Actions, las etiquetas, los comandos <code>/ocd</code> y el tablero. <strong>Demostrativo:</strong> Jira, Helpdesk, el directorio de personas, el calendario y los incidentes de ejemplo.</p>
-    </details>
-  </div>
-</header>
+<header class="top"><div class="wrap bar"><div class="brand"><span class="logo" aria-hidden="true">🤖</span><h1>Asistente DevSecOps</h1></div></div></header>
 
 <main class="wrap">
   <section id="p-chat" role="tabpanel" aria-labelledby="t-chat">
@@ -33,6 +17,7 @@
         <h2 id="hero-t">¿Qué quieres hacer hoy?</h2>
         <p class="muted">Cuéntame con tus palabras y te acompaño paso a paso.</p>
       </div>
+      <div id="progreso" class="prog" hidden aria-label="Progreso del OCD"></div>
       <div id="log" class="log" aria-live="polite"></div>
       <div class="composer">
         <div class="chips" id="chips" aria-label="Atajos"></div>
@@ -104,9 +89,21 @@
     </div>
   </section>
 </main>
+<footer class="foot"><div class="wrap">
+  <nav role="tablist" aria-label="Secciones">
+    <button role="tab" aria-selected="true" aria-controls="p-chat" id="t-chat">Asistente</button>
+    <button role="tab" aria-selected="false" aria-controls="p-guia" id="t-guia">Guía</button>
+    <button role="tab" aria-selected="false" aria-controls="p-ben" id="t-ben">Beneficios</button>
+    <button role="tab" aria-selected="false" aria-controls="p-ocd" id="t-ocd">Pase OCD</button>
+    <button role="tab" aria-selected="false" aria-controls="p-pase" id="t-pase">Validar mi pase</button>
+    <button role="tab" aria-selected="false" aria-controls="p-plant" id="t-plant">Plantillas</button>
+    <button role="tab" aria-selected="false" aria-controls="p-como" id="t-como">Cómo funciona</button>
+  </nav>
+</div></footer>
 <dialog id="dlg" aria-labelledby="dlg-t"></dialog>
 <script type="module" src="app.js"></script>
 <script type="module" src="flujo-visual.js"></script>
+<script type="module" src="progreso.js"></script>
 <script type="module" src="guide.js"></script>
 <script type="module" src="benefits.js"></script>
 <script type="module" src="ocd.js"></script>
