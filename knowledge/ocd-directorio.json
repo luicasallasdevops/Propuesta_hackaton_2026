@@ -15,9 +15,10 @@
   }
  },
  "solicitudRed": {
-  "como": "Crea un ticket de tipo Solicitud de red en Jira, indica el servicio y el grupo, y pide la aprobación de tu líder técnico.",
+  "como": "Crea una Solicitud de red en Helpdesk (cola Accesos y redes), indica el grupo y pide la aprobación de tu líder técnico.",
   "sla": "3 días hábiles",
-  "ayuda": "Hazlo antes de abrir el OCD: pedirlo el mismo día retrasa el pase (caso INC-1080)."
+  "ayuda": "Hazlo antes de abrir el OCD: pedirlo el mismo día retrasa el pase (caso INC-1080).",
+  "cola": "Helpdesk · Accesos y redes"
  },
  "servicios": {
   "pagos-api": {
@@ -137,7 +138,10 @@
    "gruposRed": [
     "GR-APP"
    ],
-   "matricula": "M-10458"
+   "matricula": "M-10458",
+   "gruposDevsecops": [
+    "GR-DSO-GITHUB"
+   ]
   },
   "experto": {
    "nombre": "Mateo Díaz (ficticio)",
@@ -147,13 +151,33 @@
     "GR-DB",
     "GR-DEPLOY"
    ],
-   "matricula": "M-10212"
+   "matricula": "M-10212",
+   "gruposDevsecops": [
+    "GR-DSO-GITHUB",
+    "GR-DSO-SCAN",
+    "GR-DSO-RELEASE"
+   ]
   },
   "sin-grupos": {
    "nombre": "Camilo Ortiz (ficticio)",
    "detalle": "Sin grupos de red asignados todavía",
    "matricula": "M-10777",
-   "gruposRed": []
+   "gruposRed": [],
+   "gruposDevsecops": []
+  }
+ },
+ "gruposDevsecops": {
+  "GR-DSO-GITHUB": {
+   "nombre": "Acceso a GitHub Enterprise y repositorios del squad",
+   "para": "Abrir y gestionar el OCD y su código"
+  },
+  "GR-DSO-SCAN": {
+   "nombre": "Acceso a resultados de SAST, SCA y secretos",
+   "para": "Adjuntar las evidencias de seguridad"
+  },
+  "GR-DSO-RELEASE": {
+   "nombre": "Acceso a ambientes protegidos de release",
+   "para": "Ejecutar el pase en la ventana"
   }
  }
 }

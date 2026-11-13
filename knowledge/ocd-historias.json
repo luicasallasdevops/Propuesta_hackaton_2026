@@ -1,0 +1,9 @@
+[
+  {"id": "HU-3101", "servicio": "pagos-api", "titulo": "Nuevo límite de montos para transferencias", "estado": "En desarrollo", "responsable": "Camila Torres (ficticia)"},
+  {"id": "HU-3102", "servicio": "pagos-api", "titulo": "Mostrar el motivo del rechazo de un pago", "estado": "En pruebas", "responsable": "Andrés Pineda (ficticio)"},
+  {"id": "HU-3110", "servicio": "core-cuentas", "titulo": "Ajuste de cálculo de intereses", "estado": "En pruebas", "responsable": "Luis Mora (ficticio)"},
+  {"id": "HU-3111", "servicio": "core-cuentas", "titulo": "Reporte de conciliación diaria", "estado": "En desarrollo", "responsable": "Paula Campos (ficticia)"},
+  {"id": "HU-3120", "servicio": "canal-web", "titulo": "Pantalla de resumen de cuenta", "estado": "Listo para pase", "responsable": "Jorge Salas (ficticio)"},
+  {"id": "HU-3130", "servicio": "tarjetas-api", "titulo": "Rotación automática de certificados", "estado": "Listo para pase", "responsable": "Marta Vega (ficticia)"},
+  {"id": "HU-3140", "servicio": "notificaciones", "titulo": "Evitar avisos duplicados de transferencia", "estado": "Listo para pase", "responsable": "Lucía Herrera (ficticia)"}
+]

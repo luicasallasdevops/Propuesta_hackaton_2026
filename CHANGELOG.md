@@ -1,5 +1,12 @@
 # Cambios
 
+## 1.2.0-poc
+- **Escenario 1 del OCD:** cuando el usuario pregunta cómo crear un OCD, el agente ofrece validar con su matrícula los grupos de red de DevSecOps (GR-DSO-GITHUB, GR-DSO-SCAN, GR-DSO-RELEASE). Si faltan, ofrece crear la solicitud en Helpdesk (ticket simulado HD-n con aprobación del líder).
+- **Escenario 2 del OCD:** el usuario pide crear un OCD, el agente pide su historia (HU-1234; si no la sabe, la crea con él), pide todos los datos del OCD menos las instrucciones, asocia la historia, guía paso a paso la gestión con el calendario y valida las instrucciones de despliegue al llegar a la revisión técnica (con plantilla de ayuda).
+- El simulador de Jira muestra los grupos DevSecOps, la historia asociada y las instrucciones con validación en vivo.
+- El agente real y el formulario `[OCD]` validan historia (obligatoria) e instrucciones (opcionales) y los grupos de DevSecOps.
+- Datos ficticios nuevos: historias (`ocd-historias.json`) y grupos DevSecOps. 2 pruebas nuevas (23 en total).
+
 ## 1.1.0-poc
 - Pase a producción tipo OCD: formulario `[OCD]` con fecha y hora, y agente que valida riesgo y calendario (ventana martes a jueves, cupo, CAB, feriados, congelamientos, anticipación).
 - El agente calcula las fechas de cada etapa, define los aprobadores (líder técnico, Seguridad, Change Management, Delegado CIO) y propone otra noche si la elegida no sirve.

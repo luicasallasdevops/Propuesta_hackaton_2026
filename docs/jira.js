@@ -1,6 +1,6 @@
 // Simulador de creación de un OCD "estilo Jira": valida grupos de red, aprobadores, calendario y riesgo con el agente.
 // En la POC el motor corre en GitHub; en producción el mismo agente leería el ticket de Jira. Solo nodos DOM y textContent.
-import { assessOcd, validarEquipoOcd, fmtFechaCorta } from "./engine.mjs";
+import { assessOcd, validarEquipoOcd, fmtFechaCorta, revisarGruposDevsecops, validarHistoria, validarInstrucciones, plantillaInstrucciones } from "./engine.mjs";
 
 const el = (tag, props = {}, ...kids) => {
   const n = Object.assign(document.createElement(tag), props);
@@ -10,7 +10,7 @@ const el = (tag, props = {}, ...kids) => {
 const ICON = { ok: "✅", falta: "⬜", incorrecto: "⚠️" };
 const LOZENGE = { "Solicitado": "z1", "Bloqueado": "z2", "Listo para aprobaciones": "z3", "Aprobado": "z4", "En producción": "z5" };
 
-export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
+export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias }) {
   let contador = 2100;
   const servicios = Object.keys(dir.servicios);
   const sel = (name, opts, val) => { const s = el("select", { name }, opts.map((o) => (Array.isArray(o) ? el("option", { value: o[0], textContent: o[1] }) : el("option", { textContent: o })))); if (val) s.value = val; return s; };
@@ -25,6 +25,14 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
   for (const [k, c] of Object.entries(policy.controles)) checks.append(el("label", {}, el("input", { type: "checkbox", name: k, checked: true }), c.etiqueta));
   for (const [k, c] of Object.entries(cfg.controles)) checks.append(el("label", { className: "ocd-extra" }, el("input", { type: "checkbox", name: `ocd_${k}`, checked: true }), c.etiqueta));
   const gruposBox = el("div", { className: "grupos" });
+  const histSel = el("select", { name: "historia" });
+  const llenarHistorias = (valor = "") => {
+    const svc = form.elements.servicio?.value;
+    histSel.replaceChildren(el("option", { value: "", textContent: "— elige —" }), ...historias.filter((h) => !svc || h.servicio === svc).map((h) => el("option", { value: h.id, textContent: `${h.id} · ${h.titulo}` })));
+    histSel.value = [...histSel.options].some((o) => o.value === valor) ? valor : "";
+  };
+  const instr = el("textarea", { name: "instrucciones", rows: 6, maxLength: 4000, placeholder: "1. …\n2. …\n3. …\nIncluye rollback y verificación posterior. Se piden en las revisiones técnicas." });
+  const usarPlantilla = el("button", { type: "button", className: "btn ghost chico", textContent: "Usar plantilla de instrucciones" });
   const auto = el("button", { type: "button", className: "btn ghost", textContent: "✨ Autocompletar con lo que sugiere el agente" });
   const crear = el("button", { type: "submit", textContent: "Crear OCD" });
 
@@ -37,9 +45,11 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
     el("div", { className: "row" }, campo("Criticidad", sel("criticidad", ["Alta", "Media", "Baja"], "Alta")), campo("Tamaño", sel("tamano", ["Pequeño", "Mediano", "Grande"], "Pequeño"))),
     el("div", { className: "row" }, campo("Fecha de ejecución", el("input", { name: "fecha", type: "date", value: "2026-11-24", required: true }), "(noche mar a jue)"), campo("Hora de inicio", el("input", { name: "hora", type: "time", value: "22:00", required: true }))),
     campo("Plan de rollback", sel("rollback", ["Sí, probado", "Sí, sin probar", "No"], "Sí, probado")),
-    el("h3", { textContent: "🌐 Grupos de red del servicio" }), gruposBox,
+    campo("Historia asociada", histSel, "(la HU que origina el cambio)"),
+    el("h3", { textContent: "🌐 Grupos de red" }), gruposBox,
     el("h3", { textContent: "👥 Aprobadores" }), aprob, auto,
     el("fieldset", {}, el("legend", { textContent: "Evidencias y requisitos" }), checks),
+    campo("Instrucciones de despliegue", instr, "(opcional al crear; el agente las valida en la revisión técnica)"), usarPlantilla,
     crear);
 
   const panel = el("div", { className: "card asistente", ariaLive: "polite" });
@@ -55,18 +65,25 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
       fecha: String(f.get("fecha")), hora: String(f.get("hora")),
       ocdChecks: Object.fromEntries(Object.keys(cfg.controles).map((k) => [k, f.get(`ocd_${k}`) === "on"])),
     };
-    const eq = validarEquipoOcd({ servicio: o.change.servicio, usuarioId: String(f.get("usuario")), elegidos, tipo: o.change.tipo }, dir, cfg);
-    return { f, o, eq, elegidos, r: assessOcd(o, incidents, policy, cfg, cal, hoy) };
+    const usuarioId = String(f.get("usuario"));
+    const eq = validarEquipoOcd({ servicio: o.change.servicio, usuarioId, elegidos, tipo: o.change.tipo }, dir, cfg);
+    const dso = revisarGruposDevsecops(dir.usuarios[usuarioId], dir);
+    const hist = validarHistoria({ historia: String(f.get("historia") || ""), servicio: o.change.servicio }, historias);
+    const texto = String(f.get("instrucciones") || "");
+    const ins = texto.trim() ? validarInstrucciones(texto, { servicio: o.change.servicio, criticidad: o.change.criticidad }) : null;
+    return { f, o, eq, elegidos, dso, hist, ins, historia: String(f.get("historia") || ""), r: assessOcd(o, incidents, policy, cfg, cal, hoy) };
   };
 
   const fila = (icono, txt, cls = "") => el("li", { className: cls }, el("span", { textContent: icono, ariaHidden: "true" }), el("span", { textContent: ` ${txt}` }));
   function pintar() {
-    const { o, eq, r } = leer();
-    const gr = eq.grupos.map((g) => fila(g.tiene ? "✅" : "❌", `${g.id} · ${g.nombre}`, g.tiene ? "" : "mal"));
+    const { o, eq, r, dso, hist, ins } = leer();
+    const gr = [...dso.grupos.map((g) => fila(g.tiene ? "✅" : "❌", `${g.id} (DevSecOps) · ${g.nombre}`, g.tiene ? "" : "mal")), ...eq.grupos.map((g) => fila(g.tiene ? "✅" : "❌", `${g.id} (servicio) · ${g.nombre}`, g.tiene ? "" : "mal"))];
     gruposBox.replaceChildren(el("ul", { className: "lst" }, gr));
     const rolesLis = eq.roles.map((x) => fila(ICON[x.estado], x.estado === "ok" ? `${x.rol}: ${x.elegidoNombre}` : x.estado === "falta" ? `${x.rol}: sin elegir · en este servicio es ${x.esperadoNombre}` : `${x.rol}: ${x.elegidoNombre} no corresponde · es ${x.esperadoNombre}`, x.estado === "ok" ? "" : "mal"));
     const pasos = [];
-    const faltanGrupos = eq.grupos.filter((g) => !g.tiene);
+    const faltanGrupos = [...dso.faltan, ...eq.grupos.filter((g) => !g.tiene)];
+    if (!hist.ok) pasos.push(`${hist.motivo}. Elige la historia del cambio; si no tienes una, pídele al chat «quiero crear un OCD» y te ayuda a crearla.`);
+    if (ins && !ins.ok) pasos.push(`Corrige las instrucciones: ${ins.bloqueos[0]}.`);
     if (faltanGrupos.length) pasos.push(`Pide los grupos de red: ${faltanGrupos.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}. ${dir.solicitudRed.ayuda}`);
     if (eq.roles.some((x) => x.estado !== "ok")) pasos.push("Elige a los aprobadores correctos del servicio. Puedes usar el botón Autocompletar para ver quiénes son.");
     if (r.blockers.length) pasos.push(`Resuelve los bloqueos del agente: ${r.blockers.slice(0, 2).join("; ")}.`);
@@ -76,9 +93,12 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
     panel.replaceChildren(
       el("h2", { textContent: "🤖 Asistente OCD" }),
       el("p", { className: "muted", textContent: "Revisa tu ticket mientras lo llenas. Aprende qué necesita un OCD antes de crearlo." }),
-      el("h3", { textContent: "1 · Grupos de red" }), el("p", { textContent: eq.grupos.length ? (faltanGrupos.length ? `Te faltan ${faltanGrupos.length} de ${eq.grupos.length}.` : "Tienes todos los que exige el servicio.") : "Servicio desconocido." }),
+      el("h3", { textContent: "1 · Grupos de red" }), el("p", { textContent: eq.grupos.length ? (faltanGrupos.length ? `Te faltan ${faltanGrupos.length} de ${eq.grupos.length + dso.grupos.length} (DevSecOps y del servicio).` : "Tienes todos los de DevSecOps y los que exige el servicio.") : "Servicio desconocido." }),
       el("h3", { textContent: "2 · Aprobadores" }), el("ul", { className: "lst" }, rolesLis),
-      el("h3", { textContent: "3 · Calendario y riesgo" }),
+      el("h3", { textContent: "3 · Historia e instrucciones" }),
+      el("ul", { className: "lst" }, [fila(hist.ok ? "✅" : "⬜", hist.ok ? `Historia ${hist.id}: ${hist.historia.titulo}` : hist.motivo, hist.ok ? "" : "mal"),
+        ins ? fila(ins.ok ? "✅" : "🛑", ins.ok ? `Instrucciones válidas (${ins.pasos} pasos)` : ins.bloqueos[0], ins.ok ? "" : "mal") : fila("ℹ️", "Instrucciones pendientes: se validan en la revisión técnica")]),
+      el("h3", { textContent: "4 · Calendario y riesgo" }),
       el("p", {}, el("span", { className: `pill ${col}`, textContent: !eq.completo && r.estado !== "Bloqueado" ? "Faltan datos del equipo" : r.estado }), ` Riesgo ${r.nivel} (${r.score}/100)`),
       r.blockers.length ? el("ul", { className: "lst" }, r.blockers.slice(0, 4).map((b) => fila("🛑", b, "mal"))) : "",
       r.advertencias.length ? el("ul", { className: "lst" }, r.advertencias.slice(0, 2).map((b) => fila("⚠️", b))) : "",
@@ -91,6 +111,8 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
     for (const r of roles) form.elements[`ap_${r}`].value = svc?.roles[r] ?? "";
     pintar();
   });
+  usarPlantilla.addEventListener("click", () => { instr.value = plantillaInstrucciones({ servicio: form.elements.servicio.value, historia: histSel.value || "HU-0000", fecha: form.elements.fecha.value, hora: form.elements.hora.value }); pintar(); });
+  form.elements.servicio.addEventListener("change", () => llenarHistorias(histSel.value));
   form.addEventListener("input", pintar);
   form.addEventListener("change", pintar);
 
@@ -105,7 +127,7 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
     ticket.hidden = false;
     ticket.replaceChildren(
       el("div", { className: "jira-bar" }, el("strong", { textContent: `${t.key} · ${t.resumen}` }), el("span", { className: `lz ${LOZENGE[col]}`, textContent: col })),
-      el("p", { className: "muted", textContent: `${t.servicio} · ${t.tipo} · ${fmtFechaCorta(t.fecha)} ${t.hora} · riesgo ${t.nivel} (${t.score}/100) · creado por ${t.autor}` }),
+      el("p", { className: "muted", textContent: `${t.servicio} · ${t.historia || "sin historia"} · ${t.tipo} · ${fmtFechaCorta(t.fecha)} ${t.hora} · riesgo ${t.nivel} (${t.score}/100) · creado por ${t.autor}` }),
       el("h3", { textContent: "🤖 Comentario del agente OCD" }),
       t.bloqueado ? el("ul", { className: "lst" }, t.motivos.map((m) => fila("🛑", m, "mal"))) : el("p", { textContent: "Sin bloqueos. Se solicitaron las aprobaciones y se calculó el calendario." }),
       t.plan.length ? el("ol", { className: "tl" }, t.plan.map((p) => el("li", {}, el("span", { className: "tl-d", textContent: `${fmtFechaCorta(p.fecha)}${p.hora ? ` ${p.hora}` : ""}` }), el("span", { className: "tl-t" }, el("strong", { textContent: p.nombre }), el("small", { textContent: ` · ${p.responsable}` }))))) : "",
@@ -122,9 +144,10 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const { o, eq, r, elegidos, f } = leer();
-    const motivos = [...eq.mensajes, ...r.blockers];
+    const { dso, hist, ins, historia } = leer();
+    const motivos = [...dso.faltan.map((g) => `Falta el grupo de DevSecOps ${g.id}`), ...eq.mensajes, ...r.blockers, ...(hist.ok ? [] : [hist.motivo]), ...(ins && !ins.ok ? ins.bloqueos.map((b) => `Instrucciones: ${b}`) : [])];
     estado.creado = {
-      key: `OCD-${++contador}`, resumen: String(f.get("resumen")).slice(0, 120), servicio: o.change.servicio, tipo: o.change.tipo, fecha: o.fecha, hora: o.hora,
+      key: `OCD-${++contador}`, resumen: String(f.get("resumen")).slice(0, 120), servicio: o.change.servicio, tipo: o.change.tipo, fecha: o.fecha, hora: o.hora, historia,
       nivel: r.nivel, score: r.score, autor: dir.usuarios[String(f.get("usuario"))].nombre, bloqueado: motivos.length > 0, motivos, plan: r.plan,
       aprobaciones: Object.fromEntries(r.aprobadores.map((a) => [a, /informado|posteriori/i.test(a) ? "informado" : "pendiente"])),
       nombres: Object.fromEntries(Object.entries(elegidos).map(([k, v]) => [k, dir.personas[v]?.nombre ?? ""])), col: "",
@@ -139,9 +162,14 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy }) {
   document.addEventListener("ocd:prefill", (e) => {
     const x = e.detail || {};
     for (const k of ["usuario", "servicio", "tipo", "fecha"]) if (x[k]) form.elements[k].value = x[k];
+    if (x.historiaObj && !historias.some((h) => h.id === x.historiaObj.id)) historias.push(x.historiaObj);
+    if (x.usuario && Array.isArray(x.gruposExtra) && dir.usuarios[x.usuario]) dir.usuarios[x.usuario].gruposDevsecops = [...new Set([...(dir.usuarios[x.usuario].gruposDevsecops ?? []), ...x.gruposExtra])];
+    llenarHistorias(x.historia);
+    if (x.instrucciones) form.elements.instrucciones.value = x.instrucciones;
     auto.click();
   });
 
+  llenarHistorias();
   pintar();
   return el("div", { id: "jira-sim" },
     el("div", { className: "card jira-intro" },

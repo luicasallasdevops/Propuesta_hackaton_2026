@@ -248,6 +248,8 @@ export function ocdFromForm(fields, policy, cfg) {
   return {
     change: changeFromForm(fields, policy),
     matricula: clean(fields["Matrícula"]).slice(0, 12),
+    historia: clean(fields["Historia asociada"]).slice(0, 12),
+    instrucciones: clean(fields["Instrucciones de despliegue"]).slice(0, 4100),
     fecha: clean(fields["Fecha de ejecución"]).slice(0, 10),
     hora: clean(fields["Hora de inicio"]).slice(0, 5),
     ocdChecks: Object.fromEntries(Object.entries(cfg.controles).map(([k, c]) => [k, marks[c.etiqueta] === true])),
@@ -321,13 +323,15 @@ export function assessOcd(o, incidents, policy, cfg, calendario, hoy) {
 }
 
 /** Informe Markdown del OCD para el Issue. */
-export function renderOcdReport(o, r, policy, cfg, sol = null) {
+export function renderOcdReport(o, r, policy, cfg, sol = null, rev = null) {
   const icon = r.estado === "Bloqueado" ? "🛑" : "✅";
   const L = [];
   L.push(`## ${icon} Evaluación del OCD: ${esc(o.change.servicio || "sin servicio")}`);
   L.push(`**Estado:** ${r.estado} · **Riesgo:** ${r.nivel} (${r.score}/100) · **Tipo:** ${esc(o.change.tipo || "sin tipo")}${r.tipoEfectivo !== o.change.tipo ? ` (tratado como ${r.tipoEfectivo})` : ""} · **Ejecución:** ${esc(o.fecha || "sin fecha")} ${r.dia ? `(${r.dia})` : ""} ${esc(o.hora || "")} · política \`${policy.version}\` / OCD \`${cfg.version}\``, "");
   if (r.blockers.length) L.push("### Bloqueos", ...r.blockers.map((b) => `- 🛑 ${esc(b)}`), "");
-  if (sol?.encontrado) L.push("### Solicitante y grupos de red", `- 👤 ${esc(sol.usuario.nombre)} (${sol.matricula})`, ...sol.grupos.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id}: ${esc(g.nombre)}`), "");
+  if (sol?.encontrado) L.push("### Solicitante y grupos de red", `- 👤 ${esc(sol.usuario.nombre)} (${sol.matricula})`, ...sol.gruposDso.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id} (DevSecOps): ${esc(g.nombre)}`), ...sol.grupos.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id} (servicio): ${esc(g.nombre)}`), "");
+  if (rev?.historia) L.push("### Historia asociada", `- 📖 ${rev.historia.id} · ${esc(rev.historia.titulo)} (${esc(rev.historia.estado)})`, "");
+  if (rev?.instr) L.push("### Instrucciones de despliegue", `- ${rev.instr.ok ? "✅ Válidas" : "🛑 Con bloqueos"}: ${rev.instr.pasos} paso(s) detectado(s)`, "");
   if (r.advertencias.length) L.push("### Advertencias", ...r.advertencias.map((a) => `- ⚠️ ${esc(a)}`), "");
   if (r.actions.length) L.push("### Qué hacer ahora", ...r.actions.map((a, i) => `${i + 1}. ${esc(a)}`), "");
   if (r.plan.length) {
@@ -380,7 +384,7 @@ export function buscarPorMatricula(dir, texto) {
 
 /** Verifica que la matrícula exista y que tenga los grupos de red que exige el servicio. */
 export function revisarSolicitanteOcd({ servicio, matricula }, dir) {
-  const out = { encontrado: false, matricula: "", usuario: null, grupos: [], bloqueos: [], advertencias: [], acciones: [] };
+  const out = { encontrado: false, matricula: "", usuario: null, grupos: [], gruposDso: [], bloqueos: [], advertencias: [], acciones: [] };
   const mat = normalizarMatricula(matricula);
   if (!String(matricula ?? "").trim()) { out.bloqueos.push("Falta la matrícula del solicitante"); return out; }
   if (!mat) { out.bloqueos.push("Matrícula inválida: usa el formato M-12345"); return out; }
@@ -388,6 +392,10 @@ export function revisarSolicitanteOcd({ servicio, matricula }, dir) {
   const u = buscarPorMatricula(dir, mat);
   if (!u) { out.bloqueos.push(`La matrícula ${mat} no existe en el directorio`); return out; }
   out.encontrado = true; out.usuario = u;
+  const dso = revisarGruposDevsecops(u, dir);
+  out.gruposDso = dso.grupos;
+  for (const g of dso.faltan) out.bloqueos.push(`La matrícula ${mat} no tiene el grupo de red de DevSecOps ${g.id} (${g.nombre})`);
+  if (dso.faltan.length) out.acciones.push(`Pide los grupos de DevSecOps ${dso.faltan.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}.`);
   const svc = dir.servicios[servicio];
   if (!svc) { out.advertencias.push("No tengo los grupos de red de este servicio: verifícalos con la mesa de red."); return out; }
   out.grupos = svc.grupos.map((id) => ({ id, ...dir.gruposRed[id], tiene: u.gruposRed.includes(id) }));
@@ -397,8 +405,98 @@ export function revisarSolicitanteOcd({ servicio, matricula }, dir) {
   return out;
 }
 
-/** Suma al resultado del OCD lo que encontró la revisión del solicitante. */
-export function combinarSolicitante(r, sol) {
-  const blockers = [...new Set([...r.blockers, ...sol.bloqueos])];
-  return { ...r, blockers, advertencias: [...r.advertencias, ...sol.advertencias], actions: [...sol.acciones, ...r.actions], estado: blockers.length ? "Bloqueado" : r.estado };
+/** Suma al resultado del OCD lo que encontraron las revisiones del solicitante, la historia y las instrucciones. */
+export function combinarSolicitante(r, ...revs) {
+  const blockers = [...new Set([...r.blockers, ...revs.flatMap((x) => x.bloqueos)])];
+  return { ...r, blockers, advertencias: [...r.advertencias, ...revs.flatMap((x) => x.advertencias)], actions: [...revs.flatMap((x) => x.acciones), ...r.actions], estado: blockers.length ? "Bloqueado" : r.estado };
+}
+
+/* ---------- Grupos de red de DevSecOps, Helpdesk, historia e instrucciones del OCD ---------- */
+
+/** Grupos de red de DevSecOps que necesita quien crea un OCD. `extra` son grupos recién aprobados en la sesión. */
+export function revisarGruposDevsecops(usuario, dir, extra = []) {
+  const tiene = new Set([...(usuario?.gruposDevsecops ?? []), ...extra]);
+  const grupos = Object.entries(dir.gruposDevsecops).map(([id, g]) => ({ id, ...g, tiene: tiene.has(id) }));
+  return { grupos, faltan: grupos.filter((g) => !g.tiene), completo: grupos.every((g) => g.tiene) };
+}
+
+/** Solicitud simulada en Helpdesk para pedir grupos de red. */
+export function crearSolicitudHelpdesk({ usuario, ids, dir, numero }) {
+  return {
+    key: `HD-${numero}`, cola: dir.solicitudRed.cola, estado: "Pendiente de aprobación", sla: dir.solicitudRed.sla,
+    asunto: `Solicitud de red: ${ids.join(", ")}`, solicitante: `${usuario.nombre} (${usuario.matricula})`,
+    aprobador: "Líder técnico del squad", grupos: ids.map((id) => ({ id, nombre: dir.gruposDevsecops[id]?.nombre ?? dir.gruposRed[id]?.nombre ?? id })),
+  };
+}
+
+/** Normaliza "hu3101" o "HU-3101". Devuelve "" si no tiene el formato. */
+export const normalizarHistoria = (t) => { const m = String(t ?? "").trim().toUpperCase().match(/^HU-?(\d{4})$/); return m ? `HU-${m[1]}` : ""; };
+
+/** La historia debe existir y ser del mismo servicio del OCD. */
+export function validarHistoria({ historia, servicio }, historias) {
+  if (!String(historia ?? "").trim()) return { ok: false, motivo: "Falta la historia asociada" };
+  const id = normalizarHistoria(historia);
+  if (!id) return { ok: false, motivo: "Historia inválida: usa el formato HU-1234" };
+  const h = historias.find((x) => x.id === id);
+  if (!h) return { ok: false, motivo: `La historia ${id} no existe` };
+  if (servicio && h.servicio !== servicio) return { ok: false, motivo: `La historia ${id} es del servicio ${h.servicio}, no de ${servicio}`, historia: h };
+  return { ok: true, id, historia: h };
+}
+
+const limpio = (s, n) => String(s ?? "").replace(/[\u0000-\u001f<>@]/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
+/** Arma una historia de usuario simulada con criterios de aceptación estándar. */
+export function armarHistoria({ rol, objetivo, beneficio, servicio, numero }) {
+  const o = limpio(objetivo, 140), b = limpio(beneficio, 140), r = limpio(rol, 60) || "miembro del squad";
+  return {
+    id: `HU-${numero}`, servicio, titulo: o, estado: "Por hacer", responsable: r,
+    descripcion: `Como ${r} quiero ${o} para ${b}.`,
+    criterios: ["Las pruebas QA del cambio están aprobadas", "SAST, SCA y escaneo de secretos sin hallazgos críticos o altos", "Existe un rollback probado y un plan de verificación posterior"],
+  };
+}
+
+const SECRETOS = [/(password|passwd|contrase[nñ]a|pwd)\s*[=:]\s*\S+/i, /(api[_-]?key|secret|token)\s*[=:]\s*\S{6,}/i, /AKIA[0-9A-Z]{16}/, /-----BEGIN [A-Z ]*PRIVATE KEY-----/, /\b(postgres|mysql|mongodb|oracle):\/\/[^\s:@]+:[^\s@]+@/i];
+const PELIGROSO = [[/\brm\s+-rf\b/i, "rm -rf"], [/\bdrop\s+(table|database)\b/i, "DROP TABLE o DATABASE"], [/\btruncate\s+table\b/i, "TRUNCATE TABLE"], [/chmod\s+(-R\s+)?777/i, "chmod 777"], [/curl[^|\n]*\|\s*(ba)?sh\b/i, "curl | sh"], [/\bdelete\s+from\s+\w+\s*;?\s*$/im, "DELETE sin WHERE"]];
+
+/** Revisa las instrucciones de despliegue que el solicitante entrega en las revisiones técnicas. */
+export function validarInstrucciones(texto, { servicio = "", criticidad = "" } = {}) {
+  const t = String(texto ?? "").trim();
+  const bloqueos = [], avisos = [];
+  if (t.length < 80) bloqueos.push("Las instrucciones son muy cortas: describe el despliegue paso a paso (mínimo 80 caracteres)");
+  if (t.length > 4000) bloqueos.push("Las instrucciones superan los 4000 caracteres: resume y enlaza el runbook");
+  const pasos = (t.match(/(?:^|\s)\d{1,2}[.)]\s+\S/g) || []).length || (t.match(/^\s*[-*•]\s+\S/gm) || []).length;
+  if (pasos < 3) bloqueos.push("Escribe al menos 3 pasos numerados (1. 2. 3.)");
+  if (!/rollback|revertir|reversa|volver a la versi/i.test(t)) bloqueos.push("Falta el paso de rollback: cómo se revierte si algo falla");
+  if (!/verific|valida|smoke|prueba de humo|monitor/i.test(t)) bloqueos.push("Falta la verificación posterior: qué se revisa y cuánto tiempo (30 minutos)");
+  if (SECRETOS.some((re) => re.test(t))) bloqueos.push("Hay una credencial o secreto escrito en el texto: quítalo y usa el gestor de secretos");
+  for (const [re, nombre] of PELIGROSO) if (re.test(t)) bloqueos.push(`Comando peligroso (${nombre}): reemplázalo por un paso seguro y reversible`);
+  if (servicio && !t.toLowerCase().includes(servicio.toLowerCase())) avisos.push(`No menciona el servicio ${servicio}: aclara sobre qué se ejecuta cada paso`);
+  if (!/producci|\bprod\b|ventana|\d{2}:\d{2}/i.test(t)) avisos.push("No indica el ambiente (producción) ni la ventana de ejecución");
+  if (criticidad === "Alta" && !/respaldo|backup|snapshot|precondici|prerrequisit/i.test(t)) avisos.push("El servicio es de criticidad Alta: añade un paso previo de respaldo o precondiciones");
+  return { ok: bloqueos.length === 0, bloqueos, avisos, pasos };
+}
+
+/** Plantilla de instrucciones que pasa la validación, para quien no sabe por dónde empezar. */
+export function plantillaInstrucciones({ servicio = "<servicio>", historia = "HU-0000", fecha = "<fecha>", hora = "22:00" } = {}) {
+  return [
+    `1. Confirmar con el líder técnico que la ventana del ${fecha} a las ${hora} sigue vigente y avisar al canal de operaciones.`,
+    `2. Respaldo: verificar el respaldo o snapshot más reciente de ${servicio} antes de empezar.`,
+    `3. Desplegar en producción la versión de la historia ${historia} con el workflow ocd-ejecucion, ambiente production.`,
+    `4. Ejecutar las pruebas de humo del runbook de ${servicio}.`,
+    `5. Verificación posterior: vigilar métricas y alertas de ${servicio} durante 30 minutos.`,
+    `6. Rollback: si falla la verificación, volver a la versión anterior con el mismo workflow y avisar al líder técnico.`,
+  ].join("\n");
+}
+
+/** Revisa historia e instrucciones de un OCD (para el agente real y el simulador). */
+export function revisarHistoriaEInstrucciones({ historia, instrucciones, servicio, criticidad }, historias) {
+  const out = { bloqueos: [], advertencias: [], acciones: [], historia: null, instr: null };
+  const h = validarHistoria({ historia, servicio }, historias);
+  if (!h.ok) { out.bloqueos.push(h.motivo); out.acciones.push("Asocia la historia del cambio (HU-1234). Si no tienes una, pídele al asistente que te ayude a crearla."); } else out.historia = h.historia;
+  if (!String(instrucciones ?? "").trim()) out.advertencias.push("Aún no hay instrucciones de despliegue: se piden al llegar a las revisiones técnicas.");
+  else {
+    out.instr = validarInstrucciones(instrucciones, { servicio, criticidad });
+    out.bloqueos.push(...out.instr.bloqueos.map((b) => `Instrucciones: ${b}`));
+    out.advertencias.push(...out.instr.avisos.map((a) => `Instrucciones: ${a}`));
+  }
+  return out;
 }

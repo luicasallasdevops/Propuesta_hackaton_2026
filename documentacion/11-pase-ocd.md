@@ -60,22 +60,32 @@ Fecha de la simulación: **lunes 16 de noviembre de 2026** (campo "Hoy" del plan
 | OCD-2001 | canal-web | Normal | Mar 10 nov | En producción | Ya ejecutado |
 | OCD-2007 | notificaciones | Emergencia | Lun 16 nov | En producción | Aprobación a posteriori pendiente |
 
-## El agente ofrece ayuda y valida con la matrícula
-Cuando el usuario pregunta cómo crear un OCD, el agente responde y cierra con: **"¿Quieres que te ayude a crear el OCD?"**. Si acepta (o escribe "ayúdame a crear mi OCD"):
-1. Pide la **matrícula** (formato M-12345) y busca a la persona en el directorio.
-2. Pregunta el servicio y muestra qué **grupos de red** exige y cuáles tiene esa matrícula. Si falta alguno, explica cómo pedirlo (Solicitud de red, 3 días hábiles).
-3. Pregunta el tipo de cambio y propone la primera noche válida.
-4. Muestra los **aprobadores del servicio** y el calendario, y puede abrir el simulador de Jira con todo cargado.
+## Caso de negocio: creación de OCD con el agente
+**Escenario 1: el usuario pregunta cómo crear un OCD**
+1. El agente responde con la guía y pregunta si quiere que valide sus grupos de red de DevSecOps.
+2. Pide la **matrícula** (M-12345) y revisa GR-DSO-GITHUB, GR-DSO-SCAN y GR-DSO-RELEASE.
+3. Si faltan, pregunta: "¿Quieres que yo cree la solicitud en Helpdesk?". Crea el ticket simulado `HD-n` (cola Accesos y redes, aprobador líder técnico, 3 días hábiles) y puede simular la aprobación para continuar la demo.
+4. Si están completos, ofrece seguir con la creación del OCD.
 
-El agente real hace la misma verificación: el formulario del OCD pide la **Matrícula** y el informe añade la sección "Solicitante y grupos de red". Bloquea el OCD si la matrícula falta, tiene formato inválido, no existe o no tiene los grupos del servicio. Un servicio que no está en el directorio solo genera una advertencia.
+**Escenario 2: el usuario pide crear un OCD** ("quiero crear un OCD")
+1. Pide la **historia** (HU-1234). La valida: existe y es del servicio del cambio. Si el usuario no la sabe, el agente la crea con tres preguntas (quién se beneficia, qué quiere, para qué) y le asigna una HU nueva con criterios de aceptación.
+2. Pide **todos los datos del OCD menos las instrucciones**: tipo, criticidad, tamaño, fecha (sugiere la primera noche válida), hora, rollback, evidencias y descripción, y asocia la historia.
+3. Crea el OCD simulado con la pre-validación (estado, riesgo, bloqueos, aprobadores).
+4. **Guía interactiva:** recorre las etapas del calendario con botón "Hecho, siguiente".
+5. En la **revisión del líder técnico** pide las **instrucciones de despliegue** y las valida: mínimo 80 caracteres, 3 pasos numerados, rollback, verificación posterior, sin secretos ni comandos peligrosos (avisos: servicio, ambiente, respaldo si la criticidad es Alta). Ofrece una plantilla y repite hasta que pasen.
+6. Al final abre el simulador de Jira con la historia y las instrucciones cargadas.
+
+**Agente real (GitHub):** el formulario del OCD pide **Matrícula** y **Historia asociada** (obligatorias) e **Instrucciones de despliegue** (opcionales). El informe añade "Solicitante y grupos de red" (DevSecOps y del servicio), "Historia asociada" e "Instrucciones de despliegue", y bloquea el OCD si falta la matrícula, un grupo de red, la historia o si las instrucciones escritas no pasan la revisión.
 
 Matrículas ficticias de la demo (`knowledge/ocd-directorio.json`):
 
-| Matrícula | Persona | Grupos de red |
-|---|---|---|
-| M-10458 | Valentina Ríos, nueva | Solo GR-APP |
-| M-10212 | Mateo Díaz, con experiencia | GR-APP, GR-DB, GR-DEPLOY |
-| M-10777 | Camilo Ortiz | Ninguno |
+| Matrícula | Persona | Grupos DevSecOps | Grupos del servicio |
+|---|---|---|---|
+| M-10458 | Valentina Ríos, nueva | GR-DSO-GITHUB | Solo GR-APP |
+| M-10212 | Mateo Díaz, con experiencia | Los 3 | GR-APP, GR-DB, GR-DEPLOY |
+| M-10777 | Camilo Ortiz | Ninguno | Ninguno |
+
+Historias ficticias (`knowledge/ocd-historias.json`): HU-3101 y HU-3102 (pagos-api), HU-3110 y HU-3111 (core-cuentas), HU-3120 (canal-web), HU-3130 (tarjetas-api), HU-3140 (notificaciones).
 
 ## El OCD se crea en Jira (simulado)
 El usuario real crea el OCD en **Jira** (proyecto OCD, tipo de incidencia Pase a Producción). En la POC no hay Jira: el portal lo **simula** con una pantalla estilo Jira y el motor real corre en GitHub (Issue `[OCD]` + Actions + tablero). En producción, el mismo agente leería el ticket de Jira por su API y escribiría el comentario y el estado allí.
@@ -107,7 +117,7 @@ Abre el formulario **Pase a Producción tipo OCD** (equivale al ticket de Jira e
 | Bloqueado | M-10212 | pagos-api | Normal | Alta | Grande | 2026-11-20 | 22:00 | No | ninguna | Bloqueado, Crítico 100/100 |
 | Noche llena | M-10212 | notificaciones | Estándar | Baja | Pequeño | 2026-11-18 | 23:30 | Sí, probado | las 9 + las 2 | Bloqueado: ventana llena y propone el jueves 19 |
 
-El Issue #3 de prueba se creó antes del campo Matrícula: si se edita, el agente lo bloqueará por falta de matrícula hasta que se agregue `M-10212`.
+Los Issues #3 y #4 se crearon antes de los campos Matrícula e Historia: si se editan, el agente los bloqueará hasta que se agreguen (por ejemplo `M-10212` y `HU-3101`).
 
 Si ya pasó el 16 de noviembre, usa un martes a jueves con al menos 7 días hábiles de anticipación: el agente compara contra la fecha real del día.
 

@@ -8,7 +8,7 @@ const el = (tag, props = {}, ...kids) => {
   return n;
 };
 const load = (f) => fetch(`data/${f}`).then((r) => { if (!r.ok) throw new Error(f); return r.json(); });
-const [kb, tpl, incidents, policy, ocdCfg, ocdCal, ocdDir] = await Promise.all(["kb.json", "templates.json", "incidents.json", "policy.json", "ocd.json", "ocd-calendario.json", "ocd-directorio.json"].map(load));
+const [kb, tpl, incidents, policy, ocdCfg, ocdCal, ocdDir, ocdHist] = await Promise.all(["kb.json", "templates.json", "incidents.json", "policy.json", "ocd.json", "ocd-calendario.json", "ocd-directorio.json", "ocd-historias.json"].map(load));
 const sections = splitSections(kb);
 
 /* Pestañas */
@@ -40,7 +40,7 @@ function renderText(text) {
 const log = $("#log");
 const say = (who, ...content) => { const m = el("div", { className: `msg ${who}` }, content); log.append(m); m.scrollIntoView({ block: "end" }); };
 
-const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, ir: (prefill) => {
+const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, historias: ocdHist, ir: (prefill) => {
   $("#t-ocd").click();
   setTimeout(() => { document.dispatchEvent(new CustomEvent("ocd:prefill", { detail: prefill })); $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 200);
 } });
@@ -88,7 +88,7 @@ $("#chat-form").addEventListener("submit", (e) => {
   if (!q) return;
   say("user", q); $("#q").value = ""; answer(q);
 });
-for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué grupos de red necesito para un OCD?", "¿Qué reglas de calendario tiene un OCD?", "Ayúdame a crear mi OCD"]) {
+for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué grupos de red necesito para un OCD?", "¿Qué reglas de calendario tiene un OCD?", "Quiero crear un OCD"]) {
   const b = el("button", { type: "button", textContent: s });
   b.addEventListener("click", () => { say("user", s); answer(s); });
   $("#chips").append(b);

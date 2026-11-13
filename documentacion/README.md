@@ -15,6 +15,6 @@ Lee en este orden:
 8. [Análisis de funcionalidad y seguridad](08-analisis-funcional-y-seguridad.md): hallazgos, correcciones y recomendaciones.
 9. [Versión 1.0.0](09-version-1.0.0.md): resumen final.
 10. [Configuración de seguridad paso a paso y por qué](10-configuracion-de-seguridad-paso-a-paso.md).
-11. [Pase a producción tipo OCD](11-pase-ocd.md): calendario, aprobadores, datos ficticios y cómo probarlo (versión 1.1.0).
+11. [Pase a producción tipo OCD](11-pase-ocd.md): calendario, aprobadores, datos ficticios y cómo probarlo (versión 1.2.0: grupos DevSecOps, Helpdesk, historia e instrucciones).
 
 Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **simulado**.

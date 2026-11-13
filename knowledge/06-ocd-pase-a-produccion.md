@@ -8,25 +8,41 @@
 - Se crea en Jira (en esta POC se simula en la pestaña Pase OCD). El agente lo revisa al instante y te dice qué falta.
 
 ## Quiero que me ayuden a crear el OCD
-- Escribe «ayúdame a crear mi OCD» en el chat. El asistente te pide tu matrícula (formato M-12345) y con ella verifica los grupos de red del servicio.
-- Después te pregunta el servicio, el tipo de cambio y la noche. Te muestra los aprobadores del servicio y revisa el calendario.
-- Al final puede abrir el simulador de Jira con tus datos ya cargados.
-- En el OCD real, el agente repite esa verificación con la matrícula del formulario y bloquea el OCD si falta un grupo de red.
+- Escribe «quiero crear un OCD» en el chat. El asistente te pide tu matrícula (formato M-12345) y valida tus grupos de red de DevSecOps.
+- Si te faltan grupos, te pregunta si quieres que cree la solicitud en Helpdesk (cola Accesos y redes) y te muestra el ticket.
+- Después te pide tu historia (formato HU-1234). Si no la conoces, te ayuda a crearla con tres preguntas: quién se beneficia, qué quiere y para qué.
+- Luego te pide los datos del OCD: tipo, criticidad, tamaño, fecha, hora, rollback, evidencias y descripción. No te pide las instrucciones todavía. Asocia la historia al OCD.
+- Te guía paso a paso por la gestión del OCD con el calendario. En la revisión del líder técnico valida tus instrucciones de despliegue.
+- En el OCD real, el agente repite las verificaciones con la matrícula, la historia y las instrucciones del formulario y bloquea el OCD si algo falla.
+
+## Instrucciones de despliegue del OCD
+- Se entregan en las revisiones técnicas, no al crear el OCD.
+- Deben tener al menos 3 pasos numerados, un paso de rollback y una verificación posterior (30 minutos).
+- No deben incluir contraseñas, tokens ni llaves. Usa el gestor de secretos.
+- El agente bloquea comandos peligrosos como rm -rf, DROP TABLE, TRUNCATE, chmod 777 o curl | sh.
+- Si el servicio es de criticidad Alta, añade un paso previo de respaldo o precondiciones.
+- Si no sabes cómo escribirlas, pide la plantilla al asistente y ajústala a tu cambio.
+
+## Historia asociada al OCD
+- Todo OCD se asocia a una historia (HU-1234) del mismo servicio. El agente bloquea el OCD si falta, no existe o es de otro servicio.
+- Si no tienes historia, el asistente te ayuda a crearla: rol, objetivo y beneficio, con criterios de aceptación estándar.
 
 ## Cómo crear un OCD en Jira paso a paso
-1. Verifica que tienes los grupos de red del servicio. Si falta alguno, pídelo antes de abrir el OCD.
+1. Verifica que tienes los grupos de red de DevSecOps y los del servicio. Si falta alguno, pídelo en Helpdesk antes de abrir el OCD.
 2. Reúne las evidencias: pruebas QA, SAST, SCA, escaneo de secretos, runbook y monitoreo.
 3. Define el rollback y pruébalo en un ambiente previo. Sin rollback el OCD se bloquea.
 4. En Jira elige el proyecto OCD y el tipo de incidencia Pase a Producción.
-5. Completa tu matrícula, servicio, tipo de cambio, criticidad, tamaño, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
+5. Asocia tu historia (HU-1234). Completa tu matrícula, servicio, tipo de cambio, criticidad, tamaño, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
 6. Elige a los aprobadores del servicio: líder técnico, Product Owner, Seguridad y Change Management.
 7. Crea el ticket. El agente publica el informe con bloqueos, calendario y aprobadores, y mueve el estado.
 8. Corrige lo que el agente marque y edita el ticket. El informe se actualiza solo.
 
 ## Grupos de red para un OCD
+- Para crear y ejecutar cualquier OCD necesitas los grupos de red de DevSecOps: GR-DSO-GITHUB (GitHub y repositorios), GR-DSO-SCAN (resultados de SAST, SCA y secretos) y GR-DSO-RELEASE (ambientes protegidos de release).
+- Si no los tienes, el asistente te ofrece crear la solicitud en Helpdesk por ti. La aprobación es de tu líder técnico y tarda 3 días hábiles.
 - Cada servicio exige grupos de red en producción: acceso a servidores de aplicación (GR-APP), acceso de lectura a la base de datos (GR-DB) y la red del runner de despliegue (GR-DEPLOY).
 - No todos los servicios necesitan los tres. El asistente te muestra cuáles exige tu servicio y cuáles ya tienes.
-- Si te falta un grupo, crea un ticket de tipo Solicitud de red en Jira, indica el servicio y el grupo, y pide la aprobación de tu líder técnico.
+- Si te falta un grupo, crea una Solicitud de red en Helpdesk (cola Accesos y redes), indica el servicio y el grupo, y pide la aprobación de tu líder técnico.
 - La solicitud de red tarda 3 días hábiles. Pídela antes de abrir el OCD: pedirla el mismo día retrasa el pase.
 
 ## Quién es quién en un OCD
@@ -68,3 +84,5 @@
 - Crear el OCD con menos días de anticipación de los que pide el CAB.
 - No avisar a las áreas impactadas antes de la ventana.
 - Pedir los grupos de red el mismo día de la ejecución.
+- Crear el OCD sin historia o con la historia de otro servicio.
+- Escribir instrucciones sin rollback o con una contraseña en el texto.

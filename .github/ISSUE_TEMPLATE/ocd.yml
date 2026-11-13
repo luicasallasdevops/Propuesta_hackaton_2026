@@ -18,6 +18,14 @@ body:
       placeholder: "M-10212"
     validations:
       required: true
+  - type: input
+    id: historia
+    attributes:
+      label: Historia asociada
+      description: Historia del cambio, formato HU-1234. Si no tienes una, pídele al asistente del portal que te ayude a crearla.
+      placeholder: "HU-3101"
+    validations:
+      required: true
   - type: dropdown
     id: tipo
     attributes:
@@ -90,3 +98,8 @@ body:
     attributes:
       label: Descripción del cambio
       description: Qué cambia, qué servicios toca y cómo se verifica que salió bien.
+  - type: textarea
+    id: instrucciones
+    attributes:
+      label: Instrucciones de despliegue
+      description: Opcional al crear. Se piden en las revisiones técnicas, con pasos numerados, rollback y verificación posterior, sin credenciales.

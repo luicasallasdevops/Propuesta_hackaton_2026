@@ -46,7 +46,7 @@ const TEXTO_ETAPA = {
 };
 
 async function init() {
-  const [cfg, cal, policy, incidents, dir] = await Promise.all(["ocd.json", "ocd-calendario.json", "policy.json", "incidents.json", "ocd-directorio.json"].map(load));
+  const [cfg, cal, policy, incidents, dir, historias] = await Promise.all(["ocd.json", "ocd-calendario.json", "policy.json", "incidents.json", "ocd-directorio.json", "ocd-historias.json"].map(load));
   const HOY = cfg.fechaDemo;
   const porId = (id) => cal.find((c) => c.id === id);
   const checksDe = (f) => Object.fromEntries(Object.keys(policy.controles).map((k) => [k, !f.faltan.includes(k)]));
@@ -220,7 +220,7 @@ async function init() {
     el("h2", { className: "sec", textContent: "🧭 Tu recorrido en 6 pasos" }),
     el("ol", { className: "steps6" }, RECORRIDO.map(([ico, t, d], n) => el("li", {}, el("span", { className: "s6-i", textContent: ico }), el("strong", { textContent: `${n + 1}. ${t}` }), el("small", { textContent: d })))),
     el("h2", { className: "sec", textContent: "🎫 Crea tu primer OCD en Jira (simulado)" }),
-    montarJira({ cfg, cal, policy, incidents, dir, hoy: HOY }),
+    montarJira({ cfg, cal, policy, incidents, dir, hoy: HOY, historias }),
     el("h2", { className: "sec", textContent: "🛠️ Planificador rápido de fechas" }),
     chips,
     el("div", { className: "grid2" }, form, salida),

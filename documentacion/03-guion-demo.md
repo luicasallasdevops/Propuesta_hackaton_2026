@@ -17,7 +17,8 @@
 ## Extra: pase OCD (3 minutos, opcional)
 | Qué mostrar | Qué decir |
 |---|---|
-| **Preguntar** → "¿Cómo creo un OCD paso a paso?" y aceptar la ayuda con la matrícula M-10458 | "El agente pregunta si quiere ayuda, valida con la matrícula qué grupos de red le faltan y le dice quién aprueba." |
+| **Preguntar** → "¿Cómo creo un OCD paso a paso?", aceptar validar los grupos con la matrícula M-10458 y pedir la solicitud en Helpdesk | "El agente valida los grupos de DevSecOps, ve que faltan y crea por mí la solicitud en Helpdesk." |
+| **Preguntar** → "Quiero crear un OCD", responder "no sé" a la historia y seguir la guía hasta las instrucciones | "El agente me ayuda a crear mi historia, me pide los datos, me guía por el calendario y valida mis instrucciones en la revisión técnica." |
 | **Simulador de Jira**: perfil Valentina, pulsar Crear | "Una persona nueva no sabe qué grupos de red ni qué aprobadores necesita. El asistente se lo dice antes de que el pase se retrase." |
 | Cambiar a Mateo, Autocompletar, Crear y simular aprobaciones | "Con todo en orden el ticket avanza hasta producción." |
 | Pestaña **📅 Pase OCD**, caso "🈵 Noche llena" | "El OCD es el pase que se agenda. El agente ve que la noche del miércoles ya tiene 3 cambios y propone el jueves." |

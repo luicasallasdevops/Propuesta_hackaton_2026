@@ -122,7 +122,7 @@ test("la matrícula identifica al solicitante y se validan sus grupos de red", a
   assert.deepEqual(new Set(Object.values(dir.usuarios).map((u) => u.matricula)).size, Object.keys(dir.usuarios).length);
 
   const faltan = revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "M-10458" }, dir);
-  assert.deepEqual(faltan.bloqueos.map((b) => b.match(/GR-\w+/)[0]), ["GR-DB", "GR-DEPLOY"]);
+  assert.deepEqual(faltan.bloqueos.map((b) => b.match(/GR-[\w-]+/)[0]), ["GR-DSO-SCAN", "GR-DSO-RELEASE", "GR-DB", "GR-DEPLOY"]);
   assert.ok(faltan.acciones[0].includes("Solicitud de red"));
   assert.equal(revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "M-10212" }, dir).bloqueos.length, 0);
   assert.equal(revisarSolicitanteOcd({ servicio: "pagos-api", matricula: "" }, dir).bloqueos[0], "Falta la matrícula del solicitante");
@@ -135,4 +135,50 @@ test("la matrícula identifica al solicitante y se validan sus grupos de red", a
   assert.equal(combinarSolicitante(r, faltan).estado, "Bloqueado");
   const md = renderOcdReport(o, combinarSolicitante(r, faltan), policy, cfg, faltan);
   assert.ok(md.includes("Solicitante y grupos de red") && md.includes("❌ GR-DB"));
+});
+
+test("escenario 1: grupos DevSecOps y solicitud en Helpdesk", async () => {
+  const { revisarGruposDevsecops, crearSolicitudHelpdesk } = await import("../scripts/engine.mjs");
+  const dir = await J("knowledge/ocd-directorio.json");
+  const v = dir.usuarios.nueva;
+  const r = revisarGruposDevsecops(v, dir);
+  assert.deepEqual(r.faltan.map((g) => g.id), ["GR-DSO-SCAN", "GR-DSO-RELEASE"]);
+  assert.equal(r.completo, false);
+  const hd = crearSolicitudHelpdesk({ usuario: v, ids: r.faltan.map((g) => g.id), dir, numero: 501 });
+  assert.equal(hd.key, "HD-501");
+  assert.equal(hd.estado, "Pendiente de aprobación");
+  assert.equal(hd.grupos.length, 2);
+  assert.equal(revisarGruposDevsecops(v, dir, ["GR-DSO-SCAN", "GR-DSO-RELEASE"]).completo, true);
+  assert.equal(revisarGruposDevsecops(dir.usuarios.experto, dir).completo, true);
+});
+
+test("escenario 2: historia, instrucciones y revisión combinada", async () => {
+  const { validarHistoria, armarHistoria, validarInstrucciones, plantillaInstrucciones, revisarHistoriaEInstrucciones, normalizarHistoria } = await import("../scripts/engine.mjs");
+  const hs = await J("knowledge/ocd-historias.json");
+  assert.equal(normalizarHistoria("hu3101"), "HU-3101");
+  assert.equal(normalizarHistoria("x; drop"), "");
+  assert.equal(validarHistoria({ historia: "HU-3101", servicio: "pagos-api" }, hs).ok, true);
+  assert.match(validarHistoria({ historia: "HU-3101", servicio: "canal-web" }, hs).motivo, /es del servicio pagos-api/);
+  assert.match(validarHistoria({ historia: "HU-9999", servicio: "pagos-api" }, hs).motivo, /no existe/);
+  assert.equal(validarHistoria({ historia: "", servicio: "pagos-api" }, hs).ok, false);
+  const h = armarHistoria({ rol: "analista", objetivo: "ver el motivo del rechazo", beneficio: "atender mejor al cliente", servicio: "pagos-api", numero: 3201 });
+  assert.equal(h.id, "HU-3201");
+  assert.match(h.descripcion, /^Como analista quiero ver el motivo/);
+  assert.equal(h.criterios.length, 3);
+  assert.equal(armarHistoria({ rol: "<b>x</b>@a", objetivo: "o", beneficio: "b", servicio: "s", numero: 1 }).descripcion.includes("<"), false);
+
+  const plantilla = plantillaInstrucciones({ servicio: "pagos-api", historia: "HU-3101", fecha: "2026-11-18" });
+  const ok = validarInstrucciones(plantilla, { servicio: "pagos-api", criticidad: "Alta" });
+  assert.deepEqual(ok.bloqueos, []);
+  assert.ok(ok.pasos >= 6);
+  const mal = validarInstrucciones("1. rm -rf /tmp\n2. password=abc12345 ok\n3. listo y terminado para ir adelante con todo el proceso rapido sin mas", {});
+  assert.ok(mal.bloqueos.some((b) => b.includes("rm -rf")));
+  assert.ok(mal.bloqueos.some((b) => b.includes("secreto")));
+  assert.ok(mal.bloqueos.some((b) => b.includes("rollback")));
+  assert.equal(validarInstrucciones("corto", {}).ok, false);
+
+  const rev = revisarHistoriaEInstrucciones({ historia: "HU-3101", instrucciones: plantilla, servicio: "pagos-api", criticidad: "Alta" }, hs);
+  assert.deepEqual(rev.bloqueos, []);
+  assert.equal(rev.historia.id, "HU-3101");
+  assert.equal(revisarHistoriaEInstrucciones({ historia: "", instrucciones: "", servicio: "pagos-api" }, hs).bloqueos.length, 1);
 });
