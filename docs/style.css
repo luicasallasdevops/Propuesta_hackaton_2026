@@ -59,3 +59,4 @@ pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12
 @media(max-width:640px){.steps li{grid-template-columns:1fr;gap:10px}.tile{width:64px;height:64px;border-radius:16px;flex-direction:row;width:auto;height:auto;padding:8px 14px;justify-content:flex-start;gap:10px;align-self:start}.tile span{font-size:1.6rem}}
 @media(prefers-reduced-motion:no-preference){.dot.current{animation:pulse 2s infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--c) 10%,transparent)}}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.back{margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--acc);border-radius:99px;padding:7px 16px;font:inherit;font-weight:600;cursor:pointer}.back:hover{background:var(--acc);color:#fff}

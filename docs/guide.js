@@ -239,3 +239,11 @@ function render(root) {
 
 const root = $("#guia-root");
 if (root) render(root);
+
+/* Botón para volver a la guía desde las pestañas a las que lleva cada paso */
+for (const id of ["p-chat", "p-pase", "p-plant"]) {
+  const panel = $(`#${id}`);
+  if (!panel) continue;
+  const back = el("button", { type: "button", className: "back", textContent: "🧭 Volver a la guía paso a paso", onclick: () => { goTab("t-guia"); scrollTo({ top: 0 }); } });
+  panel.prepend(back);
+}
