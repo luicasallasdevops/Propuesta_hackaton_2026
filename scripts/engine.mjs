@@ -278,7 +278,10 @@ export function assessOcd(o, incidents, policy, cfg, calendario, hoy) {
   if (tipoEf !== tipo) advertencias.push("El riesgo es Alto o Crítico: este cambio Estándar se trata como Normal (pasa por el Comité de Gestión de Cambios).");
 
   const valida = fechaValida(o.fecha);
-  if (!valida) blockers.push("Fecha de ejecución inválida: usa el formato AAAA-MM-DD");
+  const sinFecha = !String(o.fecha ?? "").trim();
+  // La fecha del pase se define en Gestión de pase: vacía es una advertencia, solo una fecha mal escrita bloquea.
+  if (sinFecha) advertencias.push("Aún no hay fecha de ejecución: se define en Gestión de pase y se valida con el calendario.");
+  else if (!valida) blockers.push("Fecha de ejecución inválida: usa el formato AAAA-MM-DD");
   const emergencia = tipo === "Emergencia";
   const cong = valida ? congelamientoDe(o.fecha, cfg) : undefined;
   const aprobadores = new Set(cfg.tipos[tipo]?.aprobadores ?? []);

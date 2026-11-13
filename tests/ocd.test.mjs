@@ -102,13 +102,21 @@ test("todo servicio del calendario y de los roles existe en el directorio", asyn
 });
 
 test("fechas extremas o basura no rompen el agente", () => {
-  for (const fecha of ["", "9999-12-31", "0001-01-01", "2026-02-30", "<script>", "1999-12-31", "2100-01-01"]) {
+  for (const fecha of ["9999-12-31", "0001-01-01", "2026-02-30", "<script>", "1999-12-31", "2100-01-01"]) {
     for (const hoy of ["2026-11-16", "9999-12-31", "no-fecha"]) {
       const r = assessOcd({ change: { ...base, tipo: "Normal" }, fecha, hora: "22:00", ocdChecks: ok }, incidents, policy, cfg, cal, hoy);
       assert.equal(r.estado, "Bloqueado", `${fecha} / ${hoy}`);
       renderOcdReport({ change: base, fecha, hora: "22:00" }, r, policy, cfg);
     }
   }
+});
+
+test("sin fecha no bloquea: la fecha se define en Gestión de pase, pero una fecha mal escrita sí", () => {
+  const r = assessOcd({ change: { ...base, tipo: "Normal" }, fecha: "", hora: "", ocdChecks: ok }, incidents, policy, cfg, cal, "2026-11-16");
+  assert.equal(r.blockers.some((b) => /Fecha de ejecución inválida/.test(b)), false);
+  assert.ok(r.advertencias.some((a) => /Gestión de pase/.test(a)));
+  const mala = assessOcd({ change: { ...base, tipo: "Normal" }, fecha: "ayer", hora: "22:00", ocdChecks: ok }, incidents, policy, cfg, cal, "2026-11-16");
+  assert.ok(mala.blockers.some((b) => /Fecha de ejecución inválida/.test(b)));
 });
 
 test("la matrícula identifica al solicitante y se validan sus grupos de red", async () => {

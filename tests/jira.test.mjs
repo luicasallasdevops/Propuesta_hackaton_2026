@@ -95,3 +95,12 @@ test("un OCD cerrado sin etiqueta de estado está en Done y uno abierto en Inici
   assert.equal(estadoDeIssue({ state: "open", labels: [{ name: "ocd" }] }, flujo, por), "inicio");
   assert.equal(estadoDeIssue({ state: "open", labels: [{ name: "estado:seguridad" }] }, flujo, por), "seguridad");
 });
+
+test("las plantillas de Issue son YAML válido (sin «: » en valores sin comillas)", async () => {
+  const { readdir, readFile: leer } = await import("node:fs/promises");
+  const dir = new URL("../.github/ISSUE_TEMPLATE/", import.meta.url);
+  for (const f of (await readdir(dir)).filter((x) => x.endsWith(".yml"))) {
+    const malas = (await leer(new URL(f, dir), "utf8")).split("\n").filter((l) => /^\s+(description|label|placeholder|name|title): [^"'\[|>{].*: /.test(l));
+    assert.deepEqual(malas, [], `${f}: ponle comillas al valor`);
+  }
+});

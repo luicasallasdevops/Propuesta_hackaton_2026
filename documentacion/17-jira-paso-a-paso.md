@@ -60,3 +60,6 @@ Buscar historias existentes desde el chat (requiere publicar las historias de Ji
 - Las **instrucciones** (congelamiento, despliegue y sus reversiones) van en los cuatro campos del formulario del Issue, o editando el Issue.
 - Los **comandos** `/ocd mover <estado>`, `/ocd falla` y `/ocd devolver` se escriben como comentario en el Issue de GitHub. Jira se actualiza solo.
 - En **Jira solo se mira** el avance: no se escriben instrucciones ni comandos allí.
+
+## Si el formulario del OCD sale en blanco
+GitHub ignora en silencio las plantillas con YAML inválido y muestra un Issue vacío. Revisa que `/issues/new/choose` liste las tres plantillas (Pase a Producción, OCD e Historia de usuario). Los valores con «: » dentro deben llevar comillas; `npm test` lo verifica.

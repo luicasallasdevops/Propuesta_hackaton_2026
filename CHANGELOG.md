@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.6.5-poc
+Correcciones al crear el OCD real desde el portal.
+- **Formularios `[OCD]` y `[Pase]`:** eran YAML inválido (faltaban comillas en una descripción) y GitHub no los mostraba: el botón «Crear mi OCD real» abría un formulario en blanco. Corregido, y una prueba automática vigila que no vuelva a pasar.
+- **Fecha vacía:** un OCD creado sin fecha (se define en Gestión de pase) ya no queda «Bloqueado» por fecha inválida; ahora es una advertencia. Una fecha mal escrita sigue bloqueando.
+- Probado en vivo: un `[OCD]` creó su tarea en KAN al instante (KAN-27).
+
 ## 1.6.4-poc
 Experiencia de usuario más clara entre la práctica guiada y el OCD real.
 - El chat ya no dice que el OCD está «creado en Jira»: es una **práctica guiada**. Un bloque «¿Lo quieres de verdad?» abre el formulario del OCD real ya lleno (matrícula, servicio, historia, fecha y, si las validaste, las instrucciones) y guarda el número del Issue.

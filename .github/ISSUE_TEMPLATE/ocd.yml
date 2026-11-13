@@ -7,7 +7,7 @@ body:
     id: servicio
     attributes:
       label: Servicio
-      description: Nombre del servicio. Por ejemplo: pagos-api, canal-web, core-cuentas, tarjetas-api
+      description: "Nombre del servicio. Por ejemplo: pagos-api, canal-web, core-cuentas, tarjetas-api"
     validations:
       required: true
   - type: input
