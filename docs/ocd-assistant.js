@@ -6,6 +6,7 @@ import {
   revisarGruposDevsecops, crearSolicitudHelpdesk, normalizarHistoria, validarHistoria, armarHistoria,
   validarInstrucciones, plantillaInstrucciones, revisarSolicitanteOcd, revisarHistoriaEInstrucciones, combinarSolicitante,
 } from "./engine.mjs";
+import { validarConjuntos, plantillaConjunto, ejecutaAutomatico, avanzaSolo, rolDeTexto, pendientesDeRol, rolNombre, transicionesDe } from "./flujo.mjs";
 
 const quitarAcentos = (s) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 const esPregunta = (t) => /[?¿]/.test(t) || t.length > 60;
@@ -20,20 +21,8 @@ const PREGUNTA = {
   criticidad: "¿Qué criticidad tiene el servicio?", tamano: "¿Qué tamaño tiene el cambio?", hora: "¿A qué hora empieza? La ventana va de 22:00 a 04:00.",
   rollback: "¿Tienes plan de rollback?",
 };
-const TIPS = {
-  crear: "Abre el OCD en Jira con la historia, las evidencias y el plan de rollback.",
-  agente: "El agente pre-valida riesgo, calendario, grupos de red e historia en segundos.",
-  lider: "El líder técnico revisa el alcance, la historia y tus instrucciones de despliegue.",
-  seguridad: "Seguridad revisa los escaneos (SAST, SCA, secretos) y el riesgo del cambio.",
-  cab: "Change Management aprueba en la sesión del CAB (martes y jueves a las 10:00).",
-  agenda: "Confirma la ventana y avisa a las áreas impactadas.",
-  ejecutar: "Ejecuta con el workflow ocd-ejecucion en el ambiente protegido production.",
-  verificar: "Vigila métricas y alertas 30 minutos. Si falla, haz rollback.",
-  cerrar: "Cierra el OCD y adjunta la evidencia de la ejecución.",
-  posteriori: "Seguridad y Change Management aprueban a posteriori (emergencia).",
-};
 
-export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, historias, ir }) {
+export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, historias, flujo, ir }) {
   const HOY = cfg.fechaDemo;
   let st = "idle";
   let d = {};
@@ -120,7 +109,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     if (!v.ok) { say("bot", p(`${v.motivo}. Revisa el número o escribe «no sé» para crear una nueva.`)); return true; }
     d.historia = v.historia; d.svc = v.historia.servicio;
     say("bot", p(`Encontré ${v.id}: ${v.historia.titulo} (${v.historia.estado}), del servicio ${d.svc}. La asocio al OCD.`));
-    pedirCampo("tipo"); return true;
+    pedirModalidad(); return true;
   }
 
   function ayudaHistoria() {
@@ -155,7 +144,20 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     say("bot", p("Listo, creé tu historia (simulada):"),
       el("div", { className: "card hd" }, el("strong", { textContent: `${h.id} · ${h.servicio}` }), p(h.descripcion), p("Criterios de aceptación:"), lista(h.criterios)),
       p("La asocio a tu OCD."));
-    pedirCampo("tipo"); return true;
+    pedirModalidad(); return true;
+  }
+
+  /* ---------- Modalidad del OCD ---------- */
+  function pedirModalidad() {
+    st = "modalidad";
+    say("bot", p("¿Qué modalidad tendrá el OCD? Define quién ejecuta las instrucciones y cómo se mueve de estado."),
+      lista(Object.entries(flujo.modalidades).map(([k, m]) => `${k}: ${m.descripcion}`)),
+      opciones(...Object.keys(flujo.modalidades).map((k) => opcion(k, () => conModalidad(k)))));
+  }
+  function conModalidad(k) {
+    d.modalidad = k;
+    say("bot", p(`Modalidad ${k}. ${k === "Híbrido" ? "Recuerda etiquetar cada paso de las instrucciones como [AUTO] o [MANUAL]." : k === "DeployGO" ? "Los cambios de estado los moverán eventos de git (PR, tags)." : k === "Automatizado" ? "Todos los pasos deben ser automáticos ([AUTO], con workflow, pipeline o script)." : "Las instrucciones las ejecuta a mano agileOps."}`));
+    pedirCampo("tipo");
   }
 
   /* ---------- Datos del OCD (todos menos las instrucciones) ---------- */
@@ -211,64 +213,111 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     d.key = `OCD-${++nOCD}`; d.r = r;
     const eq = validarEquipoOcd({ servicio: d.svc, usuarioId: d.u.id, tipo: d.tipo }, dir, cfg);
     say("bot", el("h3", { textContent: `${d.key} creado en Jira (simulado)` }),
-      p(`${nombreCorto(d.u)} (${d.u.matricula}) · ${d.svc} · ${d.tipo} · ${d.fecha} ${d.hora} (${r.dia}) · historia ${d.historia.id}`),
+      p(`${nombreCorto(d.u)} (${d.u.matricula}) · ${d.svc} · ${d.tipo} · modalidad ${d.modalidad} · ${d.fecha} ${d.hora} (${r.dia}) · historia ${d.historia.id}`),
       p(`Pre-validación del agente: ${r.estado}, riesgo ${r.nivel} (${r.score}/100).`),
       r.blockers.length ? el("div", {}, p("🛑 Esto bloquea el OCD:"), lista(r.blockers)) : p("✅ Sin bloqueos."),
       r.sugerida && r.blockers.length ? p(`Fecha sugerida: ${r.sugerida} (${fmtFechaCorta(r.sugerida)}).`) : "",
       p("👥 Aprobadores de este OCD:"), lista(r.aprobadores.map((a) => { const x = eq.roles.find((y) => y.rol === a.replace(/\s*\(.*\)$/, "")); return x ? `${a}: ${x.esperadoNombre}` : a; })),
-      p("Ahora te guío paso a paso por la gestión del OCD. En la revisión del líder técnico validaré tus instrucciones de despliegue."));
-    d.etapas = r.plan; d.i = 0;
-    siguienteEtapa();
+      p("Ahora te guío por los estados reales del OCD. Al salir de Inicio codificación validaré tus cuatro conjuntos de instrucciones."));
+    mostrarEstado("inicio");
   }
 
-  function siguienteEtapa() {
-    const e = d.etapas[d.i];
-    if (!e) { fin(); return; }
-    if (e.id === "lider" && !d.instrOk) { pedirInstrucciones(e); return; }
-    mostrarEtapa(e);
+  /** Estado del flujo: quién lo mueve, qué hacer y, si aplica, quién lo ejecuta (persona, automatización o evento de git). */
+  function mostrarEstado(id) {
+    st = "guia"; d.estado = id;
+    const e = flujo.estados[id];
+    const etapa = d.r.plan.find((x) => x.id === e.etapaPlan);
+    const auto = ejecutaAutomatico(id, d.modalidad, d.conjVal, flujo);
+    const evento = flujo.eventosGit.filter((g) => g.desde === id).map((g) => g.descripcion);
+    const total = Object.keys(flujo.estados).length;
+    const trans = transicionesDe(flujo, id);
+    const bien = trans.find((t) => t.tipo === "avance"), falla = trans.find((t) => t.tipo === "falla"), devolver = trans.find((t) => t.tipo === "devolver");
+    const botones = [];
+    if (e.final) botones.push(opcion("Terminar", fin));
+    else if (id === "inicio") botones.push(opcion("Listo, pasar a Revisiones técnicas", () => (d.instrOk ? mostrarEstado("revisiones") : pedirInstrucciones())));
+    else if (falla) {
+      botones.push(opcion(`Salió bien → ${flujo.estados[bien.a].nombre}`, () => mostrarEstado(bien.a)));
+      botones.push(opcion(`Falló → ${flujo.estados[falla.a].nombre}`, () => mostrarEstado(falla.a)));
+    } else if (bien) botones.push(opcion(e.rama ? `Hecho → ${flujo.estados[bien.a].nombre}` : `Aprobado, siguiente → ${flujo.estados[bien.a].nombre}`, () => mostrarEstado(bien.a)));
+    if (devolver) botones.push(opcion(`Devolver → ${flujo.estados[devolver.a].nombre}`, () => { d.instrOk = false; say("bot", p("El OCD vuelve a Inicio codificación para corregir las instrucciones.")); mostrarEstado(devolver.a); }));
+    say("bot", el("h3", { textContent: `Estado ${e.orden} de ${total} · ${e.nombre}${e.rama ? " (rama: solo si algo falla)" : ""}` }),
+      p(`Lo mueve: ${rolNombre(e.actor, flujo)}${etapa ? ` · ${fmtFechaCorta(etapa.fecha)}${etapa.hora ? ` ${etapa.hora}` : ""}` : ""}`),
+      p(e.queHacer),
+      auto && avanzaSolo(d.modalidad, flujo) ? p("⚙️ En la modalidad " + d.modalidad + " este estado se ejecuta automáticamente (simulado). Dime si salió bien o falló para ver cada camino.") : "",
+      flujo.modalidades[d.modalidad]?.gitops && evento.length ? p(`🔀 DeployGO: lo mueve el evento de git «${evento.join(" / ")}».`) : "",
+      id === "gestion_pase" ? el("div", {}, p("Aprobaciones del pase:"), lista(flujo.aprobadoresPase)) : "",
+      d.r.blockers.length && id === "inicio" ? p("⚠️ El agente dejó el OCD en Bloqueado. Corrige lo anterior y se vuelve a evaluar al editar el ticket. Aquí seguimos para que aprendas el flujo completo.") : "",
+      opciones(...botones));
   }
 
-  function mostrarEtapa(e) {
-    st = "guia";
-    const n = d.etapas.length;
-    say("bot", el("h3", { textContent: `Paso ${d.i + 1} de ${n} · ${e.nombre}` }),
-      p(`${fmtFechaCorta(e.fecha)}${e.hora ? ` ${e.hora}` : ""} · Responsable: ${e.responsable}`), p(TIPS[e.id] ?? ""),
-      e.id === "agente" && d.r.blockers.length ? p("⚠️ El agente dejó el OCD en Bloqueado. Corrige lo anterior y se vuelve a evaluar al editar el ticket. Aquí seguimos para que aprendas el flujo completo.") : "",
-      opciones(opcion(d.i + 1 < n ? "Hecho, siguiente" : "Hecho, terminar", () => { d.i++; siguienteEtapa(); })));
-  }
-
-  function pedirInstrucciones(e) {
+  function pedirInstrucciones() {
     st = "instr";
-    const ta = el("textarea", { rows: 7, className: "instr", placeholder: "1. …\n2. …\n3. …\nIncluye rollback y verificación posterior" });
+    const tas = {};
+    const caja = el("div", { className: "instr4" }, Object.entries(flujo.conjuntos).map(([id, c]) => {
+      const ta = el("textarea", { rows: 5, className: "instr", placeholder: "1. …\n2. …" });
+      tas[id] = ta;
+      return el("label", {}, c.etiqueta, ta);
+    }));
     const salida = el("div", { className: "instr-out" });
-    const validar = () => revisarInstr(ta.value, salida);
-    d.ta = ta;
-    say("bot", el("h3", { textContent: `Revisión técnica · ${e.nombre}` }),
-      p("Aquí el líder técnico revisa tus instrucciones de despliegue y yo las valido antes: pasos numerados, rollback, verificación posterior, sin credenciales ni comandos peligrosos."),
-      ta, salida,
-      opciones(el("button", { type: "button", className: "qr", textContent: "Validar mis instrucciones", onclick: validar }),
-        el("button", { type: "button", className: "qr", textContent: "No sé cómo escribirlas, dame una plantilla", onclick: () => { ta.value = plantillaInstrucciones({ servicio: d.svc, historia: d.historia.id, fecha: d.fecha, hora: d.hora }); salida.replaceChildren(el("p", { textContent: "Te dejé una plantilla. Ajústala a tu cambio y pulsa Validar." })); } })));
+    d.tas = tas; d.salida = salida;
+    say("bot", el("h3", { textContent: "Revisiones técnicas · valido tus cuatro conjuntos de instrucciones" }),
+      p(`Modalidad ${d.modalidad}. ${d.modalidad === "Híbrido" ? "Etiqueta cada paso [AUTO] o [MANUAL]. " : d.modalidad === "Manual" ? "Pasos numerados que ejecuta agileOps. " : "Todos los pasos deben ser automáticos (workflow, pipeline o script). "}Reviso pasos numerados, rollback, verificación, credenciales y comandos peligrosos.`),
+      caja, salida,
+      opciones(el("button", { type: "button", className: "qr", textContent: "Validar mis instrucciones", onclick: () => revisarInstr() }),
+        el("button", { type: "button", className: "qr", textContent: "No sé cómo escribirlas, dame plantillas", onclick: () => {
+          for (const id of Object.keys(tas)) tas[id].value = plantillaConjunto(id, d.modalidad, { servicio: d.svc, historia: d.historia.id });
+          salida.replaceChildren(el("p", { textContent: "Te dejé una plantilla en cada cuadro. Ajústalas a tu cambio y pulsa Validar." }));
+        } })));
   }
 
-  function revisarInstr(texto, salida) {
-    const v = validarInstrucciones(texto, { servicio: d.svc, criticidad: d.criticidad });
+  function revisarInstr() {
+    const conj = Object.fromEntries(Object.entries(d.tas).map(([k, t]) => [k, t.value]));
+    const v = validarConjuntos(conj, d.modalidad, { servicio: d.svc, criticidad: d.criticidad }, flujo);
     if (!v.ok) {
-      salida.replaceChildren(el("p", { textContent: "🛑 Aún no pasan la revisión. Corrige y valida de nuevo:" }), lista(v.bloqueos), v.avisos.length ? lista(v.avisos.map((a) => `Aviso: ${a}`)) : "");
+      d.salida.replaceChildren(el("p", { textContent: "🛑 Aún no pasan la revisión. Corrige y valida de nuevo:" }),
+        v.faltan.length ? lista(v.faltan.map((f) => `Falta: ${f}`)) : "", v.bloqueos.length ? lista(v.bloqueos) : "", v.avisos.length ? lista(v.avisos.map((a) => `Aviso: ${a}`)) : "");
       return;
     }
-    d.instr = texto; d.instrOk = true;
-    salida.replaceChildren(el("p", { textContent: `✅ Instrucciones válidas (${v.pasos} pasos).` }), v.avisos.length ? lista(v.avisos.map((a) => `Aviso: ${a}`)) : "");
-    const e = d.etapas[d.i];
+    d.conj = conj; d.conjVal = v; d.instrOk = true;
+    d.salida.replaceChildren(el("p", { textContent: `✅ Los cuatro conjuntos son válidos (${v.lista.map((x) => x.pasos).join(" + ")} pasos).` }), v.avisos.length ? lista(v.avisos.map((a) => `Aviso: ${a}`)) : "");
     st = "guia";
-    say("bot", p("El líder técnico recibe tus instrucciones validadas."), opciones(opcion("Continuar", () => mostrarEtapa(e))));
+    say("bot", p("El líder técnico recibe tus instrucciones validadas."), opciones(opcion("Continuar", () => mostrarEstado("revisiones"))));
   }
 
   function fin() {
     st = "fin";
     say("bot", el("h3", { textContent: `${d.key} completado (simulado)` }),
-      p("Recorriste todo el flujo: grupos de red, historia, datos, aprobaciones, instrucciones validadas, ejecución, verificación y cierre."),
-      opciones(opcion("Abrir el simulador de Jira con mis datos", () => ir({ usuario: d.u.id, servicio: d.svc, tipo: d.tipo, fecha: d.fecha, historia: d.historia.id, historiaObj: { id: d.historia.id, servicio: d.svc, titulo: d.historia.titulo, estado: d.historia.estado }, gruposExtra: d.extra ?? [], instrucciones: d.instr ?? "" })),
+      p("Recorriste el flujo: grupos de red, historia, modalidad, datos, instrucciones validadas, revisiones, congelamiento, gestión de pase, ejecución, ratificación y cierre."),
+      opciones(opcion("Abrir el simulador de Jira con mis datos", () => ir({ usuario: d.u.id, servicio: d.svc, tipo: d.tipo, fecha: d.fecha, historia: d.historia.id, modalidad: d.modalidad, historiaObj: { id: d.historia.id, servicio: d.svc, titulo: d.historia.titulo, estado: d.historia.estado }, gruposExtra: d.extra ?? [], instruccionesConj: d.conj ?? null })),
         opcion("Crear otro OCD", () => iniciarCrear()), opcion("Terminar", () => { reiniciar(); say("bot", p("¡Éxito con tu OCD! Si te trabas, pregúntame lo que necesites.")); })));
+  }
+
+  /* ---------- Preguntas sobre el flujo, las modalidades y los roles ---------- */
+  function explicarFlujo() {
+    const principales = Object.entries(flujo.estados).filter(([, e]) => !e.rama).sort((a, b) => a[1].orden - b[1].orden);
+    const ramas = Object.values(flujo.estados).filter((e) => e.rama);
+    say("bot", p("El OCD recorre estos estados, y cada uno lo mueve un actor distinto:"),
+      el("ol", {}, principales.map(([, e]) => el("li", { textContent: `${e.nombre} · lo mueve ${rolNombre(e.actor, flujo)}. ${e.descripcion}` }))),
+      p(`Ramas, solo si algo falla: ${ramas.map((e) => e.nombre).join(" · ")}.`),
+      opciones(opcion("¿Qué me toca a mí?", preguntarRol), opcion("Quiero crear un OCD", () => iniciarCrear())));
+  }
+
+  function explicarModalidades() {
+    say("bot", p("Hay cuatro modalidades de OCD:"), lista(Object.entries(flujo.modalidades).map(([k, m]) => `${k}: ${m.descripcion}`)),
+      p("La modalidad decide quién ejecuta las instrucciones y cómo se valida cada paso."), opciones(opcion("Quiero crear un OCD", () => iniciarCrear())));
+  }
+
+  function preguntarRol() {
+    st = "rol";
+    say("bot", p("¿Con qué rol participas en el OCD?"), opciones(...Object.entries(flujo.roles).map(([id, r]) => opcion(r.nombre, () => mostrarRol(id)))));
+  }
+
+  function mostrarRol(id) {
+    reiniciar();
+    const items = pendientesDeRol(id, flujo);
+    say("bot", p(`Como ${rolNombre(id, flujo)}, te toca mover el OCD en estos estados:`),
+      lista(items.map((e) => `${e.nombre}${e.rama ? " (rama)" : ""}: ${e.queHacer}`)),
+      p("En GitHub lo haces comentando «/ocd mover <estado>» en el Issue del OCD; el agente comprueba que tengas el rol y que se cumplan los requisitos."));
   }
 
   function iniciarCrear() {
@@ -282,8 +331,18 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     const q = quitarAcentos(t);
     if (/^(cancelar|salir)$/.test(q) && st !== "idle") { reiniciar(); say("bot", p("Listo, lo dejamos aquí. Cuando quieras, escribe «quiero crear un OCD».")); return true; }
     if (st === "idle") {
+      const rol = rolDeTexto(q, flujo);
+      if (/(que me toca|que sigue|que debo hacer|mi turno|que me corresponde)/.test(q) && (/\bocd\b/.test(q) || rol)) { rol ? mostrarRol(rol) : preguntarRol(); return true; }
+      if (/\bocd\b/.test(q) && /\b(flujo|estados?|etapas?|ciclo|pasos)\b/.test(q) && !/(crear|crea|creo)\b/.test(q)) { explicarFlujo(); return true; }
+      if (/(modalidad|automatizado|hibrido|deploygo|deploy go|tipos de ocd)/.test(q)) { explicarModalidades(); return true; }
       if (!/[?¿]/.test(t) && /\bocd\b/.test(q) && /(crear|crea|creo|armar|abrir|generar|ayud)/.test(q)) { iniciarCrear(); return true; }
       return false;
+    }
+    if (st === "rol") { const r = rolDeTexto(q, flujo); if (r) { mostrarRol(r); return true; } return salir(t); }
+    if (st === "modalidad") {
+      const k = Object.keys(flujo.modalidades).find((m) => q.includes(quitarAcentos(m))) ?? (/hibrid/.test(q) ? "Híbrido" : /automat/.test(q) ? "Automatizado" : null);
+      if (!k) { if (esPregunta(t)) return salir(t); say("bot", p(`Elige una modalidad: ${Object.keys(flujo.modalidades).join(", ")}.`)); return true; }
+      conModalidad(k); return true;
     }
     if (st === "oferta") {
       if (/^(si|claro|dale|ok|vale|ayuda|por favor)\b/.test(q)) { pedirMatricula("grupos"); return true; }
@@ -305,8 +364,8 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
       return salir(t);
     }
     if (st === "guia") {
-      if (/^(hecho|siguiente|listo|ok|continuar)/.test(q)) { d.i++; siguienteEtapa(); return true; }
-      return salir(t);
+      say("bot", p("Usa los botones para avanzar de estado, o escribe «cancelar» para salir de la guía."));
+      return true;
     }
     if (st === "matricula") return conMatricula(t);
     if (st === "historia") return conHistoria(t);
@@ -314,12 +373,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     if (st === "hrol") return conHrol(t);
     if (st === "hobj") return conHobj(t);
     if (st === "hben") return conHben(t);
-    if (st === "instr") {
-      const salida = d.ta?.parentElement?.querySelector(".instr-out");
-      if (salida && t.length > 20) { d.ta.value = t; revisarInstr(t, salida); return true; }
-      say("bot", p("Escribe tus instrucciones en el cuadro de arriba y pulsa «Validar mis instrucciones»."));
-      return true;
-    }
+    if (st === "instr") { say("bot", p("Escribe cada conjunto en su cuadro y pulsa «Validar mis instrucciones».")); return true; }
     if (st === "fecha") {
       const m = t.match(/\d{4}-\d{2}-\d{2}/);
       const f = /sugerid|usar/.test(q) ? d.sugerida : m?.[0];

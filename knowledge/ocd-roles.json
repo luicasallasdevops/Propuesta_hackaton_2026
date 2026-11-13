@@ -1,0 +1,7 @@
+{
+  "version": "1.0.0-poc-roles",
+  "nota": "POC: roles por usuario de GitHub. El usuario de demostración tiene todos los roles para poder recorrer el flujo completo. En producción los roles vendrían de Jira, del IAM o de equipos de GitHub, y nadie tendría todos.",
+  "porLogin": {
+    "luicasallasdevops": ["developer", "lider-tecnico", "analista-seguridad", "agileops", "gestor-cambios", "qe"]
+  }
+}

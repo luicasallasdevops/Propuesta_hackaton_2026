@@ -135,7 +135,7 @@ export function assess(change, incidents, policy, today = new Date()) {
   };
 }
 
-const esc = (s) => String(s).replace(/@/g, "@​").replace(/[<>]/g, "");
+export const esc = (s) => String(s).replace(/@/g, "@​").replace(/[<>]/g, "");
 
 /** Informe en Markdown para publicar en el Issue. */
 export function renderReport(change, r, policy) {
@@ -454,8 +454,8 @@ export function armarHistoria({ rol, objetivo, beneficio, servicio, numero }) {
   };
 }
 
-const SECRETOS = [/(password|passwd|contrase[nñ]a|pwd)\s*[=:]\s*\S+/i, /(api[_-]?key|secret|token)\s*[=:]\s*\S{6,}/i, /AKIA[0-9A-Z]{16}/, /-----BEGIN [A-Z ]*PRIVATE KEY-----/, /\b(postgres|mysql|mongodb|oracle):\/\/[^\s:@]+:[^\s@]+@/i];
-const PELIGROSO = [[/\brm\s+-rf\b/i, "rm -rf"], [/\bdrop\s+(table|database)\b/i, "DROP TABLE o DATABASE"], [/\btruncate\s+table\b/i, "TRUNCATE TABLE"], [/chmod\s+(-R\s+)?777/i, "chmod 777"], [/curl[^|\n]*\|\s*(ba)?sh\b/i, "curl | sh"], [/\bdelete\s+from\s+\w+\s*;?\s*$/im, "DELETE sin WHERE"]];
+export const SECRETOS = [/(password|passwd|contrase[nñ]a|pwd)\s*[=:]\s*\S+/i, /(api[_-]?key|secret|token)\s*[=:]\s*\S{6,}/i, /AKIA[0-9A-Z]{16}/, /-----BEGIN [A-Z ]*PRIVATE KEY-----/, /\b(postgres|mysql|mongodb|oracle):\/\/[^\s:@]+:[^\s@]+@/i];
+export const PELIGROSO = [[/\brm\s+-rf\b/i, "rm -rf"], [/\bdrop\s+(table|database)\b/i, "DROP TABLE o DATABASE"], [/\btruncate\s+table\b/i, "TRUNCATE TABLE"], [/chmod\s+(-R\s+)?777/i, "chmod 777"], [/curl[^|\n]*\|\s*(ba)?sh\b/i, "curl | sh"], [/\bdelete\s+from\s+\w+\s*;?\s*$/im, "DELETE sin WHERE"]];
 
 /** Revisa las instrucciones de despliegue que el solicitante entrega en las revisiones técnicas. */
 export function validarInstrucciones(texto, { servicio = "", criticidad = "" } = {}) {

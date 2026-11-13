@@ -1,6 +1,7 @@
 // Simulador de creación de un OCD "estilo Jira": valida grupos de red, aprobadores, calendario y riesgo con el agente.
 // En la POC el motor corre en GitHub; en producción el mismo agente leería el ticket de Jira. Solo nodos DOM y textContent.
-import { assessOcd, validarEquipoOcd, fmtFechaCorta, revisarGruposDevsecops, validarHistoria, validarInstrucciones, plantillaInstrucciones } from "./engine.mjs";
+import { assessOcd, validarEquipoOcd, fmtFechaCorta, revisarGruposDevsecops, validarHistoria } from "./engine.mjs";
+import { validarConjuntos, plantillaConjunto, ejecutaAutomatico, cadenaAutomatica, puedeMover, rolNombre, transicionesDe } from "./flujo.mjs";
 
 const el = (tag, props = {}, ...kids) => {
   const n = Object.assign(document.createElement(tag), props);
@@ -10,7 +11,7 @@ const el = (tag, props = {}, ...kids) => {
 const ICON = { ok: "✅", falta: "⬜", incorrecto: "⚠️" };
 const LOZENGE = { "Solicitado": "z1", "Bloqueado": "z2", "Listo para aprobaciones": "z3", "Aprobado": "z4", "En producción": "z5" };
 
-export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias }) {
+export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, flujo }) {
   let contador = 2100;
   const servicios = Object.keys(dir.servicios);
   const sel = (name, opts, val) => { const s = el("select", { name }, opts.map((o) => (Array.isArray(o) ? el("option", { value: o[0], textContent: o[1] }) : el("option", { textContent: o })))); if (val) s.value = val; return s; };
@@ -31,8 +32,8 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
     histSel.replaceChildren(el("option", { value: "", textContent: "— elige —" }), ...historias.filter((h) => !svc || h.servicio === svc).map((h) => el("option", { value: h.id, textContent: `${h.id} · ${h.titulo}` })));
     histSel.value = [...histSel.options].some((o) => o.value === valor) ? valor : "";
   };
-  const instr = el("textarea", { name: "instrucciones", rows: 6, maxLength: 4000, placeholder: "1. …\n2. …\n3. …\nIncluye rollback y verificación posterior. Se piden en las revisiones técnicas." });
-  const usarPlantilla = el("button", { type: "button", className: "btn ghost chico", textContent: "Usar plantilla de instrucciones" });
+  const instrEls = Object.fromEntries(Object.entries(flujo.conjuntos).map(([id]) => [id, el("textarea", { name: `ins_${id}`, rows: 4, maxLength: 4000, placeholder: "1. …\n2. …\nEn Híbrido etiqueta cada paso [AUTO] o [MANUAL]. Se validan al pasar a Revisiones técnicas." })]));
+  const usarPlantilla = el("button", { type: "button", className: "btn ghost chico", textContent: "Usar plantillas de instrucciones" });
   const auto = el("button", { type: "button", className: "btn ghost", textContent: "✨ Autocompletar con lo que sugiere el agente" });
   const crear = el("button", { type: "submit", textContent: "Crear OCD" });
 
@@ -45,11 +46,13 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
     el("div", { className: "row" }, campo("Criticidad", sel("criticidad", ["Alta", "Media", "Baja"], "Alta")), campo("Tamaño", sel("tamano", ["Pequeño", "Mediano", "Grande"], "Pequeño"))),
     el("div", { className: "row" }, campo("Fecha de ejecución", el("input", { name: "fecha", type: "date", value: "2026-11-24", required: true }), "(noche mar a jue)"), campo("Hora de inicio", el("input", { name: "hora", type: "time", value: "22:00", required: true }))),
     campo("Plan de rollback", sel("rollback", ["Sí, probado", "Sí, sin probar", "No"], "Sí, probado")),
+    campo("Modalidad", sel("modalidad", Object.keys(flujo.modalidades), "Híbrido"), "(quién ejecuta las instrucciones)"),
     campo("Historia asociada", histSel, "(la HU que origina el cambio)"),
     el("h3", { textContent: "🌐 Grupos de red" }), gruposBox,
     el("h3", { textContent: "👥 Aprobadores" }), aprob, auto,
     el("fieldset", {}, el("legend", { textContent: "Evidencias y requisitos" }), checks),
-    campo("Instrucciones de despliegue", instr, "(opcional al crear; el agente las valida en la revisión técnica)"), usarPlantilla,
+    el("fieldset", {}, el("legend", { textContent: "Instrucciones (cuatro conjuntos)" }),
+      Object.entries(flujo.conjuntos).map(([id, c]) => campo(c.etiqueta, instrEls[id], id === "despliegue" ? "(opcional al crear; se validan al pasar a Revisiones técnicas)" : "")), usarPlantilla),
     crear);
 
   const panel = el("div", { className: "card asistente", ariaLive: "polite" });
@@ -69,9 +72,11 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
     const eq = validarEquipoOcd({ servicio: o.change.servicio, usuarioId, elegidos, tipo: o.change.tipo }, dir, cfg);
     const dso = revisarGruposDevsecops(dir.usuarios[usuarioId], dir);
     const hist = validarHistoria({ historia: String(f.get("historia") || ""), servicio: o.change.servicio }, historias);
-    const texto = String(f.get("instrucciones") || "");
-    const ins = texto.trim() ? validarInstrucciones(texto, { servicio: o.change.servicio, criticidad: o.change.criticidad }) : null;
-    return { f, o, eq, elegidos, dso, hist, ins, historia: String(f.get("historia") || ""), r: assessOcd(o, incidents, policy, cfg, cal, hoy) };
+    const modalidad = String(f.get("modalidad") || "Manual");
+    const conj = Object.fromEntries(Object.keys(flujo.conjuntos).map((k) => [k, String(f.get(`ins_${k}`) || "")]));
+    const cv = validarConjuntos(conj, modalidad, { servicio: o.change.servicio, criticidad: o.change.criticidad }, flujo);
+    const ins = cv.lista.some((x) => !x.vacio) ? cv : null;
+    return { f, o, eq, elegidos, dso, hist, ins, cv, modalidad, historia: String(f.get("historia") || ""), r: assessOcd(o, incidents, policy, cfg, cal, hoy) };
   };
 
   const fila = (icono, txt, cls = "") => el("li", { className: cls }, el("span", { textContent: icono, ariaHidden: "true" }), el("span", { textContent: ` ${txt}` }));
@@ -83,7 +88,7 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
     const pasos = [];
     const faltanGrupos = [...dso.faltan, ...eq.grupos.filter((g) => !g.tiene)];
     if (!hist.ok) pasos.push(`${hist.motivo}. Elige la historia del cambio; si no tienes una, pídele al chat «quiero crear un OCD» y te ayuda a crearla.`);
-    if (ins && !ins.ok) pasos.push(`Corrige las instrucciones: ${ins.bloqueos[0]}.`);
+    if (ins && ins.bloqueos.length) pasos.push(`Corrige las instrucciones: ${ins.bloqueos[0]}.`);
     if (faltanGrupos.length) pasos.push(`Pide los grupos de red: ${faltanGrupos.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}. ${dir.solicitudRed.ayuda}`);
     if (eq.roles.some((x) => x.estado !== "ok")) pasos.push("Elige a los aprobadores correctos del servicio. Puedes usar el botón Autocompletar para ver quiénes son.");
     if (r.blockers.length) pasos.push(`Resuelve los bloqueos del agente: ${r.blockers.slice(0, 2).join("; ")}.`);
@@ -97,7 +102,7 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
       el("h3", { textContent: "2 · Aprobadores" }), el("ul", { className: "lst" }, rolesLis),
       el("h3", { textContent: "3 · Historia e instrucciones" }),
       el("ul", { className: "lst" }, [fila(hist.ok ? "✅" : "⬜", hist.ok ? `Historia ${hist.id}: ${hist.historia.titulo}` : hist.motivo, hist.ok ? "" : "mal"),
-        ins ? fila(ins.ok ? "✅" : "🛑", ins.ok ? `Instrucciones válidas (${ins.pasos} pasos)` : ins.bloqueos[0], ins.ok ? "" : "mal") : fila("ℹ️", "Instrucciones pendientes: se validan en la revisión técnica")]),
+        ins ? fila(ins.bloqueos.length ? "🛑" : ins.ok ? "✅" : "ℹ️", ins.bloqueos.length ? ins.bloqueos[0] : ins.ok ? `Los cuatro conjuntos son válidos (${ins.lista.reduce((n, x) => n + x.pasos, 0)} pasos)` : `Faltan por escribir: ${ins.faltan.join(", ")}`, ins.bloqueos.length ? "mal" : "") : fila("ℹ️", "Instrucciones pendientes: se validan al pasar a Revisiones técnicas")]),
       el("h3", { textContent: "4 · Calendario y riesgo" }),
       el("p", {}, el("span", { className: `pill ${col}`, textContent: !eq.completo && r.estado !== "Bloqueado" ? "Faltan datos del equipo" : r.estado }), ` Riesgo ${r.nivel} (${r.score}/100)`),
       r.blockers.length ? el("ul", { className: "lst" }, r.blockers.slice(0, 4).map((b) => fila("🛑", b, "mal"))) : "",
@@ -111,7 +116,10 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
     for (const r of roles) form.elements[`ap_${r}`].value = svc?.roles[r] ?? "";
     pintar();
   });
-  usarPlantilla.addEventListener("click", () => { instr.value = plantillaInstrucciones({ servicio: form.elements.servicio.value, historia: histSel.value || "HU-0000", fecha: form.elements.fecha.value, hora: form.elements.hora.value }); pintar(); });
+  usarPlantilla.addEventListener("click", () => {
+    for (const id of Object.keys(instrEls)) instrEls[id].value = plantillaConjunto(id, form.elements.modalidad.value, { servicio: form.elements.servicio.value, historia: histSel.value || "HU-0000" });
+    pintar();
+  });
   form.elements.servicio.addEventListener("change", () => llenarHistorias(histSel.value));
   form.addEventListener("input", pintar);
   form.addEventListener("change", pintar);
@@ -135,18 +143,46 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
       el("ul", { className: "lst" }, Object.entries(t.aprobaciones).map(([k, v]) => el("li", {},
         el("span", { textContent: `${v === "ok" ? "✅" : v === "informado" ? "ℹ️" : "⏳"} ${k}: ${t.nombres[k] || "por asignar"} ` }),
         v === "pendiente" ? el("button", { type: "button", className: "btn ghost chico", disabled: t.bloqueado, textContent: "Simular aprobación", onclick: () => { t.aprobaciones[k] = "ok"; pintarTicket(); } }) : ""))),
+      panelFlujo(t),
       el("div", { className: "acts" },
         el("button", { type: "button", className: "btn ghost", textContent: "✏️ Editar y corregir", onclick: () => form.scrollIntoView({ behavior: "smooth", block: "start" }) }),
         el("button", { type: "button", className: "btn", disabled: col !== "Aprobado", textContent: "🚀 Ejecutar en la ventana", onclick: () => { t.col = "En producción"; pintarTicket(); } })),
       t.bloqueado ? el("p", { className: "muted", textContent: "Corrige el formulario y pulsa Crear OCD otra vez: el agente reevalúa y la tarjeta se mueve sola." }) : col === "En producción" ? el("p", { textContent: "🎉 OCD ejecutado. Verifica 30 minutos y ciérralo con la evidencia." }) : "");
   }
 
+  /** Estados reales del OCD: cada transición exige el rol del actor y que se cumplan los requisitos. */
+  function panelFlujo(t) {
+    const e = flujo.estados[t.flujo];
+    const rolSel = sel("rol", Object.entries(flujo.roles).map(([id, r]) => [id, r.nombre]), t.rolActuando || e.actor);
+    rolSel.addEventListener("change", () => { t.rolActuando = rolSel.value; });
+    const ctx = { conjuntosVal: t.conjuntosVal, bloqueado: t.bloqueado };
+    const auto = ejecutaAutomatico(t.flujo, t.modalidad, t.conjuntosVal, flujo);
+    const mover = (hacia) => {
+      const rol = rolSel.value; t.rolActuando = rol;
+      const v = puedeMover({ desde: t.flujo, hacia, roles: [rol], ctx, flujo, modalidad: t.modalidad });
+      if (!v.ok) { t.mensajeFlujo = `⛔ ${v.motivo}`; pintarTicket(); return; }
+      t.flujo = hacia; t.mensajeFlujo = `✅ Movido a «${flujo.estados[hacia].nombre}» por ${rolNombre(rol, flujo)}.`;
+      for (const c of cadenaAutomatica(hacia, t.modalidad, t.conjuntosVal, flujo)) { t.flujo = c.a; t.mensajeFlujo += ` ⚙️ Automático: ${flujo.estados[c.de].nombre} → ${flujo.estados[c.a].nombre}.`; }
+      t.rolActuando = flujo.estados[t.flujo].actor;
+      pintarTicket();
+    };
+    const trans = transicionesDe(flujo, t.flujo);
+    return el("div", { className: "flujo" },
+      el("h3", { textContent: "🧭 Flujo del OCD" }),
+      el("p", {}, el("strong", { textContent: `${e.nombre} (${e.orden} de ${Object.keys(flujo.estados).length})` }), ` · modalidad ${t.modalidad} · lo mueve ${rolNombre(e.actor, flujo)}${auto ? " (automático)" : ""}`),
+      el("p", { className: "muted", textContent: e.queHacer }),
+      el("label", {}, "Actuar como ", rolSel),
+      el("div", { className: "acts" }, trans.map((x) => el("button", { type: "button", className: x.tipo === "avance" ? "btn chico" : "btn ghost chico", textContent: `${x.tipo === "falla" ? "Falló → " : x.tipo === "devolver" ? "Devolver → " : "→ "}${flujo.estados[x.a].nombre}`, onclick: () => mover(x.a) }))),
+      t.mensajeFlujo ? el("p", { role: "status", textContent: t.mensajeFlujo }) : "");
+  }
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const { o, eq, r, elegidos, f } = leer();
-    const { dso, hist, ins, historia } = leer();
-    const motivos = [...dso.faltan.map((g) => `Falta el grupo de DevSecOps ${g.id}`), ...eq.mensajes, ...r.blockers, ...(hist.ok ? [] : [hist.motivo]), ...(ins && !ins.ok ? ins.bloqueos.map((b) => `Instrucciones: ${b}`) : [])];
+    const { dso, hist, ins, historia, cv, modalidad } = leer();
+    const motivos = [...dso.faltan.map((g) => `Falta el grupo de DevSecOps ${g.id}`), ...eq.mensajes, ...r.blockers, ...(hist.ok ? [] : [hist.motivo]), ...cv.bloqueos.map((b) => `Instrucciones: ${b}`)];
     estado.creado = {
+      modalidad, conjuntosVal: cv, flujo: "inicio", mensajeFlujo: "",
       key: `OCD-${++contador}`, resumen: String(f.get("resumen")).slice(0, 120), servicio: o.change.servicio, tipo: o.change.tipo, fecha: o.fecha, hora: o.hora, historia,
       nivel: r.nivel, score: r.score, autor: dir.usuarios[String(f.get("usuario"))].nombre, bloqueado: motivos.length > 0, motivos, plan: r.plan,
       aprobaciones: Object.fromEntries(r.aprobadores.map((a) => [a, /informado|posteriori/i.test(a) ? "informado" : "pendiente"])),
@@ -165,7 +201,8 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias })
     if (x.historiaObj && !historias.some((h) => h.id === x.historiaObj.id)) historias.push(x.historiaObj);
     if (x.usuario && Array.isArray(x.gruposExtra) && dir.usuarios[x.usuario]) dir.usuarios[x.usuario].gruposDevsecops = [...new Set([...(dir.usuarios[x.usuario].gruposDevsecops ?? []), ...x.gruposExtra])];
     llenarHistorias(x.historia);
-    if (x.instrucciones) form.elements.instrucciones.value = x.instrucciones;
+    if (x.modalidad && flujo.modalidades[x.modalidad]) form.elements.modalidad.value = x.modalidad;
+    if (x.instruccionesConj) for (const [k, v] of Object.entries(x.instruccionesConj)) if (instrEls[k]) instrEls[k].value = v;
     auto.click();
   });
 

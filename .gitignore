@@ -5,3 +5,4 @@ node_modules/
 *.key
 docs/data/
 docs/engine.mjs
+docs/flujo.mjs

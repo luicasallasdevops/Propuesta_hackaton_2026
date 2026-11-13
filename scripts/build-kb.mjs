@@ -25,5 +25,7 @@ await copyFile(join(root, "knowledge", "ocd.json"), join(out, "ocd.json"));
 await copyFile(join(root, "knowledge", "ocd-calendario.json"), join(out, "ocd-calendario.json"));
 await copyFile(join(root, "knowledge", "ocd-directorio.json"), join(out, "ocd-directorio.json"));
 await copyFile(join(root, "knowledge", "ocd-historias.json"), join(out, "ocd-historias.json"));
+await copyFile(join(root, "knowledge", "ocd-flujo.json"), join(out, "ocd-flujo.json"));
 await copyFile(join(root, "scripts", "engine.mjs"), join(root, "docs", "engine.mjs"));
+await copyFile(join(root, "scripts", "flujo.mjs"), join(root, "docs", "flujo.mjs"));
 console.log(`kb: ${Object.keys(docs).length} docs, ${Object.keys(templates).length} plantillas`);

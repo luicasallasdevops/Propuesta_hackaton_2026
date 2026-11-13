@@ -35,6 +35,14 @@ body:
     validations:
       required: true
   - type: dropdown
+    id: modalidad
+    attributes:
+      label: Modalidad
+      description: "Automatizado (todo se ejecuta solo), Manual (lo ejecuta agileOps a mano), Híbrido (pasos [AUTO] y [MANUAL]) o DeployGO (los eventos de git mueven los estados)."
+      options: [Automatizado, Manual, Híbrido, DeployGO]
+    validations:
+      required: true
+  - type: dropdown
     id: criticidad
     attributes:
       label: Criticidad del servicio
@@ -103,3 +111,18 @@ body:
     attributes:
       label: Instrucciones de despliegue
       description: Opcional al crear. Se piden en las revisiones técnicas, con pasos numerados, rollback y verificación posterior, sin credenciales.
+  - type: textarea
+    id: congelamiento
+    attributes:
+      label: Instrucciones de congelamiento
+      description: Opcional al crear. Pasos numerados para certificación. En modalidad Híbrido etiqueta cada paso [AUTO] o [MANUAL]. Sin credenciales.
+  - type: textarea
+    id: reversion_congelamiento
+    attributes:
+      label: Instrucciones de reversión de congelamiento
+      description: Opcional al crear. Cómo se deshace el congelamiento si falla.
+  - type: textarea
+    id: reversion_despliegue
+    attributes:
+      label: Instrucciones de reversión de despliegue
+      description: Opcional al crear. Cómo se vuelve a la versión anterior en producción si falla.

@@ -8,7 +8,7 @@ const el = (tag, props = {}, ...kids) => {
   return n;
 };
 const load = (f) => fetch(`data/${f}`).then((r) => { if (!r.ok) throw new Error(f); return r.json(); });
-const [kb, tpl, incidents, policy, ocdCfg, ocdCal, ocdDir, ocdHist] = await Promise.all(["kb.json", "templates.json", "incidents.json", "policy.json", "ocd.json", "ocd-calendario.json", "ocd-directorio.json", "ocd-historias.json"].map(load));
+const [kb, tpl, incidents, policy, ocdCfg, ocdCal, ocdDir, ocdHist, ocdFlujo] = await Promise.all(["kb.json", "templates.json", "incidents.json", "policy.json", "ocd.json", "ocd-calendario.json", "ocd-directorio.json", "ocd-historias.json", "ocd-flujo.json"].map(load));
 const sections = splitSections(kb);
 
 /* Pestañas */
@@ -40,7 +40,7 @@ function renderText(text) {
 const log = $("#log");
 const say = (who, ...content) => { const m = el("div", { className: `msg ${who}` }, content); log.append(m); m.scrollIntoView({ block: "end" }); };
 
-const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, historias: ocdHist, ir: (prefill) => {
+const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, historias: ocdHist, flujo: ocdFlujo, ir: (prefill) => {
   $("#t-ocd").click();
   setTimeout(() => { document.dispatchEvent(new CustomEvent("ocd:prefill", { detail: prefill })); $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 200);
 } });

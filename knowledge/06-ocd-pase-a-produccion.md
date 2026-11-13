@@ -62,6 +62,10 @@
 - Los fines de semana, los feriados y los congelamientos no admiten OCD, salvo Emergencia.
 - Los congelamientos simulados son el evento comercial de fin de mes y el cierre de año.
 
+## Flujo, estados y modalidades del OCD
+El OCD pasa por estos estados y cada uno lo mueve un rol distinto: Inicio codificación (developer), Revisiones técnicas (líder técnico), Aprobación de seguridad (analista de seguridad), Congelamiento (agileOps), Gestión de pase (gestor de cambios, con las aprobaciones del gestor del pool, líder técnico, CL-DEV y Gobierno de Gestión de Cambios), Ejecución del pase (agileOps), Ratificación (QE) y Done (agileOps). Si algo falla hay ramas de reversión: reversión de congelamiento, reversión de pase y reversión.
+La modalidad puede ser Automatizado, Manual, Híbrido (pasos `[AUTO]` y `[MANUAL]`) o DeployGO (los eventos de git mueven los estados). El developer redacta cuatro conjuntos de instrucciones: congelamiento, despliegue, reversión de congelamiento y reversión de despliegue. En GitHub el OCD se mueve comentando `/ocd estado` o `/ocd mover <estado>` en el Issue; el agente comprueba el rol y los requisitos.
+
 ## Cómo calcula el agente las fechas
 1. Parte de la noche de ejecución y calcula hacia atrás, en días hábiles.
 2. Confirmar ventana y avisar a las áreas: 1 día hábil antes.
