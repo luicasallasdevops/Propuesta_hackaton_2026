@@ -2,7 +2,7 @@
 
 **Lo más rápido:** abre el portal y usa la pestaña **Guía paso a paso**. Te lleva por todo el flujo en 10 minutos con botones que cargan los casos por ti y un estado en vivo del repositorio.
 
-**Para quien no es técnico:** lee primero el [resumen simple (00)](00-resumen-simple.md): qué hace, qué resuelve y cómo funciona.
+**Para quien no es técnico:** lee primero la [versión 0.2.0 (07)](07-version-0.2.0.md): qué hay de nuevo, qué resuelve y cómo funciona. La [0.1.0 (00)](00-resumen-simple.md) queda como referencia.
 
 Lee en este orden:
 1. [Contexto y problema](01-contexto-y-problema.md): qué intentamos resolver y por qué.
