@@ -24,3 +24,4 @@ Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **si
 15. [Guía de continuidad](15-guia-de-continuidad.md): contexto, decisiones, estado, backlog y cómo trabajar con Copilot (versión 1.4.0).
 16. [Tablero en Jira](16-tablero-en-jira.md): qué existe en KAN, cómo se mapean los estados y qué falta.
 17. [Jira paso a paso](17-jira-paso-a-paso.md): configurar, probar y resolver fallos en 15 minutos.
+18. [Repositorio personal](18-repositorio-personal.md): cómo mantener también `luicasallasdevops/Propuesta_hackaton_2026`.

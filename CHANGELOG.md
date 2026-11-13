@@ -1,5 +1,8 @@
 # Cambios
 
+## 1.6.6-poc
+Documento 18: cómo mantener también el repositorio personal (envío, configuración de Pages y Actions, y por qué Jira se configura solo en Grupo11).
+
 ## 1.6.5-poc
 Correcciones al crear el OCD real desde el portal.
 - **Formularios `[OCD]` y `[Pase]`:** eran YAML inválido (faltaban comillas en una descripción) y GitHub no los mostraba: el botón «Crear mi OCD real» abría un formulario en blanco. Corregido, y una prueba automática vigila que no vuelva a pasar.
