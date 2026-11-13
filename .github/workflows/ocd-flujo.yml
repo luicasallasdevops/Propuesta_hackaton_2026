@@ -36,6 +36,7 @@ jobs:
     outputs:
       estado: ${{ steps.publicar.outputs.estado }}
       nodo: ${{ steps.publicar.outputs.nodo }}
+      numero: ${{ steps.publicar.outputs.numero }}
     permissions:
       contents: read
       issues: write
@@ -72,6 +73,7 @@ jobs:
             [ -z "$quitar" ] || gh issue edit "$n" --remove-label "$quitar" >/dev/null
             gh issue edit "$n" --add-label "estado:$nuevo" >/dev/null
             echo "estado=$nuevo" >> "$GITHUB_OUTPUT"
+            echo "numero=$n" >> "$GITHUB_OUTPUT"
             echo "nodo=$(cat /tmp/ocd-nodo.txt)" >> "$GITHUB_OUTPUT"
           fi
           gh issue comment "$n" --body-file /tmp/ocd-comentario.md
@@ -102,6 +104,36 @@ jobs:
           node-version: 22
       - name: Mover tarjeta
         run: node scripts/kanban.mjs
+
+  # Espejo en Jira (tablero KAN): crea la incidencia del OCD y la mueve al estado que corresponde. Las credenciales viven solo en el
+  # entorno "jira" (limitado a main). Si Jira falla, el flujo en GitHub no se afecta.
+  jira:
+    needs: flujo
+    if: needs.flujo.outputs.estado != '' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: jira
+    continue-on-error: true
+    permissions:
+      contents: read
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ needs.flujo.outputs.numero }}
+      ESTADO: ${{ needs.flujo.outputs.estado }}
+      JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL || 'https://rochadavid0797.atlassian.net' }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Reflejar el OCD en Jira
+        run: node scripts/jira.mjs
 
   # DeployGO nace de la historia: un Issue [HU-####] crea su OCD. (Un Issue creado con GITHUB_TOKEN no dispara otros workflows:
   # el agente lo evalúa cuando alguien lo edita para completar los datos.)
@@ -197,3 +229,29 @@ jobs:
           node-version: 22
       - name: Alinear tarjetas con el estado
         run: node scripts/ocd-flujo.mjs
+
+  # Alinea Jira con las etiquetas estado:* (cubre PR y tags, que no corren en main) y repara incidencias que falten.
+  sincronizar-jira:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: jira
+    permissions:
+      contents: read
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MODO: todos
+      JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL || 'https://rochadavid0797.atlassian.net' }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Alinear Jira con el estado
+        run: node scripts/jira.mjs

@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.6.0-poc
+Integración con Jira: el OCD se refleja en el tablero KAN.
+- `scripts/jira.mjs` y `knowledge/ocd-jira.json`: crea la incidencia del OCD y la mueve según el estado del flujo (4 estados de Jira, estado exacto en una etiqueta).
+- Jobs `jira` y `sincronizar-jira` en `ocd-flujo` y workflow `jira-ocd` con el comando `/jira crear`. Credenciales solo en el entorno `jira`.
+- GitHub Projects y `kanban.mjs` se conservan como evidencia. Documento 16 con lo leído del tablero.
+
 ## 1.5.1-poc
 Portal aún más minimalista y con progreso visible durante la guía del OCD.
 - El menú de secciones pasa al pie y se retira la etiqueta de «Entorno de demostración». La caja de chat es más grande.

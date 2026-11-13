@@ -1,0 +1,49 @@
+name: jira-ocd
+
+# Crea o enlaza la incidencia de Jira (tablero KAN) de un Issue [OCD] cuando alguien del equipo comenta "/jira crear".
+# El resto del tiempo el espejo lo mantienen los jobs "jira" y "sincronizar-jira" de ocd-flujo.
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: jira-ocd-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  crear:
+    if: >-
+      github.event.issue.pull_request == null &&
+      startsWith(github.event.issue.title, '[OCD]') &&
+      startsWith(github.event.comment.body, '/jira crear') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: jira
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ github.event.issue.number }}
+      JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL || 'https://rochadavid0797.atlassian.net' }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Crear o enlazar la incidencia Jira
+        run: node scripts/jira.mjs
+      - name: Avisar si la integración falla
+        if: failure()
+        run: |
+          gh issue comment "$ISSUE" --repo "$GH_REPO" --body "⛔ No se pudo crear o actualizar la incidencia en Jira. Revisa los secretos del entorno jira. Detalle: $RUN_URL"
