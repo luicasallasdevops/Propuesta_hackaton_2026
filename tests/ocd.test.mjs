@@ -101,3 +101,13 @@ test("todo servicio del calendario y de los roles existe en el directorio", asyn
     Object.entries(s.roles).forEach(([rol, id]) => assert.equal(dir.personas[id].rol, rol));
   }
 });
+
+test("fechas extremas o basura no rompen el agente", () => {
+  for (const fecha of ["", "9999-12-31", "0001-01-01", "2026-02-30", "<script>", "1999-12-31", "2100-01-01"]) {
+    for (const hoy of ["2026-11-16", "9999-12-31", "no-fecha"]) {
+      const r = assessOcd({ change: { ...base, tipo: "Normal" }, fecha, hora: "22:00", ocdChecks: ok }, incidents, policy, cfg, cal, hoy);
+      assert.equal(r.estado, "Bloqueado", `${fecha} / ${hoy}`);
+      renderOcdReport({ change: base, fecha, hora: "22:00" }, r, policy, cfg);
+    }
+  }
+});

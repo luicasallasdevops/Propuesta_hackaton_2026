@@ -167,7 +167,8 @@ const addDays = (s, n) => iso(new Date(toDate(s).getTime() + n * 864e5));
 export const diaDe = (s) => { const d = toDate(s); return d ? DIAS[d.getUTCDay()] : ""; };
 /** "Mar 24/11": día abreviado y fecha corta, para mostrar. */
 export const fmtFechaCorta = (s) => { const d = diaDe(s); return d ? `${d.slice(0, 3)} ${s.slice(8)}/${s.slice(5, 7)}` : "—"; };
-export const fechaValida = (s) => toDate(s) !== null;
+/** Fecha real del calendario y dentro de un rango sensato (2000-2099), para que un dato extremo no rompa los cálculos. */
+export const fechaValida = (s) => toDate(s) !== null && s >= "2000-01-01" && s <= "2099-12-31";
 export const feriadoDe = (s, cfg) => cfg.feriados.find((f) => f.fecha === s);
 export const congelamientoDe = (s, cfg) => cfg.congelamientos.find((c) => s >= c.desde && s <= c.hasta);
 export function esHabil(s, cfg) {
@@ -254,7 +255,8 @@ export function ocdFromForm(fields, policy, cfg) {
 
 /** Evalúa un OCD: riesgo del cambio + reglas de calendario + aprobadores + plan de fechas. */
 export function assessOcd(o, incidents, policy, cfg, calendario, hoy) {
-  const hoyS = typeof hoy === "string" ? hoy : iso(hoy);
+  const pedido = typeof hoy === "string" ? hoy : iso(hoy);
+  const hoyS = fechaValida(pedido) ? pedido : iso(new Date());
   const dia = diaDe(o.fecha);
   const base = assess({ ...o.change, dia }, incidents, policy, toDate(hoyS));
   const factors = [...base.factors];
