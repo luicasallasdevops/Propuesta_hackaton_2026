@@ -45,7 +45,7 @@ Fecha del análisis: 2026-11-13. Alcance: portal, agente, tablero, workflows y c
 | 1 | Acciones fijadas por etiqueta (`@v7`), no por commit | Medio (cadena de suministro) | ✅ **Corregido:** todas fijadas por SHA con su versión en un comentario; Dependabot las actualiza |
 | 2 | Dependency graph, alertas de Dependabot, escaneo de secretos, bloqueo de pushes con secretos y reporte privado de vulnerabilidades apagados | Medio | ✅ **Activados** |
 | 3 | Workflows de colaboradores externos: solo aprobación a primeros contribuyentes | Bajo | ✅ **Cambiado** a aprobación para todos los externos |
-| 4 | Se permiten acciones de cualquier autor | Bajo | ⏳ Tras el push de los SHA: activar "Require actions to be pinned to a full-length commit SHA" y limitar a acciones de GitHub |
+| 4 | Se permiten acciones de cualquier autor | Bajo | ✅ **Corregido:** solo acciones creadas por GitHub y requisito de SHA completo; CI relanzado y en verde |
 | 5 | Token personal con permiso `project` (amplio y de larga duración) | Medio | ⚠️ Aceptado en la POC con mitigaciones (entorno `kanban`, solo `main`, caducidad corta). **Producción: GitHub App** ([documento 06](06-tablero-kanban-y-github-app.md)) |
 | 6 | Sin ruleset en `main` (cualquiera con permiso de escritura puede empujar o forzar) | Bajo en POC | ⏳ Producción: PR obligatorio, revisión, checks requeridos y bloqueo de force push |
 | 7 | Repositorio público: cualquiera puede abrir un ticket `[Pase]` | Bajo | ✅ El agente solo comenta; al tablero entran solo OWNER, MEMBER y COLLABORATOR |
@@ -57,6 +57,7 @@ Fecha del análisis: 2026-11-13. Alcance: portal, agente, tablero, workflows y c
 - CodeQL en cada cambio y Copilot Autofix activo.
 
 ## 3. Recomendaciones para llevarlo a producción
+0. Fijar la imagen del ejecutor (hoy `ubuntu-latest`): GitHub avisa que la etiqueta migrará a Ubuntu 26. Conviene una versión explícita y validada para que los resultados no cambien solos.
 1. Migrar el tablero a una organización y usar **GitHub App** (tokens de 1 hora, permisos granulares, auditoría).
 2. Ruleset en `main` con revisiones obligatorias y checks requeridos.
 3. Revisores requeridos en el entorno `kanban` si se quiere aprobación humana antes de mover tarjetas.

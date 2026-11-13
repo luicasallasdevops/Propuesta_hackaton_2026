@@ -18,7 +18,7 @@ Los equipos descubren tarde lo que les falta para un pase: rechazos, días de id
 
 ## Novedades de la 1.0.0 frente a la 0.2.0
 - 🛡️ **Acciones fijadas por SHA:** cada pieza externa queda atada a un commit exacto, no a una etiqueta que pueda cambiar.
-- 🔒 **Protecciones del repositorio activadas:** alertas de dependencias, escaneo de secretos con bloqueo de pushes, reporte privado de vulnerabilidades y aprobación de workflows de externos.
+- 🔒 **Protecciones del repositorio activadas:** alertas de dependencias, escaneo de secretos con bloqueo de pushes, reporte privado de vulnerabilidades, aprobación de workflows de externos y **solo acciones de GitHub con SHA completo**.
 - 🎯 **Pestaña Beneficios:** 6 pilares, gráfico de riesgo en vivo, antes y después, cifras reales y criterios del reto.
 - 📋 **Tablero público** con descripción y README, probado con dos escenarios reales (listo y bloqueado).
 - 📖 **Guion de demo de 6 minutos** actualizado y [análisis de funcionalidad y seguridad](08-analisis-funcional-y-seguridad.md).
