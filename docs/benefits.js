@@ -53,8 +53,11 @@ function caso(policy, incidents, nombre, icono, cfg) {
   const checks = Object.fromEntries(Object.keys(policy.controles).map((k) => [k, cfg.todos]));
   const r = assess({ servicio: "pagos-api", criticidad: "Alta", tamano: cfg.tamano, dia: cfg.dia, rollback: cfg.rollback, checks }, incidents, policy);
   const total = r.factors.reduce((a, f) => a + f.pts, 0) || 1;
+  const top = r.factors.slice(0, 5);
+  const rest = r.factors.slice(5).reduce((a, f) => a + f.pts, 0);
+  const parts = rest ? [...top, { label: `Otros ${r.factors.length - 5} factores`, pts: rest }] : top;
   const bar = el("div", { className: "stack", role: "img", ariaLabel: `Composición del riesgo de ${nombre}` });
-  r.factors.forEach((f, i) => {
+  parts.forEach((f, i) => {
     const seg = el("i", { className: FCOLORS[i % FCOLORS.length], title: `${f.label}: +${f.pts}` });
     seg.style.width = `${(f.pts / total) * 100}%`;
     bar.append(seg);
@@ -70,7 +73,8 @@ function caso(policy, incidents, nombre, icono, cfg) {
     el("p", { className: "case-st", textContent: `${r.estado === "Bloqueado" ? "⛔" : "✅"} ${r.estado}${r.blockers.length ? ` · ${r.blockers.length} bloqueo(s)` : ""}` }),
     el("p", { className: "muted small", textContent: "De dónde sale el riesgo:" }),
     bar,
-    el("ul", { className: "legend" }, r.factors.slice(0, 6).map((f, i) => el("li", {}, el("i", { className: FCOLORS[i % FCOLORS.length] }), ` ${f.label} `, el("b", { textContent: `+${f.pts}` })))));
+    el("ul", { className: "legend" }, parts.map((f, i) => el("li", {}, el("i", { className: FCOLORS[i % FCOLORS.length] }), ` ${f.label} `, el("b", { textContent: `+${f.pts}` })))),
+    total > 100 ? el("p", { className: "muted small", textContent: `Suma ${total} puntos; el puntaje máximo es 100.` }) : "");
 }
 
 const card = (c, i, t, extra) => el("div", { className: `pil ${c}` }, el("div", { className: "pil-ico", textContent: i, ariaHidden: "true" }), el("h3", { textContent: t }), extra);

@@ -71,7 +71,7 @@ pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12
 .case h3{margin:0 0 6px}.big-num{margin:4px 0;font-size:1rem}.big-num strong{font-size:2.6rem;line-height:1}.case-st{font-weight:600;margin:8px 0}
 .meter.big{height:16px}
 .stack{display:flex;height:22px;border-radius:99px;overflow:hidden;border:1px solid var(--bd);background:var(--bg)}.stack i{display:block;height:100%}
-.f1{background:#0969da}.f2{background:#cf222e}.f3{background:#bc4c00}.f4{background:#8250df}.f5{background:#0e7c7c}.f6{background:#bf3989}
+.f1{background:#0969da}.f2{background:#cf222e}.f3{background:#bc4c00}.f4{background:#8250df}.f5{background:#0e7c7c}.f6{background:#6e7781}
 .legend{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;font-size:.88rem}.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px}
 .vs{border-radius:16px;padding:16px 18px;border:1px solid var(--bd)}.vs h3{margin:0 0 8px}.vs ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}.vs li{display:flex;gap:10px;align-items:flex-start}.vs li span{font-size:1.4rem;line-height:1.2}
 .vs.before{background:color-mix(in srgb,var(--bad) 8%,var(--card));border-color:color-mix(in srgb,var(--bad) 35%,var(--bd))}.vs.after{background:color-mix(in srgb,var(--ok) 10%,var(--card));border-color:color-mix(in srgb,var(--ok) 40%,var(--bd))}
