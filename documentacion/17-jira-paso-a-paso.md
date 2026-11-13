@@ -53,3 +53,10 @@ El tablero de GitHub Projects y `scripts/kanban.mjs` siguen en el repositorio co
 
 ## Pendiente
 Buscar historias existentes desde el chat (requiere publicar las historias de Jira como JSON), crear los 11 estados como columnas si el negocio lo pide y usar una cuenta de servicio en producción.
+
+## Práctica guiada y OCD real: dónde se escribe cada cosa
+- El chat del portal es una **práctica guiada**: sirve para aprender el flujo y validar tus datos, pero no crea nada en GitHub ni en Jira.
+- El OCD **real** se crea con el formulario «Pase a Producción tipo OCD» en GitHub (el chat deja un botón que abre el formulario ya lleno). El agente lo valida y crea la tarea en Jira solo.
+- Las **instrucciones** (congelamiento, despliegue y sus reversiones) van en los cuatro campos del formulario del Issue, o editando el Issue.
+- Los **comandos** `/ocd mover <estado>`, `/ocd falla` y `/ocd devolver` se escriben como comentario en el Issue de GitHub. Jira se actualiza solo.
+- En **Jira solo se mira** el avance: no se escriben instrucciones ni comandos allí.

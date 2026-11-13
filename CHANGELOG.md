@@ -1,5 +1,14 @@
 # Cambios
 
+## 1.6.4-poc
+Experiencia de usuario más clara entre la práctica guiada y el OCD real.
+- El chat ya no dice que el OCD está «creado en Jira»: es una **práctica guiada**. Un bloque «¿Lo quieres de verdad?» abre el formulario del OCD real ya lleno (matrícula, servicio, historia, fecha y, si las validaste, las instrucciones) y guarda el número del Issue.
+- Cada estado muestra el **comando real** con botón «Copiar» (`/ocd mover …`, `/ocd falla`, `/ocd devolver`) y dice dónde escribirlo: como comentario en el Issue de GitHub, nunca en Jira.
+- Pregunta «¿dónde lo escribo?»: el agente responde en tres puntos simples (chat = práctica, GitHub = lo real, Jira = solo se mira).
+- Los cuadros de instrucciones ya no se montan sobre los títulos: título arriba, cuadro a todo el ancho.
+- Al crear o editar un `[OCD]`, el agente crea la tarea en Jira de inmediato (job `jira` en `agente-pase`).
+- Numeración coherente: «Paso N de 8» en el chat y en el panel.
+
 ## 1.6.3-poc
 Validación en vivo de Jira y ajuste de OCD cerrados.
 - Probado en vivo: `sincronizar-jira` creó las incidencias de los OCD en KAN y movió la de revisiones a In Review; el formulario «Historia de usuario» creó KAN-17.

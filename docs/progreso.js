@@ -27,7 +27,7 @@ async function init() {
     const estHechos = reqCompletos ? (iEst >= 0 ? iEst : estados.length - 1) : 0;
     const pctOcd = reqCompletos ? Math.round((estHechos / (estados.length - 1)) * 100) : 0;
     const abierto = reqAbierto ?? !reqCompletos;
-    const etiquetaEstado = iEst >= 0 ? `Estado ${iEst + 1} de ${estados.length} · ${estados[iEst].nombre}` : enRama ? `Rama: ${ramas.get(actual)}` : "El OCD se crea al terminar los requisitos";
+    const etiquetaEstado = iEst >= 0 ? "" : enRama ? `Rama: ${ramas.get(actual)}` : "El OCD se crea al terminar los requisitos";
     const barra = (pct, ok) => el("div", { className: `prog-barra${ok ? " ok" : ""}`, role: "progressbar", ariaValueNow: String(pct), ariaValueMin: "0", ariaValueMax: "100" }, Object.assign(el("i"), { style: `width:${pct}%` }));
 
     const fase1 = el("details", { className: `prog-fase${reqCompletos ? " completa" : ""}`, open: abierto, ontoggle: (e) => { if (e.target.open !== abierto) reqAbierto = e.target.open; } },

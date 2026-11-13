@@ -82,3 +82,32 @@ jobs:
           node-version: 22
       - name: Mover tarjeta
         run: node scripts/kanban.mjs
+
+  # Espejo en Jira: al crear o editar un [OCD] de una persona del equipo, la tarea aparece (o se actualiza) en el tablero KAN.
+  # Las credenciales viven solo en el entorno "jira" (limitado a main). Si Jira falla, la evaluación del pase no se afecta.
+  jira:
+    needs: evaluar
+    if: startsWith(github.event.issue.title, '[OCD]') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: jira
+    continue-on-error: true
+    permissions:
+      contents: read
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ github.event.issue.number }}
+      JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL || 'https://rochadavid0797.atlassian.net' }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Reflejar el OCD en Jira
+        run: node scripts/jira.mjs

@@ -8,7 +8,7 @@ import {
 } from "./engine.mjs";
 import { extraerDatos } from "./conversacion.mjs";
 import { validarConjuntos, plantillaConjunto, ejecutaAutomatico, avanzaSolo, rolDeTexto, pendientesDeRol, rolNombre, transicionesDe } from "./flujo.mjs";
-import { detalle, campoTexto, abrirDialogo, enlace, repo } from "./ui.js";
+import { detalle, campoTexto, abrirDialogo, enlace, repo, comandoCopiable } from "./ui.js";
 
 const DOC_FLUJO = { texto: "Flujo del OCD (documento 13)", ruta: "documentacion/13-flujo-ocd.md" };
 const DOC_GUIA = { texto: "Guía del OCD en la base de conocimiento", ruta: "knowledge/06-ocd-pase-a-produccion.md" };
@@ -270,16 +270,56 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     return { r, sol, rev };
   }
 
+  /* ---------- Lo real: el OCD se crea en GitHub (formulario) y el agente lo refleja en Jira ---------- */
+  const MAX_URL = 7000;
+  function urlOcdReal() {
+    const q = { template: "ocd.yml", title: `[OCD] ${d.svc}`, servicio: d.svc, matricula: d.u?.matricula ?? "", historia: d.historia?.id ?? "" };
+    if (d.fecha) q.fecha = d.fecha;
+    if (d.hora) q.hora = d.hora;
+    const base = `https://github.com/${repo}/issues/new?`;
+    const conInstr = { ...q };
+    if (d.conj) Object.assign(conInstr, { congelamiento: d.conj.congelamiento, instrucciones: d.conj.despliegue, reversion_congelamiento: d.conj.reversionCongelamiento, reversion_despliegue: d.conj.reversionDespliegue });
+    const u = base + new URLSearchParams(Object.fromEntries(Object.entries(conInstr).filter(([, v]) => v)));
+    return u.length <= MAX_URL ? u : base + new URLSearchParams(q);
+  }
+  function bloqueReal() {
+    const campo = campoTexto({ etiqueta: "Número de tu OCD", placeholder: "12", boton: "Guardar", maxLength: 6, onEnviar: (v) => {
+      const n = String(v).replace(/\D/g, "");
+      if (!n) { say("bot", p("Escribe solo el número del Issue, por ejemplo 12.")); return; }
+      d.issue = n; say("user", `#${n}`);
+      say("bot", p(`Listo, tu OCD real es el #${n}. Los comandos de cada estado te llevan directo a él.`), el("p", {}, el("a", { className: "btn", href: `https://github.com/${repo}/issues/${n}`, target: "_blank", rel: "noopener noreferrer", textContent: `Abrir mi OCD #${n}` })));
+    } });
+    return el("div", { className: "real" }, el("h4", { textContent: "¿Lo quieres de verdad, en GitHub y Jira?" }),
+      p("Esta guía es una práctica: aquí no se crea nada en GitHub ni en Jira. Tu OCD real se crea con un formulario; el agente lo valida y lo refleja solo en Jira."),
+      el("p", {}, el("a", { className: "btn", href: urlOcdReal(), target: "_blank", rel: "noopener noreferrer", textContent: "Crear mi OCD real (abre GitHub)" })),
+      p("En el formulario elige el tipo de cambio, la modalidad y la criticidad que ya definiste aquí. Cuando tengas el Issue, escribe su número:"), campo);
+  }
+  /** Comando real del estado: se escribe como comentario en el Issue de GitHub, nunca en Jira. */
+  function comandosEstado(id) {
+    const e = flujo.estados[id];
+    const t = transicionesDe(flujo, id);
+    const bien = t.find((x) => x.tipo === "avance"), falla = t.find((x) => x.tipo === "falla"), dev = t.find((x) => x.tipo === "devolver");
+    if (e.final || !bien) return "";
+    const donde = d.issue ? `en tu OCD #${d.issue} de GitHub` : "en el Issue de tu OCD en GitHub";
+    const filas = [comandoCopiable(`/ocd mover ${bien.a}`, `Para avanzar a ${flujo.estados[bien.a].nombre}`)];
+    if (falla) filas.push(comandoCopiable("/ocd falla", "Si algo salió mal"));
+    if (dev) filas.push(comandoCopiable("/ocd devolver", "Para devolverlo a corregir"));
+    return el("div", { className: "real" }, el("h4", { textContent: "Para hacerlo de verdad" }),
+      p(`Escribe el comando como comentario ${donde}. Jira se actualiza solo; no escribas comandos en Jira.`), ...filas,
+      d.issue ? el("p", {}, el("a", { href: `https://github.com/${repo}/issues/${d.issue}`, target: "_blank", rel: "noopener noreferrer", textContent: `Abrir mi OCD #${d.issue} ↗` })) : "");
+  }
+
   function crearOcd() {
     const { r } = datosOcd();
     d.key = `OCD-${++nOCD}`; d.r = r; d.fechaOk = false;
     document.dispatchEvent(new CustomEvent("ocd:info", { detail: { key: d.key, modalidad: d.modalidad, servicio: d.svc } }));
     const tecnicos = r.blockers.filter((b) => !CALENDARIO_RX.test(b));
-    say("bot", el("h3", { textContent: `${d.key} creado en Jira` }),
+    say("bot", el("h3", { textContent: `Práctica de tu OCD · ${d.key}` }),
       p(`${nombreCorto(d.u)} (${d.perfil}) · ${d.svc} · ${d.tipo} · modalidad ${d.modalidad} · historia ${d.historia.id}`),
       p(tecnicos.length ? `🛑 Pre-validación: ${tecnicos.length} cosa(s) por corregir antes de pedir aprobaciones.` : `✅ Pre-validación: riesgo ${r.nivel} (${r.score}/100), sin bloqueos.`),
       detalle("Ver el detalle de la pre-validación", [tecnicos.length ? lista(tecnicos) : p("Sin bloqueos."), r.advertencias.length ? lista(r.advertencias.map((a) => `⚠️ ${a}`)) : "", p("La fecha y la hora del pase se definen más adelante, en Gestión de pase.")], DOC_RIESGO),
-      p("Ahora te acompaño estado por estado. Al salir de Inicio codificación validaré tus cuatro conjuntos de instrucciones."));
+      p("Te acompaño estado por estado. Al salir de Inicio codificación validaré tus cuatro conjuntos de instrucciones."),
+      bloqueReal());
     mostrarEstado("inicio");
   }
 
@@ -296,7 +336,9 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     if (flujo.modalidades[d.modalidad]?.gitops && evento.length) extras.push(p(`🔀 DeployGO: lo mueve el evento de git «${evento.join(" / ")}».`));
     if (id === "gestion_pase") extras.push(p("Aprobaciones del pase:"), lista(flujo.aprobadoresPase));
     if (d.r.blockers.length && id === "inicio") extras.push(p("⚠️ El agente dejó el OCD en Bloqueado. Corrige lo anterior y se vuelve a evaluar al editar el ticket. Aquí seguimos para que aprendas el flujo completo."));
-    return [el("h3", { textContent: `Estado ${e.orden} de ${total} · ${e.nombre}${e.rama ? " (rama: solo si algo falla)" : ""}` }),
+    const principales = Object.entries(flujo.estados).filter(([, x]) => !x.rama).sort((x, y) => x[1].orden - y[1].orden).map(([k]) => k);
+    const pos = principales.indexOf(id);
+    return [el("h3", { textContent: `${e.rama ? "Rama" : `Paso ${pos + 1} de ${principales.length}`} · ${e.nombre}${e.rama ? " (solo si algo falla)" : ""}` }),
       p(`Lo mueve: ${rolNombre(e.actor, flujo)}${etapa ? ` · ${fmtFechaCorta(etapa.fecha)}${etapa.hora ? ` ${etapa.hora}` : ""}` : ""}`),
       p(e.queHacer), detalle("Más detalle de este estado", extras, DOC_FLUJO)];
   }
@@ -323,7 +365,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
       say("bot", ...nodosEstado(id), p("📅 Aquí se define la fecha del pase: te la pido ahora y la valido con el calendario."));
       pedirFecha(); return;
     }
-    say("bot", ...nodosEstado(id), opciones(...botonesEstado(id)));
+    say("bot", ...nodosEstado(id), comandosEstado(id), opciones(...botonesEstado(id)));
   }
 
   /* ---------- Fecha y hora del pase: se piden en Gestión de pase ---------- */
@@ -397,15 +439,19 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     d.conj = conj; d.conjVal = v; d.instrOk = true;
     d.salida.replaceChildren(el("p", { textContent: `✅ Los cuatro conjuntos son válidos (${v.lista.map((x) => x.pasos).join(" + ")} pasos).` }), v.avisos.length ? lista(v.avisos.map((a) => `Aviso: ${a}`)) : "");
     st = "guia";
-    say("bot", p("El líder técnico recibe tus instrucciones validadas."), opciones(opcion("Continuar", () => mostrarEstado("revisiones"))));
+    say("bot", p("El líder técnico recibe tus instrucciones validadas."),
+      el("div", { className: "real" }, el("h4", { textContent: "¿Dónde van estas instrucciones?" }),
+        p("En el Issue de tu OCD en GitHub, en los cuatro campos de instrucciones. No se escriben en la tarea de Jira: Jira solo muestra el avance."),
+        el("p", {}, el("a", { className: "btn", href: urlOcdReal(), target: "_blank", rel: "noopener noreferrer", textContent: "Crear mi OCD real con estas instrucciones" }))),
+      opciones(opcion("Continuar la práctica", () => mostrarEstado("revisiones"))));
   }
 
   function fin() {
     st = "fin";
-    say("bot", el("h3", { textContent: `${d.key} completado` }),
-      p("Recorriste el flujo completo del OCD hasta el cierre."),
+    say("bot", el("h3", { textContent: `Práctica completada · ${d.key}` }),
+      p("Recorriste el flujo completo del OCD hasta el cierre. Recuerda: fue una práctica; el OCD real se crea y se mueve en GitHub y se refleja en Jira."),
       detalle("Ver lo que hicimos", p("Grupos de red, historia en Jira, modalidad, datos, instrucciones validadas, revisiones, congelamiento, gestión de pase con su fecha, ejecución, ratificación y cierre."), DOC_FLUJO),
-      opciones(opcion("Abrir mi OCD en Jira con estos datos", () => ir({ usuario: d.u.id, servicio: d.svc, tipo: d.tipo, fecha: d.fecha, historia: d.historia.id, modalidad: d.modalidad, historiaObj: { id: d.historia.id, servicio: d.svc, titulo: d.historia.titulo, estado: d.historia.estado }, gruposExtra: d.extra ?? [], perfil: d.perfil, instruccionesConj: d.conj ?? null })),
+      opciones(opcion("Llevar estos datos al formulario del portal", () => ir({ usuario: d.u.id, servicio: d.svc, tipo: d.tipo, fecha: d.fecha, historia: d.historia.id, modalidad: d.modalidad, historiaObj: { id: d.historia.id, servicio: d.svc, titulo: d.historia.titulo, estado: d.historia.estado }, gruposExtra: d.extra ?? [], perfil: d.perfil, instruccionesConj: d.conj ?? null })),
         opcion("Crear otro OCD", () => iniciarCrear()), opcion("Terminar", () => { reiniciar(); say("bot", p("¡Éxito con tu OCD! Si te trabas, pregúntame lo que necesites.")); })));
   }
 
@@ -477,10 +523,28 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     pedirMatricula("crear");
   }
 
+  /* ---------- «¿Dónde lo escribo?»: respuesta simple sobre GitHub, Jira, instrucciones y comandos ---------- */
+  const DONDE_RX = /(donde|en que lugar|en el issue|en la tarea|en jira|el ticket|comentario|comando|\/ocd|lo coloco|lo escribo|lo pongo|lo pego|como (lo )?(muevo|avanzo|paso|cambio)|que hago (ahora|despues)|no entiendo|estoy perdid|me confund|confus|no se (que|como))/;
+  const DONDE_ESTADOS = ["guia", "instr", "fin", "modalidad", "fecha", "rol", "oferta", "crear?"];
+  function ayudaDonde() {
+    const ops = [opcion("Crear mi OCD real", () => { window.open(urlOcdRealSeguro(), "_blank", "noopener,noreferrer"); })];
+    if (d.estado && flujo.estados[d.estado] && !flujo.estados[d.estado].final) ops.push(opcion("Ver el comando de este estado", () => say("bot", comandosEstado(d.estado) || p("Este estado no tiene comando."))));
+    ops.push(opcion("Seguir con la guía", () => { if (st === "instr") say("bot", p("Seguimos: escribe o pega tus instrucciones en los cuadros y pulsa Validar.")); else if (d.estado) say("bot", p("Seguimos con los botones del estado.")); else say("bot", p("Cuando quieras, escribe «quiero crear un OCD».")); }));
+    say("bot", p("Te lo explico simple, son dos lugares:"),
+      el("ol", {}, [
+        el("li", { textContent: "Este chat es una práctica guiada: aquí practicas y valido tus datos, pero no cambia nada en GitHub ni en Jira." }),
+        el("li", { textContent: "Lo real se hace en GitHub, en el Issue de tu OCD: las instrucciones van en los campos del formulario y los comandos /ocd van como comentario en ese mismo Issue." }),
+        el("li", { textContent: "Jira solo lo miras: el agente crea y mueve la tarea solo. No escribas instrucciones ni comandos en Jira." })]),
+      opciones(...ops));
+    return true;
+  }
+  const urlOcdRealSeguro = () => (d.svc && d.u ? urlOcdReal() : `https://github.com/${repo}/issues/new?template=ocd.yml`);
+
   function interno(texto) {
     const t = String(texto ?? "").trim();
     const q = quitarAcentos(t);
     if (/^(cancelar|salir)$/.test(q) && st !== "idle") { reiniciar(); say("bot", p("Listo, lo dejamos aquí. Cuando quieras, escribe «quiero crear un OCD».")); return true; }
+    if (DONDE_ESTADOS.includes(st) && DONDE_RX.test(q) && (/[?¿]/.test(t) || DONDE_RX.test(q))) return ayudaDonde();
     /* Si el usuario cambia un dato en medio del OCD («mejor el martes», «ya probé el rollback») se actualiza y se sigue sin reiniciar. */
     if (ORDEN.includes(st) && !/[?¿]/.test(t)) {
       const x = extraerDatos(t, { servicios: Object.keys(dir.servicios), hoy: HOY });
@@ -488,6 +552,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
       if (cambios.length) { for (const k of cambios) d[k] = x[k]; say("bot", p(`Anotado: ${cambios.map((k) => `${k} ${x[k]}`).join(" · ")}. Sigo desde donde íbamos.`)); pedirCampo(st); return true; }
     }
     if (st === "idle") {
+      if (/(donde|en que lugar|en el issue|en jira|lo coloco|lo escribo|lo pongo).*(comando|instruccion|issue|jira|tarea|ocd)|comando.*(donde|issue|jira|escribo)|\/ocd/.test(q)) return ayudaDonde();
       const rol = rolDeTexto(q, flujo);
       if (/(que me toca|que sigue|que debo hacer|mi turno|que me corresponde)/.test(q) && (/\bocd\b/.test(q) || rol)) { rol ? mostrarRol(rol) : preguntarRol(); return true; }
       if (/\bocd\b/.test(q) && /\b(flujo|estados?|etapas?|ciclo|pasos)\b/.test(q) && !/(crear|crea|creo)\b/.test(q)) { explicarFlujo(); return true; }
@@ -521,7 +586,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
       return salir(t);
     }
     if (st === "guia") {
-      say("bot", p("Usa los botones para avanzar de estado, o escribe «cancelar» para salir de la guía."));
+      say("bot", p("Usa los botones para avanzar de estado en la práctica. Si quieres saber cómo hacerlo de verdad, pregúntame «¿dónde escribo el comando?». Para salir, escribe «cancelar»."));
       return true;
     }
     if (st === "perfil") {
@@ -542,7 +607,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     if (st === "hobj") return conHobj(t);
     if (st === "hben") return conHben(t);
     if (st === "hkan") return conHistoria(t);
-    if (st === "instr") { say("bot", p("Escribe cada conjunto en su cuadro y pulsa «Validar mis instrucciones».")); return true; }
+    if (st === "instr") { say("bot", p("Pega cada conjunto en su cuadro de arriba (no en el chat) y pulsa «Validar mis instrucciones». Si dudas dónde va algo, pregúntame «¿dónde lo escribo?».")); return true; }
     if (st === "fecha") {
       const m = extraerDatos(t, { servicios: [], hoy: HOY }).fecha;
       const f = /sugerid|usar/.test(q) ? d.sugerida : m;

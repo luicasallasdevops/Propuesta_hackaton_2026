@@ -265,3 +265,18 @@ footer.foot nav button:hover{color:var(--fg)}footer.foot nav button[aria-selecte
 .prog-est{margin:6px 0 0;font-size:.84rem;font-weight:600}.prog-est:empty{display:none}
 .gpt .msg{scroll-margin-top:calc(var(--prog-h,0px) + 14px)}
 @media(prefers-reduced-motion:reduce){.gpt .msg,.prog{animation:none}.hero-chat,.sugs,.prog-barra i{transition:none}}
+
+/* instrucciones del OCD: un cuadro por conjunto, a todo el ancho y con su título encima */
+.instr4{display:grid;gap:16px;margin:12px 0}
+.instr4 label{display:flex;flex-direction:column;gap:6px;margin:0;color:var(--fg);font-weight:600;font-size:.9rem}
+.instr4 textarea.instr{width:100%;box-sizing:border-box;min-height:120px;resize:vertical;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--fg);font:.84rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:400}
+.instr4 textarea.instr:focus{outline:2px solid var(--acc);outline-offset:1px}
+.instr-out{margin:8px 0}
+/* bloque «hazlo de verdad» y comandos copiables */
+.real{border:1px solid var(--bd);border-left:4px solid var(--acc);border-radius:12px;padding:10px 14px;background:var(--card);margin:10px 0}
+.real h4{margin:0 0 4px;font-size:.92rem}.real p{margin:4px 0;font-size:.88rem}
+.cmd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0;font-size:.86rem}
+.cmd code{padding:3px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--bd);font-family:ui-monospace,Menlo,monospace}
+.cmd button{font:inherit;font-size:.8rem;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);background:var(--card);color:var(--fg);cursor:pointer}
+.cmd button:hover{border-color:var(--acc)}
+.cmd-why{color:var(--mut)}

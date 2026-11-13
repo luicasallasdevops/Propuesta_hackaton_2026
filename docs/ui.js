@@ -51,3 +51,13 @@ export function abrirDialogo(titulo, contenido, doc) {
   dlg.showModal();
   return true;
 }
+
+/** Comando con botón «Copiar». `por` explica en una frase para qué sirve. */
+export function comandoCopiable(texto, por = "") {
+  const b = el("button", { type: "button", textContent: "Copiar" });
+  b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(texto); b.textContent = "Copiado ✓"; } catch { b.textContent = "Selecciónalo y copia"; }
+    setTimeout(() => { b.textContent = "Copiar"; }, 1800);
+  });
+  return el("div", { className: "cmd" }, el("code", { textContent: texto }), b, por ? el("span", { className: "cmd-why", textContent: por }) : "");
+}
