@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   analizar:
+    # En repositorios privados CodeQL exige GitHub Code Security (de pago). Se activa con la variable CODEQL_ENABLED=true.
+    if: ${{ !github.event.repository.private || vars.CODEQL_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

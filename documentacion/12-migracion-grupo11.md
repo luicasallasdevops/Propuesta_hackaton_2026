@@ -21,6 +21,7 @@ Repositorio: https://github.com/hybridcloudcompany/Grupo11 (privado). Mismo cód
 Crea un token (classic) solo con el permiso `project`, desde la cuenta con acceso al proyecto de la organización. Pégalo directamente en Settings → Environments → kanban → Secrets. Nunca en chat ni en archivos.
 
 ## Límites en repositorio privado
+- CodeQL exige GitHub Code Security (de pago) en repos privados. El workflow se omite hasta que se cree la variable `CODEQL_ENABLED=true` (Settings → Secrets and variables → Actions → Variables) tras activar Code Security.
 - El portal es público aunque el repositorio sea privado, pero sus consultas a la API de GitHub (ejecuciones y tickets en vivo) devuelven 404: la guía muestra un aviso y remite a la pestaña Actions.
 - El tablero hereda la visibilidad que le des en la organización.
 
