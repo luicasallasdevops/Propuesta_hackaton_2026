@@ -43,59 +43,59 @@ const link = (href, text) => ({ href, text });
 /* ---------- Pasos ---------- */
 const STEPS = [
   {
-    id: "preguntar", tiempo: "1 min", titulo: "Pregunta lo que necesitas saber",
-    texto: "El asistente responde con el estándar exacto y cita la fuente. Sin buscar en wikis ni esperar a nadie.",
+    id: "preguntar", icono: "💬", c: "c1", tiempo: "1 min", titulo: "Pregunta lo que necesitas saber",
+    texto: "Escribe tu duda como se la harías a un compañero. El asistente responde con el estándar oficial y te dice de dónde sale la respuesta.",
     acciones: [
       { t: "¿Cómo creo un ticket de pase?", fn: () => ask("¿Cómo creo un ticket de pase a producción?") },
       { t: "¿Qué rol necesito?", fn: () => ask("¿Qué rol necesito y cómo lo pido?") },
     ],
-    resultado: "Una respuesta con los pasos y la línea \"Fuente: …\" con el documento y la sección.",
+    resultado: "Una respuesta clara con los pasos a seguir y la línea \"Fuente\" con el documento oficial.",
   },
   {
-    id: "riesgoso", tiempo: "1 min", titulo: "Valida un cambio riesgoso",
-    texto: "Simula un pase de pagos-api en viernes, sin rollback y sin evidencias. Así se anticipa el problema antes de llegar a producción.",
-    acciones: [{ t: "Cargar caso riesgoso y evaluar", fn: () => runPreset(RIESGOSO) }],
-    resultado: "Estado Bloqueado y riesgo Crítico 100/100, con los bloqueos, las acciones preventivas y los incidentes pasados que lo respaldan.",
+    id: "riesgoso", icono: "🚨", c: "c2", tiempo: "1 min", titulo: "Detecta un problema antes de que ocurra",
+    texto: "Simulamos un cambio delicado: un servicio de pagos, un viernes, sin plan de reversa y sin revisiones de seguridad. Mira cómo el asistente lo frena a tiempo.",
+    acciones: [{ t: "Probar el caso riesgoso", fn: () => runPreset(RIESGOSO) }],
+    resultado: "Estado Bloqueado y riesgo Crítico (100 de 100), con los motivos, qué hacer para corregirlo y los incidentes pasados que lo respaldan.",
   },
   {
-    id: "feliz", tiempo: "1 min", titulo: "Corrige y llega al camino feliz",
-    texto: "El mismo servicio, pero con cambio pequeño, martes, rollback probado y todos los controles cumplidos.",
-    acciones: [{ t: "Cargar camino feliz y evaluar", fn: () => runPreset(FELIZ) }],
-    resultado: "Estado Listo para aprobaciones. El riesgo baja a Medio o Bajo (depende de los incidentes recientes) y solo piden las aprobaciones de ese nivel.",
+    id: "feliz", icono: "✅", c: "c3", tiempo: "1 min", titulo: "Corrige y obtén luz verde",
+    texto: "El mismo servicio, pero preparado bien: cambio pequeño, un martes, con plan de reversa probado y todas las revisiones hechas.",
+    acciones: [{ t: "Probar el camino feliz", fn: () => runPreset(FELIZ) }],
+    resultado: "Estado Listo para aprobaciones. El riesgo baja y solo se piden las aprobaciones que corresponden a ese nivel.",
   },
   {
-    id: "ticket", tiempo: "2 min", titulo: "Abre el ticket real en GitHub",
-    texto: "El título y el servicio vienen precargados. Elige el resto con los datos del caso (los de abajo) y crea el Issue. El título debe empezar con [Pase].",
-    datos: [["Caso riesgoso", "Alta · Grande · Viernes · Rollback No · sin casillas marcadas"], ["Camino feliz", "Alta · Pequeño · Martes · Rollback Sí, probado · las 9 casillas marcadas"]],
+    id: "ticket", icono: "📝", c: "c4", tiempo: "2 min", titulo: "Crea el ticket real en GitHub",
+    texto: "El título y el servicio ya vienen listos. Elige el resto con los datos del caso que ves abajo y pulsa crear. El título debe empezar con [Pase].",
+    datos: [["🚨 Caso riesgoso", "Alta · Grande · Viernes · Rollback No · sin casillas marcadas"], ["✅ Camino feliz", "Alta · Pequeño · Martes · Rollback Sí, probado · las 9 casillas marcadas"]],
     acciones: [
-      { t: "Abrir ticket del caso riesgoso", href: ticketUrl(RIESGOSO) },
-      { t: "Abrir ticket del camino feliz", href: ticketUrl(FELIZ) },
+      { t: "Ticket del caso riesgoso", href: ticketUrl(RIESGOSO) },
+      { t: "Ticket del camino feliz", href: ticketUrl(FELIZ) },
     ],
-    resultado: "Un Issue nuevo con los datos del cambio, listo para que el agente lo evalúe.",
+    resultado: "Un ticket nuevo con los datos del cambio, listo para que el agente lo revise.",
   },
   {
-    id: "agente", tiempo: "30 s", titulo: "Mira al agente trabajar",
-    texto: "Al crear o editar el ticket se ejecuta el agente en GitHub Actions. No tienes que hacer nada.",
-    acciones: [{ t: "Ver ejecuciones del agente", href: gh("/actions/workflows/agente-pase.yml") }, { t: "Ver mis tickets", href: gh("/issues") }],
-    resultado: "En unos 20 segundos aparece un comentario del bot con el informe y las etiquetas de riesgo y de estado.",
+    id: "agente", icono: "🤖", c: "c5", tiempo: "30 s", titulo: "Mira al agente trabajar",
+    texto: "Al crear el ticket, el agente se activa solo en GitHub. Tú no tienes que hacer nada: solo mirar.",
+    acciones: [{ t: "Ver al agente en acción", href: gh("/actions/workflows/agente-pase.yml") }, { t: "Ver mis tickets", href: gh("/issues") }],
+    resultado: "En unos 20 segundos aparece un comentario con el informe de riesgo y etiquetas de color que resumen el estado.",
   },
   {
-    id: "corregir", tiempo: "2 min", titulo: "Corrige el ticket y compara",
-    texto: "Edita el Issue: marca las casillas faltantes y cambia el día o el rollback. Cada edición reevalúa y actualiza el mismo comentario.",
+    id: "corregir", icono: "🔧", c: "c6", tiempo: "2 min", titulo: "Corrige el ticket y compara",
+    texto: "Edita el ticket: marca las revisiones que faltaban y cambia el día o el plan de reversa. Cada cambio se reevalúa y el informe se actualiza solo.",
     acciones: [{ t: "Ir a mis tickets", href: gh("/issues") }],
-    resultado: "El informe pasa de Bloqueado a Listo para aprobaciones y las etiquetas se actualizan solas.",
+    resultado: "El informe pasa de Bloqueado a Listo para aprobaciones y las etiquetas cambian solas.",
   },
   {
-    id: "plantillas", tiempo: "1 min", titulo: "Lleva las plantillas a tu repositorio",
-    texto: "Workflows oficiales con permisos mínimos y versiones actuales. Cópialos tal cual a .github/workflows.",
+    id: "plantillas", icono: "📦", c: "c7", tiempo: "1 min", titulo: "Llévate las plantillas seguras",
+    texto: "Procesos ya listos con las mejores prácticas de seguridad. Cópialos y úsalos en tu equipo sin empezar de cero.",
     acciones: [{ t: "Ver plantillas", fn: () => goTab("t-plant") }],
-    resultado: "CI de seguridad con CodeQL y Dependency Review, release protegido y Dependabot, con botón Copiar.",
+    resultado: "Plantillas de revisión de seguridad, publicación protegida y actualizaciones automáticas, con botón Copiar.",
   },
   {
-    id: "tuyo", tiempo: "5 min", titulo: "Hazlo tuyo",
-    texto: "Cambia los estándares, la política de riesgo y los incidentes con un pull request. Otras tribus solo reemplazan la carpeta knowledge.",
+    id: "tuyo", icono: "🚀", c: "c8", tiempo: "5 min", titulo: "Hazlo tuyo y escálalo",
+    texto: "Ajusta los estándares, las reglas de riesgo y el historial de incidentes. Otras áreas solo cambian su carpeta de conocimiento.",
     acciones: [{ t: "Guía para equipos", href: gh("/blob/main/documentacion/04-guia-para-equipos.md") }, { t: "Hoja de ruta", href: gh("/blob/main/documentacion/05-seguridad-decisiones-roadmap.md") }],
-    resultado: "Sabes cómo ampliar el conocimiento, ajustar el riesgo y replicarlo en tu tribu.",
+    resultado: "Sabes cómo ampliar el conocimiento, ajustar el riesgo y replicarlo en tu área.",
   },
 ];
 
@@ -112,6 +112,7 @@ function ago(iso) {
   for (const [u, n] of [["day", 86400], ["hour", 3600], ["minute", 60]]) if (Math.abs(s) >= n) return rel.format(Math.round(s / n), u);
   return "hace instantes";
 }
+const pillState = { ok: "✅", bad: "⛔", warn: "⏳", muted: "➖" };
 const stateOf = (r) => (r.status !== "completed" ? ["en curso", "warn"] : r.conclusion === "success" ? ["ok", "ok"] : r.conclusion === "skipped" ? ["omitido", "muted"] : ["falló", "bad"]);
 const safeUrl = (u) => (typeof u === "string" && u.startsWith("https://github.com/") ? u : gh());
 
@@ -127,14 +128,14 @@ async function refreshLive(box) {
     const [runs, issues] = await Promise.all([api("/actions/runs?per_page=6"), api("/issues?state=all&per_page=15")]);
     const tickets = issues.filter((i) => !i.pull_request && i.title.startsWith("[Pase]")).slice(0, 4);
     box.replaceChildren(
-      el("h3", { textContent: "Últimas ejecuciones" }),
+      el("h3", { textContent: "⚙️ Últimas ejecuciones del agente" }),
       el("ul", { className: "live" }, runs.workflow_runs.map((r) => {
         const [txt, cls] = stateOf(r);
-        return el("li", {}, el("span", { className: `pill ${cls}`, textContent: txt }), " ",
+        return el("li", {}, el("span", { className: `pill ${cls}`, textContent: `${pillState[cls] || ""} ${txt}` }), " ",
           el("a", { href: safeUrl(r.html_url), target: "_blank", rel: "noopener", textContent: `${r.name} · ${r.display_title.slice(0, 60)}` }),
           el("span", { className: "muted", textContent: ` · ${ago(r.created_at)}` }));
       })),
-      el("h3", { textContent: "Tickets de pase" }),
+      el("h3", { textContent: "🎫 Tickets de pase" }),
       tickets.length ? el("ul", { className: "live" }, tickets.map((i) => el("li", {},
         el("a", { href: safeUrl(i.html_url), target: "_blank", rel: "noopener", textContent: `#${i.number} ${i.title.slice(0, 70)}` }),
         " ", ...i.labels.map((l) => el("span", { className: "pill muted", textContent: l.name })))))
@@ -147,51 +148,90 @@ async function refreshLive(box) {
 
 /* ---------- Render ---------- */
 function render(root) {
-  const bar = el("progress", { max: STEPS.length, value: done.size, ariaLabel: "Progreso de la guía" });
-  const label = el("strong");
+  const ring = el("div", { className: "ring", role: "img" }, el("b"));
+  const ringTxt = ring.firstChild;
+  const msg = el("p", { className: "hero-msg" });
+  const journey = el("div", { className: "journey", role: "list", ariaLabel: "Recorrido de la guía" });
   const list = el("ol", { className: "steps" });
+  const win = el("div", { className: "win", hidden: true },
+    el("div", { className: "win-ico", textContent: "🎉", ariaHidden: "true" }),
+    el("div", {}, el("h2", { textContent: "¡Recorrido completado!" }),
+      el("p", { textContent: "Ya viste cómo se anticipa un problema, cómo se corrige y cómo se replica en tu área. Comparte esta guía con tu equipo." })));
+  const dots = [], items = [];
+
+  const goStep = (id) => items.find((x) => x.dataset.id === id)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
 
   const paint = () => {
-    bar.value = done.size;
-    label.textContent = done.size === STEPS.length ? "¡Completaste la guía!" : `${done.size} de ${STEPS.length} pasos`;
-    const next = STEPS.find((s) => !done.has(s.id))?.id;
-    list.querySelectorAll("li").forEach((li) => {
-      li.classList.toggle("done", done.has(li.dataset.id));
-      li.classList.toggle("current", li.dataset.id === next);
-      $("input", li).checked = done.has(li.dataset.id);
+    const pct = Math.round((done.size / STEPS.length) * 100);
+    ring.style.setProperty("--p", String(pct));
+    ring.setAttribute("aria-label", `${pct}% completado`);
+    ringTxt.textContent = `${pct}%`;
+    const next = STEPS.find((s) => !done.has(s.id));
+    msg.textContent = next ? `Siguiente: ${next.titulo}` : "Completaste todos los pasos";
+    win.hidden = done.size !== STEPS.length;
+    items.forEach((li) => {
+      const id = li.dataset.id, isDone = done.has(id);
+      li.classList.toggle("done", isDone);
+      li.classList.toggle("current", id === next?.id);
+      const b = $(".toggle", li);
+      b.setAttribute("aria-pressed", String(isDone));
+      b.textContent = isDone ? "✓ Hecho" : "Marcar como hecho";
+    });
+    dots.forEach((d, i) => {
+      const id = STEPS[i].id;
+      d.classList.toggle("done", done.has(id));
+      d.classList.toggle("current", id === next?.id);
+      d.firstChild.textContent = done.has(id) ? "✓" : STEPS[i].icono;
     });
   };
 
+  const setDone = (id, v) => { v ? done.add(id) : done.delete(id); save(done); paint(); };
+
   STEPS.forEach((s, i) => {
-    const check = el("input", { type: "checkbox", id: `chk-${s.id}` });
-    check.addEventListener("change", () => { check.checked ? done.add(s.id) : done.delete(s.id); save(done); paint(); });
+    const dot = el("button", { type: "button", className: `dot ${s.c}`, ariaLabel: `Paso ${i + 1}: ${s.titulo}`, title: s.titulo, onclick: () => goStep(s.id) }, el("span", { textContent: s.icono, ariaHidden: "true" }));
+    dot.setAttribute("role", "listitem");
+    dots.push(dot);
+    journey.append(dot);
+
     const actions = el("div", { className: "acts" }, s.acciones.map((a) =>
-      a.href ? el("a", { className: "btn", href: a.href, target: "_blank", rel: "noopener", textContent: `${a.t} ↗` })
-        : el("button", { type: "button", className: "btn", textContent: a.t, onclick: () => { a.fn(); } })));
-    const li = el("li", {},
-      el("div", { className: "num", textContent: String(i + 1), ariaHidden: "true" }),
+      a.href ? el("a", { className: "btn", href: a.href, target: "_blank", rel: "noopener", textContent: `${a.t} ↗`, onclick: () => setDone(s.id, true) })
+        : el("button", { type: "button", className: "btn", textContent: a.t, onclick: () => { a.fn(); setDone(s.id, true); } })));
+    const toggle = el("button", { type: "button", className: "toggle", onclick: () => setDone(s.id, !done.has(s.id)) });
+    const li = el("li", { className: s.c },
+      el("div", { className: "tile", ariaHidden: "true" }, el("span", { textContent: s.icono }), el("small", { textContent: `Paso ${i + 1}` })),
       el("div", { className: "body" },
-        el("h3", {}, s.titulo, " ", el("span", { className: "chip", textContent: s.tiempo })),
+        el("h3", {}, s.titulo, " ", el("span", { className: "chip", textContent: `⏱ ${s.tiempo}` })),
         el("p", { textContent: s.texto }),
         s.datos ? el("dl", { className: "datos" }, s.datos.map(([k, v]) => [el("dt", { textContent: k }), el("dd", { textContent: v })])) : "",
         actions,
-        el("p", { className: "expect" }, el("strong", { textContent: "Qué deberías ver: " }), s.resultado),
-        el("label", { className: "mark", htmlFor: check.id }, check, " Marcar como hecho")));
+        el("p", { className: "expect" }, el("span", { textContent: "👀 ", ariaHidden: "true" }), el("strong", { textContent: "Qué verás: " }), s.resultado),
+        toggle));
     li.dataset.id = s.id;
+    items.push(li);
     list.append(li);
   });
 
   const live = el("div", { className: "card live-box" });
-  const refresh = el("button", { type: "button", className: "btn ghost", textContent: "Actualizar estado", onclick: () => refreshLive(live) });
-  const reset = el("button", { type: "button", className: "btn ghost", textContent: "Reiniciar progreso", onclick: () => { done = new Set(); save(done); paint(); } });
+  const refresh = el("button", { type: "button", className: "btn ghost", textContent: "🔄 Actualizar", onclick: () => refreshLive(live) });
+  const reset = el("button", { type: "button", className: "btn light", textContent: "Reiniciar", onclick: () => { done = new Set(); save(done); paint(); } });
+  const start = el("button", { type: "button", className: "btn light solid", textContent: "▶ Continuar", onclick: () => goStep((STEPS.find((s) => !done.has(s.id)) || STEPS[0]).id) });
 
   root.replaceChildren(
-    el("div", { className: "card hero" },
-      el("h2", { textContent: "Recorre el flujo completo en 10 minutos" }),
-      el("p", { className: "muted", textContent: "Del chat al informe del agente en GitHub. Cada paso tiene un botón que hace el trabajo por ti y te dice qué debería pasar." }),
-      el("div", { className: "prog" }, bar, label, reset)),
+    el("div", { className: "hero2" },
+      el("div", { className: "hero-txt" },
+        el("p", { className: "eyebrow", textContent: "🧭 Guía interactiva · 10 minutos" }),
+        el("h2", { textContent: "Anticípate a los problemas antes de que ocurran" }),
+        el("p", { className: "lead", textContent: "Recorre el flujo completo: preguntar, detectar un riesgo, corregirlo y ver al agente trabajar en GitHub. No necesitas ser técnico: cada paso tiene un botón que hace el trabajo por ti." }),
+        el("ul", { className: "kpis" },
+          el("li", {}, el("span", { textContent: "⏱️", ariaHidden: "true" }), " De semanas a minutos"),
+          el("li", {}, el("span", { textContent: "🛡️", ariaHidden: "true" }), " Menos fallos en producción"),
+          el("li", {}, el("span", { textContent: "🔁", ariaHidden: "true" }), " Reutilizable por otras áreas")),
+        el("div", { className: "hero-acts" }, start, reset)),
+      el("div", { className: "hero-prog" }, ring, msg)),
+    el("div", { className: "journey-wrap" }, journey),
+    win,
     list,
-    el("div", { className: "card" }, el("div", { className: "live-head" }, el("h2", { textContent: "Estado en vivo del repositorio" }), refresh), live),
+    el("div", { className: "card" }, el("div", { className: "live-head" }, el("h2", { textContent: "📡 Lo que está pasando ahora en GitHub" }), refresh), live),
   );
   paint();
   refreshLive(live);
