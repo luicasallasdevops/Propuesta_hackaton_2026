@@ -1,5 +1,12 @@
 # Cambios
 
+## 1.1.0-poc
+- Pase a producción tipo OCD: formulario `[OCD]` con fecha y hora, y agente que valida riesgo y calendario (ventana martes a jueves, cupo, CAB, feriados, congelamientos, anticipación).
+- El agente calcula las fechas de cada etapa, define los aprobadores (líder técnico, Seguridad, Change Management, Delegado CIO) y propone otra noche si la elegida no sirve.
+- Pestaña **Pase OCD** en el portal: planificador con 5 casos, noches con cupo, tablero Kanban con OCD ficticios y simulador paso a paso.
+- Guía interactiva de 10 pasos, chat con la guía del OCD, plantilla de solicitud y workflow de ejecución del OCD.
+- Documento 11 y 9 pruebas nuevas (17 en total).
+
 ## 1.0.0-poc
 - Acciones de GitHub fijadas por SHA (Dependabot las mantiene).
 - Protecciones activadas: alertas de Dependabot, escaneo de secretos con bloqueo de pushes, reporte privado de vulnerabilidades y aprobación de workflows de externos.

@@ -34,7 +34,7 @@ const AHORA = [
 
 const CRITERIOS = [
   ["🤖", "IA agéntica", "El agente actúa ante eventos: lee, decide, comenta, etiqueta y mueve tarjetas."],
-  ["✨", "Prototipo y experiencia", "Portal con guía visual de 9 pasos, chat, validador y tablero."],
+  ["✨", "Prototipo y experiencia", "Portal con guía visual de 10 pasos, chat, validador, pase OCD con calendario y tablero."],
   ["📈", "Impacto en ingeniería y negocio", "Menos rechazos y fallos; más visibilidad para liderazgo."],
   ["💡", "Innovación y diferenciación", "Conocimiento + historial de incidentes + agente + Kanban en un solo flujo."],
   ["🧱", "Factibilidad y escalabilidad", "Solo GitHub; otras áreas cambian su carpeta de conocimiento."],

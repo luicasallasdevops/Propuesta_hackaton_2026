@@ -14,6 +14,13 @@
 | 5:15 | **Cómo funciona** y documento 06 | "Todo sobre GitHub, con permisos mínimos. Para producción: GitHub App, tokens de 1 hora y auditoría." |
 | 5:45 | Cierre | Impacto, reutilización entre tribus y plan de 6 meses. |
 
+## Extra: pase OCD (2 minutos, opcional)
+| Qué mostrar | Qué decir |
+|---|---|
+| Pestaña **📅 Pase OCD**, caso "🈵 Noche llena" | "El OCD es el pase que se agenda. El agente ve que la noche del miércoles ya tiene 3 cambios y propone el jueves." |
+| Caso "✅ OCD listo" y el calendario | "Calcula hacia atrás qué día revisa el líder, qué día Seguridad, el CAB y cuándo se avisa a las áreas." |
+| **Simulador**, escenario "OCD bloqueado que se corrige" | "La tarjeta pasa por el tablero: bloqueado, corregido, aprobado, en producción." |
+
 ## Plan B
 - Si Actions tarda, mostrar los Issues #1 y #2, que ya están evaluados.
 - Si el portal no carga, ejecutar localmente `npm run build && python3 -m http.server -d docs 8080`.

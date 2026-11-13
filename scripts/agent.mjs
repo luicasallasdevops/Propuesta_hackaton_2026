@@ -1,18 +1,30 @@
-// Agente de pre-validación: se ejecuta en GitHub Actions al abrir/editar un Issue de pase.
-// 1) Lee el formulario  2) Evalúa con la política y el historial  3) Escribe el informe en /tmp para publicarlo con gh. El texto del Issue se trata solo como DATO.
+// Agente de pre-validación: se ejecuta en GitHub Actions al abrir/editar un Issue de pase ([Pase]) o de OCD ([OCD]).
+// 1) Lee el formulario  2) Evalúa con la política, el historial y (en OCD) el calendario  3) Escribe el informe en /tmp para publicarlo con gh. El texto del Issue se trata solo como DATO.
 import { readFile, writeFile } from "node:fs/promises";
-import { parseIssueForm, changeFromForm, assess, renderReport } from "./engine.mjs";
+import { parseIssueForm, changeFromForm, assess, renderReport, ocdFromForm, assessOcd, renderOcdReport } from "./engine.mjs";
 
 const event = JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, "utf8"));
-const policy = JSON.parse(await readFile("knowledge/policy.json", "utf8"));
-const incidents = JSON.parse(await readFile("knowledge/incidents.json", "utf8"));
+const read = async (f) => JSON.parse(await readFile(f, "utf8"));
+const policy = await read("knowledge/policy.json");
+const incidents = await read("knowledge/incidents.json");
 
 const fields = parseIssueForm(event.issue.body);
-const change = changeFromForm(fields, policy);
-const result = assess(change, incidents, policy);
-const report = renderReport(change, result, policy);
+const esOcd = String(event.issue.title).startsWith("[OCD]");
+let result, report;
+if (esOcd) {
+  const cfg = await read("knowledge/ocd.json");
+  const calendario = await read("knowledge/ocd-calendario.json");
+  const ocd = ocdFromForm(fields, policy, cfg);
+  result = assessOcd({ ...ocd, id: `#${event.issue.number}` }, incidents, policy, cfg, calendario, new Date().toISOString().slice(0, 10));
+  report = renderOcdReport(ocd, result, policy, cfg);
+} else {
+  const change = changeFromForm(fields, policy);
+  result = assess(change, incidents, policy);
+  report = renderReport(change, result, policy);
+}
 
 const labels = [`riesgo:${result.nivel.toLowerCase()}`, result.estado === "Bloqueado" ? "bloqueado" : "listo-para-aprobacion"];
+if (esOcd) labels.push("ocd");
 await writeFile("/tmp/report.md", report);
 await writeFile("/tmp/labels.txt", labels.join(","));
-console.log(`Evaluado: ${result.estado}, riesgo ${result.nivel} (${result.score})`);
+console.log(`Evaluado${esOcd ? " (OCD)" : ""}: ${result.estado}, riesgo ${result.nivel} (${result.score})`);

@@ -1,0 +1,92 @@
+# Pase a producción tipo OCD (versión 1.1.0)
+
+Todo el contenido es **simulado**: reglas, fechas, feriados, congelamientos y personas. Sirve para demostrar el flujo; las reglas reales las define Change Management.
+
+## El problema
+Un pase a producción tipo OCD es largo de preparar. Hay tres aprobadores (líder técnico, Seguridad y Change Management), una ventana nocturna con cupo limitado, un comité (CAB) que solo sesiona dos días por semana y fechas que se calculan hacia atrás. Quien lo crea por primera vez suele equivocarse de noche, llega tarde al CAB o descubre en la última hora que le faltaba una evidencia.
+
+## Qué hace el agente ahora
+1. **Valida el riesgo** del cambio (los mismos 9 controles y 6 bloqueos de siempre).
+2. **Valida el calendario**: noche permitida, hora, cupo, feriados, congelamientos y anticipación.
+3. **Calcula las fechas** de cada etapa hacia atrás desde la noche de ejecución.
+4. **Define los aprobadores** según el tipo de cambio y el riesgo.
+5. **Propone otra noche** cuando la elegida no sirve.
+6. **Mueve la tarjeta** en el tablero Kanban: Bloqueado o Listo para aprobaciones.
+
+## Reglas simuladas (archivo `knowledge/ocd.json`)
+| Regla | Valor |
+|---|---|
+| Ventana | Martes a jueves, 22:00 a 04:00. La fecha es la noche en que empieza. |
+| Cupo | Máximo 3 OCD por noche (Emergencia no cuenta). |
+| CAB | Martes y jueves, 10:00. |
+| Anticipación Normal | 5 a 7 días hábiles, según la sesión del CAB. |
+| Anticipación Estándar | 2 días hábiles. Con riesgo Alto o Crítico se trata como Normal. |
+| Emergencia | Sin restricción de calendario; aprobaciones a posteriori en máximo 24 h. |
+| Congelamientos | 26-27 nov (evento comercial) y 18 dic al 4 ene (cierre de año). |
+| Feriados | 8 dic, 25 dic y 1 ene. |
+
+## Aprobadores
+| Tipo | Aprobadores | Se suman |
+|---|---|---|
+| Estándar | Líder técnico, Change Management | Riesgo Alto: Seguridad. Crítico: Delegado CIO. |
+| Normal | Líder técnico, Seguridad, Change Management | Riesgo Crítico: Delegado CIO. |
+| Emergencia | Líder técnico; Seguridad y Change Management a posteriori | En congelamiento: Delegado CIO. |
+
+## El calendario que calcula el agente
+Ejemplo para un OCD Normal con ejecución el jueves 19 de noviembre:
+
+| Fecha | Etapa | Responsable |
+|---|---|---|
+| Jue 12/11 | Crear el OCD con sus evidencias y pre-validación del agente | Solicitante, agente |
+| Vie 13/11 | Revisión del líder técnico | Líder técnico |
+| Lun 16/11 | Revisión de Seguridad | Seguridad |
+| Mar 17/11 | Aprobación en el CAB | Change Management |
+| Mié 18/11 | Confirmar ventana y avisar a las áreas | Solicitante |
+| Jue 19/11 22:00 | Ejecutar el pase | Solicitante y operaciones |
+| Jue 19/11 | Verificar 30 minutos | Solicitante |
+| Vie 20/11 | Cerrar el OCD con la evidencia | Solicitante |
+
+## Datos ficticios para la demo
+Fecha de la simulación: **lunes 16 de noviembre de 2026** (campo "Hoy" del planificador). Los OCD de ejemplo viven en `knowledge/ocd-calendario.json`.
+
+| OCD | Servicio | Tipo | Noche | Columna | Qué enseña |
+|---|---|---|---|---|---|
+| OCD-2006 | core-cuentas | Normal | 1 dic | Solicitado | Recién creado, aún sin evaluar |
+| OCD-2005 | pagos-api | Normal | Vie 20 nov | Bloqueado | Viernes, rollback No, sin SAST ni SCA |
+| OCD-2003 | core-cuentas | Normal | Jue 19 nov | Listo para aprobaciones | Líder aprobó; falta Seguridad y CAB |
+| OCD-2002 | pagos-api | Normal | Mié 18 nov | Aprobado | Las tres aprobaciones listas |
+| OCD-2004 | canal-web | Estándar | Mié 18 nov | Aprobado | Preaprobado |
+| OCD-2008 | tarjetas-api | Estándar | Mié 18 nov | Aprobado | Con los dos anteriores llena la noche (3 de 3) |
+| OCD-2001 | canal-web | Normal | Mar 10 nov | En producción | Ya ejecutado |
+| OCD-2007 | notificaciones | Emergencia | Lun 16 nov | En producción | Aprobación a posteriori pendiente |
+
+## Dónde verlo en el portal
+Pestaña **📅 Pase OCD**:
+- **Recorrido en 6 pasos** y **planificador** con 5 casos precargados (OCD listo, noche llena, viernes sin rollback, congelamiento, emergencia).
+- **Noches de la ventana** con el cupo de cada una.
+- **Tablero Kanban** con los OCD de ejemplo; al tocar una tarjeta se ven sus aprobaciones.
+- **Simulador** que mueve una tarjeta por el tablero, paso a paso, en tres escenarios.
+
+## Cómo probarlo en vivo en GitHub
+Abre el formulario **Pase a Producción tipo OCD** (el portal lo enlaza con servicio, fecha y hora precargados). El título empieza con `[OCD]`. Los desplegables no se precargan por URL: elígelos a mano.
+
+| Caso | Servicio | Tipo | Crit. | Tamaño | Fecha | Hora | Rollback | Casillas | Resultado |
+|---|---|---|---|---|---|---|---|---|---|
+| Listo | core-cuentas | Normal | Media | Pequeño | 2026-11-24 | 22:00 | Sí, probado | las 9 + las 2 de requisitos | Listo para aprobaciones, Bajo |
+| Bloqueado | pagos-api | Normal | Alta | Grande | 2026-11-20 | 22:00 | No | ninguna | Bloqueado, Crítico 100/100 |
+| Noche llena | notificaciones | Estándar | Baja | Pequeño | 2026-11-18 | 23:30 | Sí, probado | las 9 + las 2 | Bloqueado: ventana llena y propone el jueves 19 |
+
+Si ya pasó el 16 de noviembre, usa un martes a jueves con al menos 7 días hábiles de anticipación: el agente compara contra la fecha real del día.
+
+## Seguridad de la función
+- El texto del Issue sigue siendo **solo dato**: la fecha y la hora se validan con formato estricto y los informes neutralizan menciones y etiquetas.
+- El job `tablero` y sus permisos no cambian: mismo entorno protegido y mismo filtro de personas del equipo.
+- El workflow de ejecución `templates/workflows/ocd-ejecucion.yml` usa acciones fijadas por SHA, permisos mínimos y el ambiente `production` con aprobadores.
+
+## Límites de la POC
+- La ocupación de las noches sale de `ocd-calendario.json`. Los Issues nuevos no la actualizan. En producción se alimenta del calendario de Change Management por API.
+- Las aprobaciones de las personas se simulan en el portal; en GitHub las gestiona el ambiente protegido y el tablero.
+- Feriados y congelamientos son ficticios y no cubren zonas horarias.
+
+## Para escalarlo
+Cada tribu ajusta su `ocd.json` (ventana, cupo, CAB, feriados) sin tocar el código. El calendario real y los aprobadores nominales se conectan a la herramienta de gestión de cambios y al directorio corporativo.

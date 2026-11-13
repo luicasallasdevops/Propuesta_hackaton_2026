@@ -1,6 +1,6 @@
 # Tablero Kanban (GitHub Projects), token y recomendación de GitHub App
 
-El pase a producción también se ve como un tablero Kanban en **GitHub Projects**: cada ticket `[Pase]` es una tarjeta que el agente mueve según el resultado de su evaluación.
+El pase a producción también se ve como un tablero Kanban en **GitHub Projects**: cada ticket `[Pase]` es una tarjeta que el agente mueve según el resultado de su evaluación. Los tickets `[OCD]` (pase con calendario, ver [documento 11](11-pase-ocd.md)) usan el mismo tablero y las mismas columnas.
 
 ## Columnas
 

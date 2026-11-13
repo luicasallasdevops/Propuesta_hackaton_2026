@@ -19,7 +19,7 @@ Los equipos tardan semanas en entender cómo crear tickets, qué roles pedir, qu
 | Agentes de Copilot | Instrucciones y agente personalizado que leen la misma base de conocimiento | `.github/copilot-instructions.md`, `.github/agents/` |
 
 ## Empieza aquí
-Abre el portal y entra a la pestaña **Guía paso a paso**: 9 pasos con botones que cargan el caso riesgoso y el camino feliz, abren el ticket precargado y muestran en vivo las ejecuciones del agente.
+Abre el portal y entra a la pestaña **Guía paso a paso**: 10 pasos (incluye el pase OCD con calendario) con botones que cargan el caso riesgoso y el camino feliz, abren el ticket precargado y muestran en vivo las ejecuciones del agente.
 
 ## Demo en 3 minutos
 1. Abrir el portal y preguntar "¿Cómo creo un ticket de pase?" y "Dame un workflow de CodeQL".

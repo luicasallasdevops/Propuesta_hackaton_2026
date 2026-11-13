@@ -98,6 +98,12 @@ const STEPS = [
     resultado: "Plantillas de revisión de seguridad, publicación protegida y actualizaciones automáticas, con botón Copiar.",
   },
   {
+    id: "ocd", icono: "📅", c: "c10", tiempo: "3 min", titulo: "Programa un pase OCD con calendario",
+    texto: "Un OCD es el pase a producción que se agenda. El agente calcula la noche válida, las fechas de cada paso y los aprobadores: líder técnico, Seguridad y Change Management.",
+    acciones: [{ t: "Planificar mi OCD", fn: () => goTab("t-ocd") }, { t: "¿Quién aprueba un OCD?", fn: () => ask("¿Quién aprueba un OCD?") }, { t: "Crear un OCD de prueba", href: gh(`/issues/new?${params({ template: "ocd.yml", title: "[OCD] core-cuentas (demo)", servicio: "core-cuentas", fecha: "2026-11-24", hora: "22:00" })}`) }],
+    resultado: "Un calendario con la fecha de cada paso, el cupo de la ventana y una tarjeta de OCD que se mueve sola en el tablero.",
+  },
+  {
     id: "tuyo", icono: "🚀", c: "c8", tiempo: "5 min", titulo: "Hazlo tuyo y escálalo",
     texto: "Ajusta los estándares, las reglas de riesgo y el historial de incidentes. Otras áreas solo cambian su carpeta de conocimiento.",
     acciones: [{ t: "Ver beneficios y pilares", fn: () => goTab("t-ben") }, { t: "Guía para equipos", href: gh("/blob/main/documentacion/04-guia-para-equipos.md") }, { t: "Hoja de ruta", href: gh("/blob/main/documentacion/05-seguridad-decisiones-roadmap.md") }],
@@ -132,7 +138,7 @@ async function refreshLive(box) {
   box.replaceChildren(el("p", { className: "muted", textContent: "Consultando GitHub…" }));
   try {
     const [runs, issues] = await Promise.all([api("/actions/runs?per_page=6"), api("/issues?state=all&per_page=15")]);
-    const tickets = issues.filter((i) => !i.pull_request && i.title.startsWith("[Pase]")).slice(0, 4);
+    const tickets = issues.filter((i) => !i.pull_request && (i.title.startsWith("[Pase]") || i.title.startsWith("[OCD]"))).slice(0, 4);
     box.replaceChildren(
       el("h3", { textContent: "⚙️ Últimas ejecuciones del agente" }),
       el("ul", { className: "live" }, runs.workflow_runs.map((r) => {
@@ -141,7 +147,7 @@ async function refreshLive(box) {
           el("a", { href: safeUrl(r.html_url), target: "_blank", rel: "noopener", textContent: `${r.name} · ${r.display_title.slice(0, 60)}` }),
           el("span", { className: "muted", textContent: ` · ${ago(r.created_at)}` }));
       })),
-      el("h3", { textContent: "🎫 Tickets de pase" }),
+      el("h3", { textContent: "🎫 Tickets de pase y OCD" }),
       tickets.length ? el("ul", { className: "live" }, tickets.map((i) => el("li", {},
         el("a", { href: safeUrl(i.html_url), target: "_blank", rel: "noopener", textContent: `#${i.number} ${i.title.slice(0, 70)}` }),
         " ", ...i.labels.map((l) => el("span", { className: "pill muted", textContent: l.name })))))
@@ -247,7 +253,7 @@ const root = $("#guia-root");
 if (root) render(root);
 
 /* Botón para volver a la guía desde las pestañas a las que lleva cada paso */
-for (const id of ["p-chat", "p-pase", "p-plant"]) {
+for (const id of ["p-chat", "p-pase", "p-plant", "p-ocd"]) {
   const panel = $(`#${id}`);
   if (!panel) continue;
   const back = el("button", { type: "button", className: "back", textContent: "🧭 Volver a la guía paso a paso", onclick: () => { goTab("t-guia"); scrollTo({ top: 0 }); } });

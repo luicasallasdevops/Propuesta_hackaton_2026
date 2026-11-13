@@ -14,12 +14,14 @@ for (const f of (await readdir(join(root, "knowledge"))).filter((f) => f.endsWit
 const templates = {};
 for (const f of (await readdir(join(root, "templates", "workflows"))).sort())
   templates[`workflows/${f}`] = await readFile(join(root, "templates", "workflows", f), "utf8");
-for (const f of ["dependabot.yml", "ticket-pase-produccion.md"])
+for (const f of ["dependabot.yml", "ticket-pase-produccion.md", "ocd-solicitud.md"])
   templates[f] = await readFile(join(root, "templates", f), "utf8");
 
 await writeFile(join(out, "kb.json"), JSON.stringify(docs));
 await writeFile(join(out, "templates.json"), JSON.stringify(templates));
 await copyFile(join(root, "knowledge", "incidents.json"), join(out, "incidents.json"));
 await copyFile(join(root, "knowledge", "policy.json"), join(out, "policy.json"));
+await copyFile(join(root, "knowledge", "ocd.json"), join(out, "ocd.json"));
+await copyFile(join(root, "knowledge", "ocd-calendario.json"), join(out, "ocd-calendario.json"));
 await copyFile(join(root, "scripts", "engine.mjs"), join(root, "docs", "engine.mjs"));
 console.log(`kb: ${Object.keys(docs).length} docs, ${Object.keys(templates).length} plantillas`);

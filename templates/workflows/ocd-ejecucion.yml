@@ -1,0 +1,37 @@
+# Plantilla oficial SecOps (POC): ejecución de un OCD aprobado en su ventana de cambios.
+name: ocd-ejecucion
+
+on:
+  workflow_dispatch:
+    inputs:
+      ocd:
+        description: "Número del Issue del OCD aprobado (columna Aprobado del tablero)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ocd-ejecucion
+  cancel-in-progress: false
+
+jobs:
+  ejecutar:
+    runs-on: [self-hosted, linux]     # runner autoalojado en la red de la entidad
+    environment: production           # exige aprobadores: líder técnico y Change Management
+    timeout-minutes: 120              # la ventana termina a las 04:00
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Desplegar bajo el OCD
+        env:
+          OCD: ${{ inputs.ocd }}
+        run: |
+          echo "Ejecutando el OCD #${OCD}"
+          # ./scripts/deploy.sh
+      - name: Verificación posterior (30 min)
+        run: |
+          echo "Revisar métricas y alertas durante 30 minutos"
+          echo "Si falla: ejecutar el rollback probado y anotarlo en el OCD"

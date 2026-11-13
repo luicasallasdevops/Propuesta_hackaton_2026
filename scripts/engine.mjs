@@ -152,3 +152,185 @@ export function renderReport(change, r, policy) {
   L.push("_Informe generado por el agente de pre-validación (POC, datos simulados). La decisión final es del squad y de las aprobaciones indicadas._");
   return L.join("\n");
 }
+
+/* ---------- Pase OCD: calendario, aprobadores y plan de fechas ---------- */
+
+const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const toDate = (s) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s))) return null;
+  const d = new Date(`${s}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s ? null : d;
+};
+const iso = (d) => d.toISOString().slice(0, 10);
+const addDays = (s, n) => iso(new Date(toDate(s).getTime() + n * 864e5));
+/** Día de la semana en español para una fecha AAAA-MM-DD ("" si es inválida). */
+export const diaDe = (s) => { const d = toDate(s); return d ? DIAS[d.getUTCDay()] : ""; };
+export const fechaValida = (s) => toDate(s) !== null;
+export const feriadoDe = (s, cfg) => cfg.feriados.find((f) => f.fecha === s);
+export const congelamientoDe = (s, cfg) => cfg.congelamientos.find((c) => s >= c.desde && s <= c.hasta);
+export function esHabil(s, cfg) {
+  const w = toDate(s).getUTCDay();
+  return w > 0 && w < 6 && !feriadoDe(s, cfg);
+}
+/** Suma (o resta) días hábiles: sin fines de semana ni feriados. */
+export function sumarHabiles(s, n, cfg) {
+  let d = s, left = Math.abs(n);
+  while (left > 0) { d = addDays(d, n < 0 ? -1 : 1); if (esHabil(d, cfg)) left--; }
+  return d;
+}
+const ultimaSesionCab = (limite, cfg) => {
+  let d = limite;
+  for (let i = 0; i < 14; i++, d = addDays(d, -1)) if (cfg.cab.dias.includes(diaDe(d)) && esHabil(d, cfg)) return d;
+  return limite;
+};
+const horaValida = (h) => /^([01]\d|2[0-3]):[0-5]\d$/.test(h);
+const enVentana = (h, cfg) => h >= cfg.ventana.horaInicio || h <= cfg.ventana.horaFin;
+
+/** Fechas de cada etapa del OCD, calculadas hacia atrás desde la ejecución. */
+export function planOcd(tipo, ejecucion, cfg, hora = cfg.ventana.horaInicio) {
+  const E = cfg.etapas;
+  const paso = (id, fecha, extra = {}) => ({ id, fecha, dia: diaDe(fecha), ...E[id], ...extra });
+  if (tipo === "Emergencia") {
+    const luego = sumarHabiles(ejecucion, 1, cfg);
+    return [paso("crear", ejecucion), paso("agente", ejecucion), paso("lider", ejecucion), paso("ejecutar", ejecucion, { hora }),
+      paso("verificar", ejecucion), paso("posteriori", luego), paso("cerrar", luego)];
+  }
+  const agenda = sumarHabiles(ejecucion, -1, cfg);
+  if (tipo === "Estándar") {
+    const crear = sumarHabiles(ejecucion, -2, cfg);
+    return [paso("crear", crear), paso("agente", crear), paso("lider", agenda),
+      paso("cab", agenda, { nombre: "Change Management registra el cambio (preaprobado)" }),
+      paso("agenda", agenda), paso("ejecutar", ejecucion, { hora }), paso("verificar", ejecucion), paso("cerrar", sumarHabiles(ejecucion, 1, cfg))];
+  }
+  const cab = ultimaSesionCab(sumarHabiles(ejecucion, -2, cfg), cfg);
+  const seguridad = sumarHabiles(cab, -1, cfg);
+  const lider = sumarHabiles(seguridad, -1, cfg);
+  const crear = sumarHabiles(lider, -1, cfg);
+  return [paso("crear", crear), paso("agente", crear), paso("lider", lider), paso("seguridad", seguridad),
+    paso("cab", cab, { hora: cfg.cab.hora }), paso("agenda", agenda), paso("ejecutar", ejecucion, { hora }), paso("verificar", ejecucion),
+    paso("cerrar", sumarHabiles(ejecucion, 1, cfg))];
+}
+
+const ocupadas = (fecha, calendario, excluirId) =>
+  calendario.filter((c) => c.id !== excluirId && c.fecha === fecha && c.estado !== "Cancelado" && c.tipo !== "Emergencia");
+
+/** Primera noche válida desde mañana: hábil, dentro de la ventana, sin congelamiento, con cupo y con tiempo para el plan. */
+export function proximaVentana(tipo, hoy, cfg, calendario, excluirId) {
+  for (let i = 1; i <= 120; i++) {
+    const d = addDays(hoy, i);
+    if (!esHabil(d, cfg) || !cfg.ventana.dias.includes(diaDe(d)) || congelamientoDe(d, cfg)) continue;
+    if (ocupadas(d, calendario, excluirId).length >= cfg.ventana.maxPorNoche) continue;
+    if (tipo !== "Emergencia" && planOcd(tipo, d, cfg)[0].fecha < hoy) continue;
+    return d;
+  }
+  return null;
+}
+
+/** Cupo de las próximas noches de ventana, para mostrar el calendario. */
+export function ventanasProximas(hoy, cfg, calendario, cantidad = 10) {
+  const out = [];
+  for (let i = 1; i <= 90 && out.length < cantidad; i++) {
+    const d = addDays(hoy, i);
+    if (!cfg.ventana.dias.includes(diaDe(d))) continue;
+    const ids = ocupadas(d, calendario).map((c) => c.id);
+    const motivo = feriadoDe(d, cfg)?.motivo || congelamientoDe(d, cfg)?.motivo || "";
+    out.push({ fecha: d, dia: diaDe(d), ids, max: cfg.ventana.maxPorNoche, motivo, estado: motivo ? "cerrada" : ids.length >= cfg.ventana.maxPorNoche ? "llena" : "libre" });
+  }
+  return out;
+}
+
+/** Lee el Issue Form del OCD. */
+export function ocdFromForm(fields, policy, cfg) {
+  const marks = parseChecklist(fields["Requisitos del OCD"]);
+  return {
+    change: changeFromForm(fields, policy),
+    fecha: clean(fields["Fecha de ejecución"]).slice(0, 10),
+    hora: clean(fields["Hora de inicio"]).slice(0, 5),
+    ocdChecks: Object.fromEntries(Object.entries(cfg.controles).map(([k, c]) => [k, marks[c.etiqueta] === true])),
+  };
+}
+
+/** Evalúa un OCD: riesgo del cambio + reglas de calendario + aprobadores + plan de fechas. */
+export function assessOcd(o, incidents, policy, cfg, calendario, hoy) {
+  const hoyS = typeof hoy === "string" ? hoy : iso(hoy);
+  const dia = diaDe(o.fecha);
+  const base = assess({ ...o.change, dia }, incidents, policy, toDate(hoyS));
+  const factors = [...base.factors];
+  const missing = [...base.missing];
+  let extra = 0;
+  for (const [k, c] of Object.entries(cfg.controles)) {
+    if (o.ocdChecks?.[k]) continue;
+    missing.push(c.etiqueta); factors.push({ label: `Falta: ${c.etiqueta}`, pts: c.peso }); extra += c.peso;
+  }
+  const score = Math.min(100, base.score + extra);
+  const nivel = levelFor(policy, score).nivel;
+  const tipo = o.change.tipo;
+  const blockers = [...base.blockers];
+  const advertencias = [];
+
+  if (!cfg.tipos[tipo]) blockers.push("Elige el tipo de cambio: Estándar, Normal o Emergencia");
+  const tipoEf = tipo === "Estándar" && ["Alto", "Crítico"].includes(nivel) ? "Normal" : tipo;
+  if (tipoEf !== tipo) advertencias.push("El riesgo es Alto o Crítico: este cambio Estándar se trata como Normal (pasa por el CAB).");
+
+  const valida = fechaValida(o.fecha);
+  if (!valida) blockers.push("Fecha de ejecución inválida: usa el formato AAAA-MM-DD");
+  const emergencia = tipo === "Emergencia";
+  const cong = valida ? congelamientoDe(o.fecha, cfg) : undefined;
+  const aprobadores = new Set(cfg.tipos[tipo]?.aprobadores ?? []);
+  if (!emergencia || nivel === "Crítico") (cfg.adicionalesPorNivel[nivel] ?? []).forEach((a) => aprobadores.add(a));
+  if (emergencia && cong) aprobadores.add("Delegado CIO");
+  let plan = [];
+
+  if (valida && cfg.tipos[tipo]) {
+    plan = planOcd(tipoEf, o.fecha, cfg, o.hora && horaValida(o.hora) ? o.hora : cfg.ventana.horaInicio);
+    const otros = ocupadas(o.fecha, calendario, o.id);
+    const mismo = calendario.find((c) => c.id !== o.id && c.fecha === o.fecha && c.servicio === o.change.servicio && c.estado !== "Cancelado");
+    if (mismo) advertencias.push(`Ya existe ${mismo.id} del mismo servicio ese día: coordinen para no solaparse.`);
+    if (emergencia) {
+      advertencias.push("Emergencia: se ejecuta ya y Seguridad y Change Management aprueban a posteriori en máximo 24 horas.");
+      if (cong) advertencias.push(`Cae en congelamiento (${cong.motivo}): requiere al Delegado CIO.`);
+    } else {
+      if (o.fecha <= hoyS) blockers.push("La fecha de ejecución debe ser futura");
+      const fer = feriadoDe(o.fecha, cfg);
+      if (fer) blockers.push(`La fecha es feriado (${fer.motivo})`);
+      else if (!esHabil(o.fecha, cfg) || !cfg.ventana.dias.includes(dia)) blockers.push(`Fuera de la ventana estándar (${cfg.ventana.dias.join(", ")}): ${o.fecha} cae ${dia}`);
+      if (cong) blockers.push(`Congelamiento de cambios: ${cong.motivo}`);
+      if (!horaValida(o.hora)) blockers.push("Hora de inicio inválida: usa HH:MM en formato 24 horas");
+      else if (!enVentana(o.hora, cfg)) blockers.push(`Hora fuera de la ventana ${cfg.ventana.horaInicio}-${cfg.ventana.horaFin}`);
+      if (otros.length >= cfg.ventana.maxPorNoche) blockers.push(`Ventana llena: ya hay ${otros.length} de ${cfg.ventana.maxPorNoche} OCD esa noche (${otros.map((c) => c.id).join(", ")})`);
+      if (plan[0].fecha < hoyS) blockers.push(`Anticipación insuficiente: para esa fecha el OCD debía crearse el ${plan[0].fecha}`);
+    }
+    plan = plan.map((p) => ({ ...p, vencida: p.id !== "ejecutar" && p.fecha < hoyS }));
+  }
+
+  const sugerida = cfg.tipos[tipo] && !emergencia ? proximaVentana(tipoEf, hoyS, cfg, calendario, o.id) : null;
+  const actions = base.actions.filter((a) => !(emergencia && a.includes("martes-jueves")));
+  const calBloqueado = blockers.length > base.blockers.length;
+  if (calBloqueado && sugerida) actions.unshift(`Reprogramar el OCD para el ${sugerida} (${diaDe(sugerida)}) a las ${cfg.ventana.horaInicio}: es la primera noche válida con cupo.`);
+
+  return {
+    ...base, score, nivel, missing, factors: factors.sort((a, b) => b.pts - a.pts), blockers: [...new Set(blockers)], advertencias,
+    estado: blockers.length ? "Bloqueado" : "Listo para aprobaciones", approvals: [...aprobadores], aprobadores: [...aprobadores],
+    actions: [...new Set(actions)], plan, tipoEfectivo: tipoEf, sugerida, fecha: o.fecha, hora: o.hora, dia,
+  };
+}
+
+/** Informe Markdown del OCD para el Issue. */
+export function renderOcdReport(o, r, policy, cfg) {
+  const icon = r.estado === "Bloqueado" ? "🛑" : "✅";
+  const L = [];
+  L.push(`## ${icon} Evaluación del OCD: ${esc(o.change.servicio || "sin servicio")}`);
+  L.push(`**Estado:** ${r.estado} · **Riesgo:** ${r.nivel} (${r.score}/100) · **Tipo:** ${esc(o.change.tipo || "sin tipo")}${r.tipoEfectivo !== o.change.tipo ? ` (tratado como ${r.tipoEfectivo})` : ""} · **Ejecución:** ${esc(o.fecha || "sin fecha")} ${r.dia ? `(${r.dia})` : ""} ${esc(o.hora || "")} · política \`${policy.version}\` / OCD \`${cfg.version}\``, "");
+  if (r.blockers.length) L.push("### Bloqueos", ...r.blockers.map((b) => `- 🛑 ${esc(b)}`), "");
+  if (r.advertencias.length) L.push("### Advertencias", ...r.advertencias.map((a) => `- ⚠️ ${esc(a)}`), "");
+  if (r.actions.length) L.push("### Qué hacer ahora", ...r.actions.map((a, i) => `${i + 1}. ${esc(a)}`), "");
+  if (r.plan.length) {
+    L.push("### Calendario del OCD (días hábiles, sin feriados)", "| Fecha | Día | Etapa | Responsable |", "|---|---|---|---|",
+      ...r.plan.map((p) => `| ${p.fecha}${p.hora ? ` ${p.hora}` : ""}${p.vencida ? " ⚠️ vencida" : ""} | ${p.dia} | ${p.nombre} | ${p.responsable} |`), "");
+  }
+  L.push("### Aprobadores", ...r.aprobadores.map((a) => `- [ ] ${a}`), "");
+  L.push("### Por qué este puntaje", "| Factor | Puntos |", "|---|---|", ...r.factors.map((f) => `| ${esc(f.label)} | +${f.pts} |`), "");
+  if (r.similar.length) L.push("### Incidentes recientes del mismo servicio", ...r.similar.map((i) => `- **${i.id}** (${i.fecha}, ${i.severidad}): ${i.resumen}`), "");
+  L.push("_Informe del agente OCD (POC, datos simulados). Las aprobaciones y la decisión final son de las personas indicadas._");
+  return L.join("\n");
+}

@@ -1,0 +1,84 @@
+name: Pase a Producción tipo OCD
+description: Solicita un OCD. El agente valida riesgo, calendario y aprobadores, y te dice qué falta y cuándo hacerlo.
+title: "[OCD] "
+labels: ["ocd"]
+body:
+  - type: input
+    id: servicio
+    attributes:
+      label: Servicio
+      description: Nombre del servicio. Ejemplos de la demo, pagos-api, canal-web, core-cuentas, tarjetas-api
+    validations:
+      required: true
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo de cambio
+      description: Estándar (repetible), Normal (planificado, pasa por el CAB) o Emergencia (incidente activo).
+      options: [Estándar, Normal, Emergencia]
+    validations:
+      required: true
+  - type: dropdown
+    id: criticidad
+    attributes:
+      label: Criticidad del servicio
+      options: [Alta, Media, Baja]
+    validations:
+      required: true
+  - type: dropdown
+    id: tamano
+    attributes:
+      label: Tamaño del cambio
+      options: [Pequeño, Mediano, Grande]
+    validations:
+      required: true
+  - type: input
+    id: fecha
+    attributes:
+      label: Fecha de ejecución
+      description: Noche de la ventana, formato AAAA-MM-DD. Martes a jueves; la ventana empieza ese día a las 22:00 y termina a las 04:00 del día siguiente.
+      placeholder: "2026-11-19"
+    validations:
+      required: true
+  - type: input
+    id: hora
+    attributes:
+      label: Hora de inicio
+      description: Formato 24 horas HH:MM, entre 22:00 y 04:00.
+      placeholder: "22:00"
+    validations:
+      required: true
+  - type: dropdown
+    id: rollback
+    attributes:
+      label: Plan de rollback
+      options: ["Sí, probado", "Sí, sin probar", "No"]
+    validations:
+      required: true
+  - type: checkboxes
+    id: controles
+    attributes:
+      label: Evidencias y controles
+      description: Marca lo que ya tienes. El agente indica lo que falta.
+      options:
+        - label: Pruebas QA aprobadas
+        - label: SAST sin hallazgos críticos o altos
+        - label: SCA sin vulnerabilidades críticas o altas
+        - label: Escaneo de secretos limpio
+        - label: Aprobación del squad de QA
+        - label: Runbook actualizado
+        - label: Alertas y monitoreo definidos
+        - label: Grupos de red solicitados
+        - label: Licencias GitHub y GHAS verificadas
+  - type: checkboxes
+    id: requisitos
+    attributes:
+      label: Requisitos del OCD
+      options:
+        - label: Ventana comunicada a las áreas impactadas
+        - label: Plan de verificación posterior definido
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción del cambio
+      description: Qué cambia, qué servicios toca y cómo se verifica que salió bien.

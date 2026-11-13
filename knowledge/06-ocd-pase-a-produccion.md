@@ -1,0 +1,54 @@
+# OCD: pase a producción con calendario y aprobadores
+
+> Contenido SIMULADO para la POC. Reemplazar por el procedimiento oficial de Change Management.
+
+## Qué es un OCD
+- OCD es el ticket de pase a producción que se calendariza. Reúne el cambio, sus evidencias, los aprobadores y la noche exacta de ejecución.
+- Tiene tres tipos: Estándar (repetible y de bajo riesgo), Normal (planificado, pasa por el CAB) y Emergencia (corrige un incidente activo).
+- Se crea con el formulario "Pase a Producción tipo OCD". El título empieza con [OCD] y el agente lo evalúa al instante.
+
+## Cómo crear un OCD paso a paso
+1. Reúne las evidencias: pruebas QA, SAST, SCA, escaneo de secretos, runbook, monitoreo y grupos de red.
+2. Define el rollback y pruébalo en un ambiente previo. Sin rollback el OCD se bloquea.
+3. Elige la noche de ejecución: martes, miércoles o jueves, entre las 22:00 y las 04:00.
+4. Revisa el cupo: cada noche admite máximo 3 OCD. Consulta el calendario en la pestaña Pase OCD.
+5. Abre el formulario con la fecha y la hora. El agente publica el informe con bloqueos, calendario y aprobadores.
+6. Corrige lo que el agente marque y edita el ticket. El informe y la tarjeta se actualizan solos.
+
+## Quién aprueba un OCD
+- Líder técnico del proyecto: confirma que el cambio es correcto y que el equipo puede ejecutarlo y revertirlo.
+- Seguridad: revisa SAST, SCA, secretos y accesos. En un OCD Normal aprueba antes de la sesión del CAB.
+- Change Management: aprueba en el CAB y valida calendario, cupo y congelamientos.
+- Delegado CIO: se suma cuando el riesgo es Crítico o cuando se ejecuta dentro de un congelamiento.
+- En un OCD de Emergencia, Seguridad y Change Management aprueban a posteriori en máximo 24 horas.
+
+## Reglas del calendario
+- Ventana estándar: martes a jueves, de 22:00 a 04:00. La fecha del OCD es la noche en que empieza la ventana.
+- Cupo: máximo 3 OCD por noche. Si la noche está llena, el agente propone la primera noche libre.
+- Anticipación Normal: entre 5 y 7 días hábiles, según la sesión del CAB. El CAB sesiona martes y jueves a las 10:00.
+- Anticipación Estándar: 2 días hábiles. Si el riesgo sale Alto o Crítico, se trata como Normal.
+- Los fines de semana, los feriados y los congelamientos no admiten OCD, salvo Emergencia.
+- Los congelamientos simulados son el evento comercial de fin de mes y el cierre de año.
+
+## Cómo calcula el agente las fechas
+1. Parte de la noche de ejecución y calcula hacia atrás, en días hábiles.
+2. Confirmar ventana y avisar a las áreas: 1 día hábil antes.
+3. CAB: la última sesión (martes o jueves) que ocurra 2 días hábiles antes o antes.
+4. Seguridad: el día hábil anterior al CAB. Líder técnico: el día hábil anterior a Seguridad.
+5. Crear el OCD: el día hábil anterior a la revisión del líder técnico.
+6. Si esa fecha de creación ya pasó, el OCD se bloquea por anticipación insuficiente y el agente propone otra noche.
+
+## Cómo ejecutar el pase el día del OCD
+1. Confirma que el ticket está en la columna Aprobado del tablero.
+2. Avisa al canal de operaciones que inicia la ventana.
+3. Lanza el workflow de ejecución del OCD con el número del ticket. El ambiente production pide aprobación.
+4. Despliega y valida el servicio con las pruebas de humo del runbook.
+5. Verifica 30 minutos las métricas y las alertas. Si algo falla, ejecuta el rollback probado.
+6. Cierra el OCD con la evidencia: resultado de la verificación y hora de finalización.
+
+## Errores frecuentes en un OCD
+- Elegir viernes o fin de semana: queda fuera de la ventana.
+- Elegir una noche que ya tiene 3 OCD.
+- Crear el OCD con menos días de anticipación de los que pide el CAB.
+- No avisar a las áreas impactadas antes de la ventana.
+- Pedir los grupos de red el mismo día de la ejecución.

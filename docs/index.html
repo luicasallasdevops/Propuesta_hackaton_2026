@@ -19,6 +19,7 @@
   <nav class="wrap" role="tablist" aria-label="Secciones">
     <button role="tab" aria-selected="true" aria-controls="p-guia" id="t-guia"><span aria-hidden="true">🧭</span> Guía paso a paso</button>
     <button role="tab" aria-selected="false" aria-controls="p-ben" id="t-ben"><span aria-hidden="true">🎯</span> Beneficios</button>
+    <button role="tab" aria-selected="false" aria-controls="p-ocd" id="t-ocd"><span aria-hidden="true">📅</span> Pase OCD</button>
     <button role="tab" aria-selected="false" aria-controls="p-chat" id="t-chat"><span aria-hidden="true">💬</span> Preguntar</button>
     <button role="tab" aria-selected="false" aria-controls="p-pase" id="t-pase"><span aria-hidden="true">🛡️</span> Validar mi pase</button>
     <button role="tab" aria-selected="false" aria-controls="p-plant" id="t-plant"><span aria-hidden="true">📦</span> Plantillas</button>
@@ -33,6 +34,10 @@
 
   <section id="p-ben" role="tabpanel" aria-labelledby="t-ben" hidden>
     <div id="ben-root"><p class="muted">Cargando…</p></div>
+  </section>
+
+  <section id="p-ocd" role="tabpanel" aria-labelledby="t-ocd" hidden>
+    <div id="ocd-root"><p class="muted">Cargando el módulo OCD…</p></div>
   </section>
 
   <section id="p-chat" role="tabpanel" aria-labelledby="t-chat" hidden>
@@ -79,6 +84,7 @@
         <li><strong>Agente en el portal:</strong> responde con la sección exacta del estándar y la cita como fuente. Corre en el navegador, sin enviar datos a terceros.</li>
         <li><strong>Agente en GitHub Actions:</strong> al abrir un ticket de pase, evalúa evidencias, historial de incidentes y día de despliegue. Publica el informe, etiqueta el riesgo, bloquea lo que no cumple y mueve la tarjeta en el tablero Kanban.</li>
         <li><strong>Agentes de Copilot:</strong> las mismas instrucciones y la misma base de conocimiento las consumen los agentes de Copilot de la entidad (modo agente en el IDE y agente personalizado), sin duplicar contenido.</li>
+        <li><strong>Pase OCD con calendario:</strong> el agente calcula la noche válida, el cupo de la ventana, los congelamientos, las fechas de cada etapa y los aprobadores (líder técnico, Seguridad y Change Management), y mueve la tarjeta en el tablero.</li>
         <li><strong>Aprende del pasado:</strong> cada incidente cerrado se agrega a <code>knowledge/incidents.json</code> y ajusta el riesgo de los próximos pases.</li>
       </ol>
       <h2>Escalabilidad</h2>
@@ -89,5 +95,6 @@
 <script type="module" src="app.js"></script>
 <script type="module" src="guide.js"></script>
 <script type="module" src="benefits.js"></script>
+<script type="module" src="ocd.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 name: agente-pase
 
-# Agente de pre-validación: evalúa cada ticket de pase y publica el informe en el Issue.
+# Agente de pre-validación: evalúa cada ticket de pase ([Pase]) o de OCD ([OCD]) y publica el informe en el Issue.
 on:
   issues:
     types: [opened, edited, reopened]
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   evaluar:
-    if: startsWith(github.event.issue.title, '[Pase]')
+    if: startsWith(github.event.issue.title, '[Pase]') || startsWith(github.event.issue.title, '[OCD]')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -38,6 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           gh label create "pase-produccion" --color 1D76DB --force >/dev/null
+          gh label create "ocd" --color 8250DF --force >/dev/null
           for l in "riesgo:bajo:2DA44E" "riesgo:medio:D4A72C" "riesgo:alto:E16F24" "riesgo:crítico:CF222E" "bloqueado:CF222E" "listo-para-aprobacion:2DA44E"; do
             name="${l%:*}"; color="${l##*:}"
             gh label create "$name" --color "$color" --force >/dev/null
