@@ -2,6 +2,8 @@
 
 POC del hackathon DevSecOps 2026. Un agente que guía al equipo por los estándares de la entidad, valida el pase a producción antes de que falle y entrega plantillas seguras listas para usar. **Todo el contenido (políticas, incidentes, roles) es simulado.**
 
+> **Versión 0.1.0 (POC)** · [Qué hace y qué resuelve, en simple](documentacion/00-resumen-simple.md)
+>
 > Documentación completa para el equipo en [`documentacion/`](documentacion/README.md): contexto, arquitectura, guion de demo, guía para equipos y hoja de ruta.
 
 ## El problema

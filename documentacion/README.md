@@ -2,6 +2,8 @@
 
 **Lo más rápido:** abre el portal y usa la pestaña **Guía paso a paso**. Te lleva por todo el flujo en 10 minutos con botones que cargan los casos por ti y un estado en vivo del repositorio.
 
+**Para quien no es técnico:** lee primero el [resumen simple (00)](00-resumen-simple.md): qué hace, qué resuelve y cómo funciona.
+
 Lee en este orden:
 1. [Contexto y problema](01-contexto-y-problema.md): qué intentamos resolver y por qué.
 2. [Arquitectura](02-arquitectura.md): piezas, flujo y diagramas.
