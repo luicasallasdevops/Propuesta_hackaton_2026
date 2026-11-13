@@ -43,9 +43,15 @@ jobs:
             name="${l%:*}"; color="${l##*:}"
             gh label create "$name" --color "$color" --force >/dev/null
           done
-          gh issue edit "$ISSUE" --remove-label "riesgo:bajo,riesgo:medio,riesgo:alto,riesgo:crítico,bloqueado,listo-para-aprobacion" >/dev/null 2>&1 || true
+          for l in "modalidad:automatizado:0969DA" "modalidad:manual:57606A" "modalidad:hibrido:8250DF" "modalidad:deploygo:1A7F37" "estado:inicio:BF8700"; do
+            name="${l%:*}"; color="${l##*:}"
+            gh label create "$name" --color "$color" --force >/dev/null
+          done
+          gh issue edit "$ISSUE" --remove-label "riesgo:bajo,riesgo:medio,riesgo:alto,riesgo:crítico,bloqueado,listo-para-aprobacion,modalidad:automatizado,modalidad:manual,modalidad:hibrido,modalidad:deploygo" >/dev/null 2>&1 || true
           gh issue edit "$ISSUE" --add-label "$(cat /tmp/labels.txt)"
-          gh issue comment "$ISSUE" --body-file /tmp/report.md --edit-last --create-if-none
+          # El informe se actualiza por su marca, no por ser el último comentario (el flujo OCD también comenta).
+          id="$(gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate --jq '.[] | select(.user.login=="github-actions[bot]" and (.body | contains("<!-- agente-pase -->"))) | .id' | tail -1)"
+          if [ -n "$id" ]; then gh api -X PATCH "repos/$GH_REPO/issues/comments/$id" -F body=@/tmp/report.md >/dev/null; else gh issue comment "$ISSUE" --body-file /tmp/report.md; fi
       - name: Estado para el tablero
         id: estado
         run: |

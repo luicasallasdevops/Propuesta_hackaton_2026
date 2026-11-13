@@ -1,0 +1,199 @@
+name: ocd-flujo
+
+# Flujo del OCD: mueve el estado con comandos (/ocd mover ...), con eventos de git (DeployGO), crea el OCD desde la historia
+# y avisa cuando un OCD se estanca. Cada movimiento valida el rol del actor y los requisitos del estado (knowledge/ocd-flujo.json).
+on:
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  push:
+    tags: ["ocd-*"]
+  issues:
+    types: [opened]
+  schedule:
+    - cron: "17 13 * * 1-5"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ocd-flujo-${{ github.event.issue.number || github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  # Comandos de comentario y eventos de git sobre un OCD existente.
+  flujo:
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && startsWith(github.event.issue.title, '[OCD]') && startsWith(github.event.comment.body, '/ocd') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+      || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+      || (github.event_name == 'pull_request_review' && github.event.review.state == 'approved' && github.event.pull_request.head.repo.full_name == github.repository)
+      || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      estado: ${{ steps.publicar.outputs.estado }}
+      nodo: ${{ steps.publicar.outputs.nodo }}
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MODO: flujo
+      EVENTO_GH: ${{ github.event_name }}
+      ACTOR_LOGIN: ${{ github.event.comment.user.login || github.event.review.user.login || github.event.pull_request.user.login || github.actor }}
+      TEXTO: ${{ github.event_name == 'push' && github.ref_name || format('{0} {1}', github.event.pull_request.title, github.event.pull_request.body) }}
+      PR_NUMERO: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Decidir el movimiento
+        run: node scripts/ocd-flujo.mjs
+      - name: Publicar comentario, etiquetas y cierre
+        id: publicar
+        run: |
+          set -euo pipefail
+          [ -s /tmp/ocd-comentario.md ] || exit 0
+          n="$(cat /tmp/ocd-numero.txt)"
+          case "$n" in ''|*[!0-9]*) echo "::error::Número de Issue inválido"; exit 1;; esac
+          if [ -s /tmp/ocd-estado.txt ]; then
+            nuevo="$(cat /tmp/ocd-estado.txt)"
+            while IFS='|' read -r nombre color; do
+              [ -n "$nombre" ] && gh label create "$nombre" --color "$color" --force >/dev/null
+            done < /tmp/ocd-etiquetas.txt
+            quitar="$(cat /tmp/ocd-quitar.txt)"
+            [ -z "$quitar" ] || gh issue edit "$n" --remove-label "$quitar" >/dev/null
+            gh issue edit "$n" --add-label "estado:$nuevo" >/dev/null
+            echo "estado=$nuevo" >> "$GITHUB_OUTPUT"
+            echo "nodo=$(cat /tmp/ocd-nodo.txt)" >> "$GITHUB_OUTPUT"
+          fi
+          gh issue comment "$n" --body-file /tmp/ocd-comentario.md
+          if [ -f /tmp/ocd-cerrar.txt ]; then gh issue close "$n" --reason completed; fi
+
+  # La tarjeta sigue al estado del flujo. El token vive solo en el entorno "kanban" (limitado a main).
+  tablero:
+    needs: flujo
+    if: needs.flujo.outputs.estado != '' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: kanban
+    permissions:
+      contents: read
+    env:
+      PROJECT_OWNER: ${{ github.repository_owner }}
+      PROJECT_NUMBER: "1"
+      ISSUE_NODE_ID: ${{ needs.flujo.outputs.nodo }}
+      ESTADO: ${{ needs.flujo.outputs.estado }}
+      FORZAR: "1"
+      GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Mover tarjeta
+        run: node scripts/kanban.mjs
+
+  # DeployGO nace de la historia: un Issue [HU-####] crea su OCD. (Un Issue creado con GITHUB_TOKEN no dispara otros workflows:
+  # el agente lo evalúa cuando alguien lo edita para completar los datos.)
+  historia:
+    if: github.event_name == 'issues' && startsWith(github.event.issue.title, '[HU-') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MODO: historia
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Decidir
+        run: node scripts/ocd-flujo.mjs
+      - name: Crear el OCD DeployGO
+        env:
+          HISTORIA: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          [ -s /tmp/ocd-nuevo-titulo.txt ] || exit 0
+          while IFS='|' read -r nombre color; do
+            [ -n "$nombre" ] && gh label create "$nombre" --color "$color" --force >/dev/null
+          done < /tmp/ocd-etiquetas.txt
+          for l in "ocd:8250DF" "modalidad:deploygo:1A7F37"; do gh label create "${l%:*}" --color "${l##*:}" --force >/dev/null; done
+          url="$(gh issue create --title "$(cat /tmp/ocd-nuevo-titulo.txt)" --body-file /tmp/ocd-nuevo-cuerpo.md --label "$(cat /tmp/ocd-nuevo-etiquetas.txt)")"
+          gh issue comment "$HISTORIA" --body "🔀 DeployGO: creé el OCD $url a partir de esta historia. Complétalo editándolo; los estados los mueven los eventos de git."
+
+  # Avisos: cada día hábil revisa los OCD abiertos y avisa los que pasaron su plazo en el estado.
+  avisos:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MODO: avisos
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Buscar OCD estancados
+        run: node scripts/ocd-flujo.mjs
+      - name: Avisar una vez por día y estado
+        run: |
+          set -euo pipefail
+          n_avisos="$(jq length /tmp/ocd-avisos.json)"
+          for i in $(seq 0 $((n_avisos - 1))); do
+            num="$(jq -r ".[$i].numero" /tmp/ocd-avisos.json)"
+            marca="$(jq -r ".[$i].marca" /tmp/ocd-avisos.json)"
+            jq -r ".[$i].comentario" /tmp/ocd-avisos.json > /tmp/aviso.md
+            ya="$(gh api "repos/$GH_REPO/issues/$num/comments" --paginate --jq '.[].body' | grep -cF -- "$marca" || true)"
+            [ "$ya" = "0" ] && gh issue comment "$num" --body-file /tmp/aviso.md
+          done
+          echo "Avisos revisados: $n_avisos"
+
+  # Los eventos de git (PR, tags) no corren en main y no pueden usar el entorno "kanban": este job alinea las tarjetas con las etiquetas.
+  sincronizar:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: kanban
+    permissions:
+      contents: read
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      MODO: sincronizar
+      PROJECT_OWNER: ${{ github.repository_owner }}
+      PROJECT_NUMBER: "1"
+      GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Alinear tarjetas con el estado
+        run: node scripts/ocd-flujo.mjs

@@ -28,3 +28,20 @@ test("la consulta del tablero está balanceada y sirve para personas y organizac
   assert.match(PROJECT_QUERY, /repositoryOwner\(login:\$o\)/);
   assert.match(PROJECT_QUERY, /\.\.\. on ProjectV2Owner/);
 });
+
+test("los estados del flujo usan su columna exacta o, si no existe, la columna agrupadora", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const flujo = JSON.parse(await readFile("knowledge/ocd-flujo.json", "utf8"));
+  // Tablero actual (5 columnas): cada estado cae en su columna agrupadora.
+  assert.equal(pickOption(opts, "inicio", flujo).id, "1");
+  assert.equal(pickOption(opts, "revisiones", flujo).id, "3");
+  assert.equal(pickOption(opts, "congelamiento", flujo).id, "4");
+  assert.equal(pickOption(opts, "ejecucion", flujo).id, "5");
+  assert.equal(pickOption(opts, "done", flujo).id, "5");
+  // Con columnas propias por estado se prefiere la del nombre exacto, sin confundir las reversiones.
+  const reales = [...opts, { id: "9", name: "🧊 Congelamiento" }, { id: "10", name: "↩️ Reversión" }, { id: "11", name: "↩️ Reversión de congelamiento" }];
+  assert.equal(pickOption(reales, "congelamiento", flujo).id, "9");
+  assert.equal(pickOption(reales, "reversion", flujo).id, "10");
+  assert.equal(pickOption(reales, "rev_congelamiento", flujo).id, "11");
+  assert.equal(pickOption([], "inicio", flujo), null);
+});
