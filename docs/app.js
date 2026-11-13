@@ -50,7 +50,7 @@ const templateCard = (name, body) => el("div", { className: "tpl card" },
 
 function answer(q) {
   const wantsTpl = /workflow|action|pipeline|plantilla|yaml|codeql|dependabot|release/i.test(q);
-  const hits = search(sections, q, wantsTpl ? 1 : 2);
+  const hits = wantsTpl ? [] : search(sections, q, 2);
   if (!hits.length && !wantsTpl) {
     say("bot", el("p", { textContent: "No encontré eso en los estándares. Prueba con: pase a producción, rol, red, licencias, ticket, SAST o SCA." }));
     return;
