@@ -1,5 +1,8 @@
 # Cambios
 
+## 1.2.2-poc
+- Corrige la consulta del tablero (llave faltante) y añade una prueba que la valida. Permisos `pages: read` y `actions: read` para repositorios privados.
+
 ## 1.2.1-poc
 - Migración al repositorio `hybridcloudcompany/Grupo11`: el tablero funciona con dueños persona u organización, enlaces y valores de respaldo actualizados y guía de configuración (documento 12).
 

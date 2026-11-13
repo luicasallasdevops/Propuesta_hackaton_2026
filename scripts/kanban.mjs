@@ -14,6 +14,10 @@ export function canMove(currentName) {
   return !(n.includes("aprobado") || n.includes("producción") || n.includes("produccion"));
 }
 
+/** Busca el tablero y su campo Status; repositoryOwner sirve para personas y organizaciones. */
+export const PROJECT_QUERY = `query($o:String!,$n:Int!){repositoryOwner(login:$o){... on ProjectV2Owner{projectV2(number:$n){id
+  field(name:"Status"){... on ProjectV2SingleSelectField{id options{id name}}}}}}}`;
+
 async function gql(token, query, variables) {
   const res = await fetch(API, {
     method: "POST",
@@ -31,8 +35,7 @@ async function main() {
   if (!token) { console.log("::notice::GH_PROJECT_TOKEN no está configurado: se omite el tablero."); return; }
   if (!owner || !number || !contentId || !estado) throw new Error("Faltan variables de entorno del tablero.");
 
-  const proj = (await gql(token, `query($o:String!,$n:Int!){repositoryOwner(login:$o){... on ProjectV2Owner{projectV2(number:$n){id
-    field(name:"Status"){... on ProjectV2SingleSelectField{id options{id name}}}}}}`, { o: owner, n: Number(number) })).user.projectV2;
+  const proj = (await gql(token, PROJECT_QUERY, { o: owner, n: Number(number) })).repositoryOwner?.projectV2;
   if (!proj?.field) throw new Error("No encontré el tablero o su campo Status.");
   const option = pickOption(proj.field.options, estado);
   if (!option) throw new Error(`No hay una columna para el estado "${estado}".`);
