@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   evaluar:
-    if: contains(github.event.issue.labels.*.name, 'pase-produccion')
+    if: startsWith(github.event.issue.title, '[Pase]')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
