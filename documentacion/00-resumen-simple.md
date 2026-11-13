@@ -27,7 +27,8 @@ Un asistente con tres capacidades:
 2. **Un agente se activa solo** en GitHub Actions: lee los datos, aplica las reglas de riesgo y revisa el historial de incidentes.
 3. El agente **comenta en el ticket** con el informe y pone etiquetas de color (riesgo y estado).
 4. El equipo corrige lo que falta y edita el ticket. El agente reevalúa y **actualiza el mismo comentario**.
-5. Cuando no quedan bloqueos, el ticket queda **Listo para aprobaciones** y solo se piden las aprobaciones que corresponden a ese nivel de riesgo.
+5. En paralelo, **la tarjeta del ticket se mueve sola en un tablero Kanban** (Bloqueado o Listo para aprobaciones) y las personas la avanzan hasta producción. Ver [tablero y token](06-tablero-kanban-y-github-app.md).
+6. Cuando no quedan bloqueos, el ticket queda **Listo para aprobaciones** y solo se piden las aprobaciones que corresponden a ese nivel de riesgo.
 
 ## Qué revisa el agente
 - **Bloqueos duros (no se puede pasar sin cumplirlos):** pruebas QA, análisis de código, análisis de dependencias, escaneo de secretos, aprobación del squad y plan de reversa.
@@ -37,6 +38,7 @@ Un asistente con tres capacidades:
 ## Qué se ve en la demo
 - 🚨 **Caso riesgoso:** Bloqueado, Crítico 100/100, con los motivos y los incidentes pasados que lo respaldan.
 - ✅ **Camino feliz:** Listo para aprobaciones, riesgo Medio (45/100) en el momento de la prueba, con aprobaciones de QA y Líder técnico. El número baja con el tiempo, porque los incidentes antiguos dejan de contar.
+- 📋 **Tablero Kanban** en GitHub Projects, donde el agente coloca cada pase según su riesgo.
 - 🧭 **Guía interactiva** en el portal, con iconos y botones que cargan los casos por ti.
 
 ## Por qué es "agéntico" y por qué es seguro

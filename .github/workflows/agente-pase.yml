@@ -16,6 +16,8 @@ jobs:
     if: startsWith(github.event.issue.title, '[Pase]')
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      estado: ${{ steps.estado.outputs.estado }}
     permissions:
       contents: read
       issues: write
@@ -43,3 +45,33 @@ jobs:
           gh issue edit "$ISSUE" --remove-label "riesgo:bajo,riesgo:medio,riesgo:alto,riesgo:crítico,bloqueado,listo-para-aprobacion" >/dev/null 2>&1 || true
           gh issue edit "$ISSUE" --add-label "$(cat /tmp/labels.txt)"
           gh issue comment "$ISSUE" --body-file /tmp/report.md --edit-last --create-if-none
+      - name: Estado para el tablero
+        id: estado
+        run: |
+          if grep -q "bloqueado" /tmp/labels.txt; then echo "estado=Bloqueado" >> "$GITHUB_OUTPUT"; else echo "estado=Listo para aprobaciones" >> "$GITHUB_OUTPUT"; fi
+
+  # Mueve la tarjeta en el tablero. El token vive solo en el entorno "kanban" (limitado a main).
+  # Solo tickets de personas del equipo, para que desconocidos no llenen el tablero.
+  tablero:
+    needs: evaluar
+    if: contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: kanban
+    permissions:
+      contents: read
+    env:
+      PROJECT_OWNER: ${{ github.repository_owner }}
+      PROJECT_NUMBER: "1"
+      ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+      ESTADO: ${{ needs.evaluar.outputs.estado }}
+      GH_PROJECT_TOKEN: ${{ secrets.GH_PROJECT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Mover tarjeta
+        run: node scripts/kanban.mjs

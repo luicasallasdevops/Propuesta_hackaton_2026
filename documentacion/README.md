@@ -10,5 +10,6 @@ Lee en este orden:
 3. [Guion de la demo](03-guion-demo.md): 5 minutos para presentar.
 4. [Guía para equipos](04-guia-para-equipos.md): cómo usarlo, ampliarlo y reutilizarlo en otras tribus.
 5. [Seguridad, decisiones y hoja de ruta](05-seguridad-decisiones-roadmap.md): qué decidimos, límites de la POC y camino a producción.
+6. [Tablero Kanban, token y GitHub App](06-tablero-kanban-y-github-app.md): flujo del pase en GitHub Projects y recomendación para producción.
 
 Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **simulado**.

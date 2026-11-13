@@ -80,6 +80,12 @@ const STEPS = [
     resultado: "En unos 20 segundos aparece un comentario con el informe de riesgo y etiquetas de color que resumen el estado.",
   },
   {
+    id: "tablero", icono: "📋", c: "c9", tiempo: "30 s", titulo: "Sigue el pase en el tablero Kanban",
+    texto: "Cada ticket es una tarjeta. El agente la coloca en Bloqueado o en Listo para aprobaciones, y las personas la avanzan hasta producción.",
+    acciones: [{ t: "Abrir el tablero", href: `https://github.com/users/${repo.split("/")[0]}/projects/1` }],
+    resultado: "Una tarjeta por ticket, en la columna que corresponde al resultado del agente.",
+  },
+  {
     id: "corregir", icono: "🔧", c: "c6", tiempo: "2 min", titulo: "Corrige el ticket y compara",
     texto: "Edita el ticket: marca las revisiones que faltaban y cambia el día o el plan de reversa. Cada cambio se reevalúa y el informe se actualiza solo.",
     acciones: [{ t: "Ir a mis tickets", href: gh("/issues") }],
