@@ -1,5 +1,10 @@
 # Cambios
 
+## 1.6.2-poc
+Progreso por fases y guía de adopción de Jira.
+- **Panel de progreso en dos fases:** Requisitos y OCD. Al completar los requisitos la fase se marca en verde y se colapsa (se puede reabrir) para dar foco al OCD. El panel es sólido y las respuestas del chat se muestran debajo, sin quedar tapadas.
+- Documento 17 «Jira paso a paso» (configurar, probar, errores comunes) y wiki «Integración con Jira».
+
 ## 1.6.1-poc
 El agente crea historias de usuario reales en Jira.
 - Formulario «Historia de usuario» y workflow `historia-jira`: crea la historia (tipo Historia) en el tablero KAN y responde en el Issue con su clave.

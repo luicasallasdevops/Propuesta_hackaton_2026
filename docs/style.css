@@ -244,16 +244,24 @@ footer.foot nav button:hover{color:var(--fg)}footer.foot nav button[aria-selecte
 .gpt .msg{animation:aparece .35s ease-out}
 @keyframes aparece{from{opacity:0;transform:translateY(10px)}}
 .composer{will-change:transform}
-/* panel de progreso del OCD */
-.prog{position:sticky;top:0;z-index:5;max-width:820px;width:100%;margin:6px auto 0;padding:10px 14px;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(6px);border:1px solid var(--bd);border-radius:14px;animation:aparece .3s ease-out}
+/* panel de progreso del OCD: dos fases (requisitos y OCD). Es sólido para no tapar las respuestas, que se muestran debajo. */
+.prog{position:sticky;top:0;z-index:5;max-width:820px;width:100%;margin:6px auto 0;padding:8px 12px;background:var(--bg);border:1px solid var(--bd);border-radius:14px;box-shadow:0 6px 14px -10px rgb(0 0 0/.35);animation:aparece .3s ease-out;display:grid;gap:8px}
 .prog[hidden]{display:none}
-.prog-top{display:flex;justify-content:space-between;gap:10px;font-size:.88rem}.prog-pct{color:var(--mut);font-variant-numeric:tabular-nums}
-.prog-barra{height:6px;border-radius:99px;background:var(--bg);border:1px solid var(--bd);margin:6px 0 8px;overflow:hidden}
-.prog-barra i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .5s ease}
-.prog-req{list-style:none;display:flex;flex-wrap:wrap;gap:6px 14px;margin:0;padding:0;font-size:.8rem;color:var(--mut)}
-.prog-req li{display:flex;align-items:center;gap:6px}
-.prog-req span{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;border:1px solid var(--bd);background:var(--bg)}
-.prog-req li.hecho{color:var(--ok)}.prog-req li.hecho span{background:var(--ok);border-color:var(--ok);color:#fff}
-.prog-req li.ahora{color:var(--fg);font-weight:600}.prog-req li.ahora span{border-color:var(--acc);color:var(--acc)}
+.prog-fase{border:1px solid var(--bd);border-radius:10px;padding:7px 10px;background:var(--card)}
+.prog-fase>summary,.prog-cab{display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:default;list-style:none}
+.prog-fase>summary{cursor:pointer}.prog-fase>summary::-webkit-details-marker{display:none}
+.prog-fase>summary::after{content:"▾";margin-left:6px;color:var(--mut);transition:transform .2s}.prog-fase:not([open])>summary::after{transform:rotate(-90deg)}
+.prog-pct{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums;font-size:.82rem}
+.prog-ico{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:700;background:var(--bg);border:1px solid var(--acc);color:var(--acc);flex:none}
+.prog-fase.completa{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 9%,var(--card))}.prog-fase.completa .prog-ico{background:var(--ok);border-color:var(--ok);color:#fff}.prog-fase.completa strong{color:var(--ok)}
+.prog-fase.espera{opacity:.65}
+.prog-barra{height:6px;border-radius:99px;background:var(--bg);border:1px solid var(--bd);margin:6px 0 7px;overflow:hidden}
+.prog-barra i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .5s ease}.prog-barra.ok i{background:var(--ok)}
+.prog-req,.prog-est-l{list-style:none;display:flex;flex-wrap:wrap;gap:5px 14px;margin:0;padding:0;font-size:.8rem;color:var(--mut)}
+.prog-req li,.prog-est-l li{display:flex;align-items:center;gap:6px}
+.prog-req span,.prog-est-l span{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:.7rem;font-weight:700;border:1px solid var(--bd);background:var(--bg);flex:none}
+.prog-req li.hecho,.prog-est-l li.hecho{color:var(--ok)}.prog-req li.hecho span,.prog-est-l li.hecho span{background:var(--ok);border-color:var(--ok);color:#fff}
+.prog-req li.ahora,.prog-est-l li.ahora{color:var(--fg);font-weight:600}.prog-req li.ahora span,.prog-est-l li.ahora span{border-color:var(--acc);color:var(--acc)}
 .prog-est{margin:6px 0 0;font-size:.84rem;font-weight:600}.prog-est:empty{display:none}
+.gpt .msg{scroll-margin-top:calc(var(--prog-h,0px) + 14px)}
 @media(prefers-reduced-motion:reduce){.gpt .msg,.prog{animation:none}.hero-chat,.sugs,.prog-barra i{transition:none}}

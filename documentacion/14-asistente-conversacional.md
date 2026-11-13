@@ -28,3 +28,9 @@ Un LLM podría interpretar mejor frases largas o ambiguas y redactar respuestas,
 | `docs/agente-chat.js` | Saludo, menú, evaluación en el chat y traza |
 | `docs/ocd-assistant.js` | Guía del OCD, pausa y retoma, cambios a mitad |
 | `tests/conversacion.test.mjs` | Pruebas del lenguaje y del caso del viernes sin rollback |
+
+## Progreso por fases (1.6.2)
+Durante la guía del OCD el portal muestra dos fases: **Requisitos** (matrícula, grupos de red, historia, modalidad, datos) y **OCD** (los 8 estados principales). Al completar los requisitos se marcan en verde y se colapsan; se pueden reabrir. Las respuestas del chat aparecen siempre debajo del panel.
+
+## Historia en Jira (1.6.1)
+«No tengo historia» arma el «Como… quiero… para…» y abre el formulario `historia.yml` prellenado. El workflow `historia-jira` crea la Historia en KAN y responde con la clave (KAN-n), que se escribe en el chat. Ver documento 17.

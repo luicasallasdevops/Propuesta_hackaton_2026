@@ -22,3 +22,5 @@ Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **si
 13. [Flujo del OCD](13-flujo-ocd.md): estados, roles, modalidades, comandos `/ocd`, DeployGO y avisos (versión 1.3.0).
 14. [Asistente conversacional](14-asistente-conversacional.md): lenguaje natural, contexto, traza y aviso de entorno de demostración (versión 1.4.0).
 15. [Guía de continuidad](15-guia-de-continuidad.md): contexto, decisiones, estado, backlog y cómo trabajar con Copilot (versión 1.4.0).
+16. [Tablero en Jira](16-tablero-en-jira.md): qué existe en KAN, cómo se mapean los estados y qué falta.
+17. [Jira paso a paso](17-jira-paso-a-paso.md): configurar, probar y resolver fallos en 15 minutos.
