@@ -3,7 +3,7 @@ import { splitSections, search, assess } from "./engine.mjs";
 const $ = (s) => document.querySelector(s);
 const el = (tag, props = {}, ...kids) => {
   const n = Object.assign(document.createElement(tag), props);
-  kids.flat().forEach((k) => n.append(k));
+  kids.flat(Infinity).forEach((k) => n.append(k));
   return n;
 };
 const load = (f) => fetch(`data/${f}`).then((r) => { if (!r.ok) throw new Error(f); return r.json(); });
@@ -50,7 +50,7 @@ const templateCard = (name, body) => el("div", { className: "tpl card" },
 
 function answer(q) {
   const wantsTpl = /workflow|action|pipeline|plantilla|yaml|codeql|dependabot|release/i.test(q);
-  const hits = search(sections, q, 2);
+  const hits = search(sections, q, wantsTpl ? 1 : 2);
   if (!hits.length && !wantsTpl) {
     say("bot", el("p", { textContent: "No encontré eso en los estándares. Prueba con: pase a producción, rol, red, licencias, ticket, SAST o SCA." }));
     return;
