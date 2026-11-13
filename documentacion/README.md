@@ -14,5 +14,6 @@ Lee en este orden:
 7. [Resumen de la versión 0.2.0](07-version-0.2.0.md).
 8. [Análisis de funcionalidad y seguridad](08-analisis-funcional-y-seguridad.md): hallazgos, correcciones y recomendaciones.
 9. [Versión 1.0.0](09-version-1.0.0.md): resumen final.
+10. [Configuración de seguridad paso a paso y por qué](10-configuracion-de-seguridad-paso-a-paso.md).
 
 Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **simulado**.

@@ -56,6 +56,8 @@ Fecha del análisis: 2026-11-13. Alcance: portal, agente, tablero, workflows y c
 - Token del tablero en un entorno restringido a `main`, nunca impreso.
 - CodeQL en cada cambio y Copilot Autofix activo.
 
+El paso a paso de cada configuración, con su motivo, está en el [documento 10](10-configuracion-de-seguridad-paso-a-paso.md).
+
 ## 3. Recomendaciones para llevarlo a producción
 0. Fijar la imagen del ejecutor (hoy `ubuntu-latest`): GitHub avisa que la etiqueta migrará a Ubuntu 26. Conviene una versión explícita y validada para que los resultados no cambien solos.
 1. Migrar el tablero a una organización y usar **GitHub App** (tokens de 1 hora, permisos granulares, auditoría).
