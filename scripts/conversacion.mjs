@@ -65,8 +65,6 @@ export function extraerDatos(texto, { servicios = [], hoy }) {
   const crit = q.match(/criticidad\s+(alta|media|baja)/) ?? q.match(/\b(alta|media|baja)\s+criticidad/);
   if (crit) s.criticidad = crit[1][0].toUpperCase() + crit[1].slice(1);
   else if (/(servicio|sistema) critico|muy critico/.test(q)) s.criticidad = "Alta";
-  const tam = q.match(/cambio\s+(grande|mediano|pequeno|chico)/) ?? q.match(/\b(grande|pequeno)\b/);
-  if (tam) s.tamano = { grande: "Grande", mediano: "Mediano", pequeno: "Pequeño", chico: "Pequeño" }[tam[1]];
   if (/\b(emergencia|urgente|incidente activo)\b/.test(q)) s.tipo = "Emergencia";
   else if (/\bestandar\b/.test(q)) s.tipo = "Estándar";
   else if (/\bnormal\b/.test(q)) s.tipo = "Normal";
@@ -118,7 +116,7 @@ export function respuestaACampo(campo, texto) {
 export const resumenCambio = (c) => [
   c.servicio && `servicio ${c.servicio}`, c.fecha && `${nombreDia(c.fecha).toLowerCase()} ${c.fecha}${c.hora ? ` ${c.hora}` : ""}`,
   c.rollback && (c.rollback === "No" ? "sin rollback" : `rollback ${c.rollback === "Sí, probado" ? "probado" : "sin probar"}`),
-  c.criticidad && `criticidad ${c.criticidad}`, c.tamano && `cambio ${c.tamano.toLowerCase()}`, c.tipo && `tipo ${c.tipo}`,
+  c.criticidad && `criticidad ${c.criticidad}`, c.tipo && `tipo ${c.tipo}`,
   c.faltan?.length && `sin ${c.faltan.join(", ")}`,
 ].filter(Boolean).join(" · ");
 
@@ -132,13 +130,12 @@ export function evaluarCambio(cambio, { policy, cfg, cal, incidents, hoy }) {
   const tipo = supone("tipo", "Normal", "tipo de cambio Normal");
   const previo = [...cal].reverse().find((c) => c.servicio === cambio.servicio && c.form?.criticidad);
   const criticidad = supone("criticidad", previo?.form.criticidad ?? "Media", `criticidad ${previo?.form.criticidad ?? "Media"}${previo ? " (la de sus OCD anteriores)" : ""}`);
-  const tamano = supone("tamano", "Mediano", "cambio de tamaño Mediano");
   const hora = supone("hora", cfg.ventana.horaInicio, `hora ${cfg.ventana.horaInicio}`);
   const faltan = new Set(cambio.faltan ?? []);
   if (!faltan.size) supuestos.push("controles de calidad y seguridad completos (dime si te falta alguno)");
   const checks = Object.fromEntries(Object.keys(policy.controles).map((k) => [k, !faltan.has(k)]));
   const ocdChecks = Object.fromEntries(Object.keys(cfg.controles).map((k) => [k, true]));
-  const change = { servicio: cambio.servicio, tipo, criticidad, tamano, rollback: cambio.rollback, checks };
+  const change = { servicio: cambio.servicio, tipo, criticidad, rollback: cambio.rollback, checks };
   const r = assessOcd({ change, fecha: cambio.fecha, hora, ocdChecks }, incidents, policy, cfg, cal, hoy);
   const deServicio = incidents.filter((i) => i.servicio === cambio.servicio);
   const noches = cal.filter((c) => c.fecha === cambio.fecha && c.estado !== "Cancelado").length;
@@ -152,7 +149,7 @@ export function evaluarCambio(cambio, { policy, cfg, cal, incidents, hoy }) {
     detecto: [...r.blockers.map((b) => `🛑 ${b}`), ...r.advertencias.map((a) => `⚠️ ${a}`)],
     propone: [...r.actions],
     accion: `Calculé el riesgo con el motor: ${r.nivel} (${r.score}/100) y el estado ${r.estado}.`,
-    evidencia: `Mismo resultado para los mismos datos: ${resumenCambio({ ...cambio, tipo, criticidad, tamano })}`,
+    evidencia: `Mismo resultado para los mismos datos: ${resumenCambio({ ...cambio, tipo, criticidad })}`,
   };
   return { r, traza, supuestos, change, hora, fechaSugerida: r.sugerida, sugeridaTxt: r.sugerida ? `${nombreDia(r.sugerida).toLowerCase()} ${fmtFechaCorta(r.sugerida)}` : "" };
 }
@@ -160,7 +157,7 @@ export function evaluarCambio(cambio, { policy, cfg, cal, incidents, hoy }) {
 /** Datos que sirven de arranque para la guía paso a paso del OCD. */
 export function precargaOcd(cambio, fechaSugerida = null) {
   const p = {};
-  for (const k of ["servicio", "tipo", "criticidad", "tamano", "rollback", "hora"]) if (cambio[k]) p[k] = cambio[k];
+  for (const k of ["servicio", "tipo", "criticidad", "rollback", "hora"]) if (cambio[k]) p[k] = cambio[k];
   if (fechaSugerida || cambio.fecha) p.fecha = fechaSugerida ?? cambio.fecha;
   return p;
 }

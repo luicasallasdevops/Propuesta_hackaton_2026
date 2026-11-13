@@ -19,7 +19,7 @@ Decisiones de diseño y su razón:
 | Versión | Qué se hizo |
 |---|---|
 | 0.x – 1.0 | Chat con estándares citados, validador de riesgo (0-100), plantillas seguras, tablero Kanban, endurecimiento de seguridad |
-| 1.1 | Pase OCD con calendario (ventana, cupo, CAB, feriados), aprobadores y simulador de Jira |
+| 1.1 | Pase OCD con calendario (ventana, cupo, Comité de Gestión de Cambios, feriados), aprobadores y simulador de Jira |
 | 1.2 | Escenarios del chat: grupos de red DevSecOps por matrícula, historia, instrucciones; migración a `hybridcloudcompany/Grupo11` |
 | 1.3 | Flujo OCD real: 11 estados, 6 roles, 4 modalidades, comandos `/ocd`, DeployGO por eventos de git, avisos |
 | 1.4 | Asistente conversacional: frases libres, contexto, traza de lo que hizo el agente, aviso único de «Entorno de demostración» |

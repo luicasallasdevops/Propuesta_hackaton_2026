@@ -1,207 +1,368 @@
 {
-  "version": "1.0.0-poc-flujo",
-  "nota": "Fuente única del flujo OCD. El agente, el chat, el tablero y los workflows leen este archivo: si el flujo cambia, se edita aquí y no en el código. Supuestos marcados con 'supuesto'.",
-  "modalidades": {
-    "Automatizado": {
-      "id": "automatizado",
-      "descripcion": "100% automatizado. Todas las instrucciones se ejecutan automáticamente (pipelines o scripts).",
-      "automatiza": true,
-      "gitops": false
-    },
-    "Manual": {
-      "id": "manual",
-      "descripcion": "Todas las instrucciones las ejecuta a mano el pool de agileOps.",
-      "automatiza": false,
-      "gitops": false
-    },
-    "Híbrido": {
-      "id": "hibrido",
-      "descripcion": "Mezcla pasos automatizados [AUTO] y manuales [MANUAL]. Un estado es automático solo si todos sus pasos son [AUTO].",
-      "automatiza": "segun-pasos",
-      "gitops": false
-    },
-    "DeployGO": {
-      "id": "deploygo",
-      "descripcion": "Nace al crear la historia de usuario y los cambios de estado los mueven eventos de git (GitOps) en vez de personas.",
-      "automatiza": true,
-      "gitops": true
-    }
+ "version": "1.0.0-poc-flujo",
+ "nota": "Fuente única del flujo OCD. El agente, el chat, el tablero y los workflows leen este archivo: si el flujo cambia, se edita aquí y no en el código. Supuestos marcados con 'supuesto'.",
+ "modalidades": {
+  "Automatizado": {
+   "id": "automatizado",
+   "descripcion": "100% automatizado. Todas las instrucciones se ejecutan automáticamente (pipelines o scripts).",
+   "automatiza": true,
+   "gitops": false,
+   "ejemplo": {
+    "ocd": "OCD-4102",
+    "servicio": "core-cuentas",
+    "resumen": "Rotación de certificados del servicio con pipeline de despliegue y reversa automática.",
+    "pasos": [
+     "1. [AUTO] El workflow «desplegar» publica la versión 2.8.1 en producción.",
+     "2. [AUTO] El pipeline ejecuta las pruebas de humo y revisa los dashboards.",
+     "3. [AUTO] Si falla una prueba, el workflow «revertir» restaura la 2.8.0."
+    ],
+    "doc": "documentacion/13-flujo-ocd.md"
+   }
   },
-  "conjuntos": {
-    "congelamiento": { "etiqueta": "Instrucciones de congelamiento", "estadoEjecuta": "congelamiento" },
-    "despliegue": { "etiqueta": "Instrucciones de despliegue", "estadoEjecuta": "ejecucion" },
-    "reversionCongelamiento": { "etiqueta": "Instrucciones de reversión de congelamiento", "estadoEjecuta": "rev_congelamiento" },
-    "reversionDespliegue": { "etiqueta": "Instrucciones de reversión de despliegue", "estadoEjecuta": "rev_pase" }
+  "Manual": {
+   "id": "manual",
+   "descripcion": "Todas las instrucciones las ejecuta a mano el pool de agileOps.",
+   "automatiza": false,
+   "gitops": false,
+   "ejemplo": {
+    "ocd": "OCD-4087",
+    "servicio": "canal-web",
+    "resumen": "Cambio de configuración del balanceador que ejecuta agileOps durante la ventana.",
+    "pasos": [
+     "1. Conectarse al balanceador con el usuario de cambios.",
+     "2. Aplicar el archivo de configuración v14 y reiniciar el servicio.",
+     "3. Verificar que la pantalla de resumen carga y que el monitoreo está en verde."
+    ],
+    "doc": "documentacion/13-flujo-ocd.md"
+   }
   },
-  "roles": {
-    "developer": { "nombre": "Developer", "alias": ["developer", "desarrollador", "dev", "solicitante"] },
-    "lider-tecnico": { "nombre": "Líder técnico", "alias": ["lider tecnico", "lider", "lt"] },
-    "analista-seguridad": { "nombre": "Analista de seguridad", "alias": ["analista de seguridad", "seguridad", "security"] },
-    "agileops": { "nombre": "AgileOps", "alias": ["agileops", "agile ops", "operaciones", "pool"] },
-    "gestor-cambios": { "nombre": "Gestor de cambios", "alias": ["gestor de cambios", "change management", "cm"] },
-    "qe": { "nombre": "QE", "alias": ["qe", "calidad", "qa"] }
+  "Híbrido": {
+   "id": "hibrido",
+   "descripcion": "Mezcla pasos automatizados [AUTO] y manuales [MANUAL]. Un estado es automático solo si todos sus pasos son [AUTO].",
+   "automatiza": "segun-pasos",
+   "gitops": false,
+   "ejemplo": {
+    "ocd": "OCD-4115",
+    "servicio": "pagos-api",
+    "resumen": "Despliegue automático con una verificación manual de conciliación al final.",
+    "pasos": [
+     "1. [AUTO] El workflow «desplegar» publica la versión 3.1.0.",
+     "2. [MANUAL] agileOps valida con Operaciones que la conciliación diaria cuadra.",
+     "3. [AUTO] El workflow «verificar» publica el resultado en el OCD."
+    ],
+    "doc": "documentacion/13-flujo-ocd.md"
+   }
   },
-  "aprobadoresPase": [
-    "Gestor del pool",
-    "Líder técnico",
-    "CL-DEV",
-    "Gobierno de Gestión de Cambios"
-  ],
-  "estados": {
-    "inicio": {
-      "nombre": "Inicio codificación",
-      "orden": 1,
-      "actor": "developer",
-      "columna": "Solicitado",
-      "etapaPlan": "crear",
-      "descripcion": "El developer redacta las instrucciones de congelamiento, despliegue, reversión de congelamiento y reversión de despliegue.",
-      "queHacer": "Redacta los cuatro conjuntos de instrucciones y completa los datos del OCD. Cuando el agente los valide, pasa a Revisiones técnicas.",
-      "salida": ["instruccionesCompletas", "sinBloqueos"],
-      "siguiente": ["revisiones"],
-      "sla": 2
-    },
-    "revisiones": {
-      "nombre": "Revisiones técnicas",
-      "orden": 2,
-      "actor": "lider-tecnico",
-      "columna": "Listo para aprobaciones",
-      "etapaPlan": "lider",
-      "descripcion": "El líder técnico revisa las instrucciones.",
-      "queHacer": "Revisa el alcance, la historia y los cuatro conjuntos de instrucciones. Si están bien, pasa a Aprobación de seguridad; si no, devuélvelo a Inicio codificación.",
-      "salida": [],
-      "siguiente": ["seguridad"],
-      "devolver": "inicio",
-      "sla": 1
-    },
-    "seguridad": {
-      "nombre": "Aprobación de seguridad",
-      "orden": 3,
-      "actor": "analista-seguridad",
-      "columna": "Listo para aprobaciones",
-      "etapaPlan": "seguridad",
-      "descripcion": "El analista de seguridad revisa las instrucciones en busca de impactos de seguridad.",
-      "queHacer": "Busca instrucciones con impacto de seguridad (accesos, secretos, cambios de red o permisos). Si están bien, pasa a Congelamiento; si no, devuélvelo.",
-      "salida": [],
-      "siguiente": ["congelamiento"],
-      "devolver": "inicio",
-      "sla": 1
-    },
-    "congelamiento": {
-      "nombre": "Congelamiento",
-      "orden": 4,
-      "actor": "agileops",
-      "columna": "Aprobado",
-      "etapaPlan": null,
-      "descripcion": "AgileOps ejecuta las instrucciones de congelamiento en el ambiente de certificación (el developer lo solicita al pool).",
-      "queHacer": "El developer solicita al pool de agileOps ejecutar el congelamiento en certificación. Si es automatizado, se ejecuta solo.",
-      "conjunto": "congelamiento",
-      "salida": [],
-      "siguiente": ["gestion_pase"],
-      "falla": "rev_congelamiento",
-      "sla": 2
-    },
-    "rev_congelamiento": {
-      "nombre": "Reversión de congelamiento",
-      "orden": 5,
-      "rama": true,
-      "actor": "agileops",
-      "columna": "Aprobado",
-      "etapaPlan": null,
-      "descripcion": "Se ejecutan las instrucciones de reversión del congelamiento porque el congelamiento falló.",
-      "queHacer": "Ejecuta la reversión de congelamiento. Luego el developer corrige y el OCD vuelve a Inicio codificación (supuesto).",
-      "conjunto": "reversionCongelamiento",
-      "salida": [],
-      "siguiente": ["inicio"],
-      "sla": 1
-    },
-    "gestion_pase": {
-      "nombre": "Gestión de pase",
-      "orden": 6,
-      "actor": "gestor-cambios",
-      "columna": "Aprobado",
-      "etapaPlan": "cab",
-      "descripcion": "El developer reserva el calendario y gestiona las aprobaciones del Gestor del pool, Líder técnico, CL-DEV y Gobierno de Gestión de Cambios.",
-      "queHacer": "Reserva la noche de ejecución y reúne las cuatro aprobaciones. Cuando estén, el gestor de cambios lo pasa a Ejecución.",
-      "salida": [],
-      "siguiente": ["ejecucion"],
-      "sla": 3
-    },
-    "ejecucion": {
-      "nombre": "Ejecución pase a producción",
-      "orden": 7,
-      "actor": "agileops",
-      "columna": "En producción",
-      "etapaPlan": "ejecutar",
-      "descripcion": "AgileOps ejecuta las instrucciones de producción; si es automatizado, se ejecutan solas.",
-      "queHacer": "Ejecuta el despliegue en la ventana reservada. Si falla, repórtalo para pasar a la reversión.",
-      "conjunto": "despliegue",
-      "salida": [],
-      "siguiente": ["ratificacion"],
-      "falla": "rev_pase",
-      "sla": 1
-    },
-    "rev_pase": {
-      "nombre": "Reversión de pase a producción",
-      "orden": 8,
-      "rama": true,
-      "actor": "agileops",
-      "columna": "En producción",
-      "etapaPlan": null,
-      "descripcion": "Se ejecutan las instrucciones de reversión del despliegue.",
-      "queHacer": "Ejecuta la reversión del despliegue. Luego el QE ratifica la reversión.",
-      "conjunto": "reversionDespliegue",
-      "salida": [],
-      "siguiente": ["reversion"],
-      "sla": 1
-    },
-    "ratificacion": {
-      "nombre": "Ratificación",
-      "orden": 9,
-      "actor": "qe",
-      "columna": "En producción",
-      "etapaPlan": "verificar",
-      "descripcion": "El QE ratifica el pase a producción.",
-      "queHacer": "Verifica métricas y alertas durante 30 minutos y ratifica. Si no pasa, repórtalo para revertir.",
-      "salida": [],
-      "siguiente": ["done"],
-      "falla": "rev_pase",
-      "sla": 1
-    },
-    "reversion": {
-      "nombre": "Reversión",
-      "orden": 10,
-      "rama": true,
-      "actor": "qe",
-      "columna": "En producción",
-      "etapaPlan": null,
-      "descripcion": "Se ejecutó la reversión del despliegue: el QE ratifica también la reversión (supuesto: actor QE).",
-      "queHacer": "Ratifica que la reversión dejó el servicio como estaba. Después se cierra el pase.",
-      "salida": [],
-      "siguiente": ["done"],
-      "sla": 1
-    },
-    "done": {
-      "nombre": "Done",
-      "orden": 11,
-      "actor": "agileops",
-      "columna": "En producción",
-      "etapaPlan": "cerrar",
-      "descripcion": "Cierre del pase a producción.",
-      "queHacer": "Cierra el pase con la evidencia de la ejecución.",
-      "salida": [],
-      "siguiente": [],
-      "final": true,
-      "sla": 1
-    }
+  "DeployGO": {
+   "id": "deploygo",
+   "descripcion": "Nace al crear la historia de usuario y los cambios de estado los mueven eventos de git (GitOps) en vez de personas.",
+   "automatiza": true,
+   "gitops": true,
+   "ejemplo": {
+    "ocd": "OCD-4131",
+    "servicio": "tarjetas-api",
+    "resumen": "Nace de la historia HU-3130; los eventos de git mueven cada estado.",
+    "pasos": [
+     "1. Se crea la historia [HU-3130] y nace el OCD.",
+     "2. El pull request «OCD #N» y sus aprobaciones por rol mueven los estados.",
+     "3. Los tags ocd-N-cert, ocd-N-prod y ocd-N-ratificado cierran el recorrido."
+    ],
+    "doc": "documentacion/13-flujo-ocd.md"
+   }
+  }
+ },
+ "conjuntos": {
+  "congelamiento": {
+   "etiqueta": "Instrucciones de congelamiento",
+   "estadoEjecuta": "congelamiento"
   },
-  "eventosGit": [
-    { "evento": "historia", "descripcion": "Se crea la historia de usuario [HU-####]", "hacia": "inicio" },
-    { "evento": "pr-abierto", "descripcion": "Se abre el PR con las instrucciones (menciona «OCD #N»)", "desde": "inicio", "hacia": "revisiones" },
-    { "evento": "pr-aprobado:lider-tecnico", "descripcion": "El líder técnico aprueba el PR", "desde": "revisiones", "hacia": "seguridad" },
-    { "evento": "pr-aprobado:analista-seguridad", "descripcion": "El analista de seguridad aprueba el PR", "desde": "seguridad", "hacia": "congelamiento" },
-    { "evento": "tag:cert", "descripcion": "Tag ocd-N-cert exitoso (congelamiento en certificación)", "desde": "congelamiento", "hacia": "gestion_pase" },
-    { "evento": "tag:prod", "descripcion": "Tag ocd-N-prod (despliegue en la ventana)", "desde": "gestion_pase", "hacia": "ejecucion" },
-    { "evento": "tag:ratificado", "descripcion": "Tag ocd-N-ratificado (QE ratifica)", "desde": "ratificacion", "hacia": "done" },
-    { "evento": "tag:revertir", "descripcion": "Tag ocd-N-revertir (falla y reversión)", "hacia": "rev_pase" }
-  ]
+  "despliegue": {
+   "etiqueta": "Instrucciones de despliegue",
+   "estadoEjecuta": "ejecucion"
+  },
+  "reversionCongelamiento": {
+   "etiqueta": "Instrucciones de reversión de congelamiento",
+   "estadoEjecuta": "rev_congelamiento"
+  },
+  "reversionDespliegue": {
+   "etiqueta": "Instrucciones de reversión de despliegue",
+   "estadoEjecuta": "rev_pase"
+  }
+ },
+ "roles": {
+  "developer": {
+   "nombre": "Developer",
+   "alias": [
+    "developer",
+    "desarrollador",
+    "dev",
+    "solicitante"
+   ]
+  },
+  "lider-tecnico": {
+   "nombre": "Líder técnico",
+   "alias": [
+    "lider tecnico",
+    "lider",
+    "lt"
+   ]
+  },
+  "analista-seguridad": {
+   "nombre": "Analista de seguridad",
+   "alias": [
+    "analista de seguridad",
+    "seguridad",
+    "security"
+   ]
+  },
+  "agileops": {
+   "nombre": "AgileOps",
+   "alias": [
+    "agileops",
+    "agile ops",
+    "operaciones",
+    "pool"
+   ]
+  },
+  "gestor-cambios": {
+   "nombre": "Gestor de cambios",
+   "alias": [
+    "gestor de cambios",
+    "change management",
+    "cm"
+   ]
+  },
+  "qe": {
+   "nombre": "QE",
+   "alias": [
+    "qe",
+    "calidad",
+    "qa"
+   ]
+  }
+ },
+ "aprobadoresPase": [
+  "Gestor del pool",
+  "Líder técnico",
+  "CL-DEV",
+  "Gobierno de Gestión de Cambios"
+ ],
+ "estados": {
+  "inicio": {
+   "nombre": "Inicio codificación",
+   "orden": 1,
+   "actor": "developer",
+   "columna": "Solicitado",
+   "etapaPlan": "crear",
+   "descripcion": "El developer redacta las instrucciones de congelamiento, despliegue, reversión de congelamiento y reversión de despliegue.",
+   "queHacer": "Redacta los cuatro conjuntos de instrucciones y completa los datos del OCD. Cuando el agente los valide, pasa a Revisiones técnicas.",
+   "salida": [
+    "instruccionesCompletas",
+    "sinBloqueos"
+   ],
+   "siguiente": [
+    "revisiones"
+   ],
+   "sla": 2
+  },
+  "revisiones": {
+   "nombre": "Revisiones técnicas",
+   "orden": 2,
+   "actor": "lider-tecnico",
+   "columna": "Listo para aprobaciones",
+   "etapaPlan": "lider",
+   "descripcion": "El líder técnico revisa las instrucciones.",
+   "queHacer": "Revisa el alcance, la historia y los cuatro conjuntos de instrucciones. Si están bien, pasa a Aprobación de seguridad; si no, devuélvelo a Inicio codificación.",
+   "salida": [],
+   "siguiente": [
+    "seguridad"
+   ],
+   "devolver": "inicio",
+   "sla": 1
+  },
+  "seguridad": {
+   "nombre": "Aprobación de seguridad",
+   "orden": 3,
+   "actor": "analista-seguridad",
+   "columna": "Listo para aprobaciones",
+   "etapaPlan": "seguridad",
+   "descripcion": "El analista de seguridad revisa las instrucciones en busca de impactos de seguridad.",
+   "queHacer": "Busca instrucciones con impacto de seguridad (accesos, secretos, cambios de red o permisos). Si están bien, pasa a Congelamiento; si no, devuélvelo.",
+   "salida": [],
+   "siguiente": [
+    "congelamiento"
+   ],
+   "devolver": "inicio",
+   "sla": 1
+  },
+  "congelamiento": {
+   "nombre": "Congelamiento",
+   "orden": 4,
+   "actor": "agileops",
+   "columna": "Aprobado",
+   "etapaPlan": null,
+   "descripcion": "AgileOps ejecuta las instrucciones de congelamiento en el ambiente de certificación (el developer lo solicita al pool).",
+   "queHacer": "El developer solicita al pool de agileOps ejecutar el congelamiento en certificación. Si es automatizado, se ejecuta solo.",
+   "conjunto": "congelamiento",
+   "salida": [],
+   "siguiente": [
+    "gestion_pase"
+   ],
+   "falla": "rev_congelamiento",
+   "sla": 2
+  },
+  "rev_congelamiento": {
+   "nombre": "Reversión de congelamiento",
+   "orden": 5,
+   "rama": true,
+   "actor": "agileops",
+   "columna": "Aprobado",
+   "etapaPlan": null,
+   "descripcion": "Se ejecutan las instrucciones de reversión del congelamiento porque el congelamiento falló.",
+   "queHacer": "Ejecuta la reversión de congelamiento. Luego el developer corrige y el OCD vuelve a Inicio codificación (supuesto).",
+   "conjunto": "reversionCongelamiento",
+   "salida": [],
+   "siguiente": [
+    "inicio"
+   ],
+   "sla": 1
+  },
+  "gestion_pase": {
+   "nombre": "Gestión de pase",
+   "orden": 6,
+   "actor": "gestor-cambios",
+   "columna": "Aprobado",
+   "etapaPlan": "cab",
+   "descripcion": "El developer reserva el calendario y gestiona las aprobaciones del Gestor del pool, Líder técnico, CL-DEV y Gobierno de Gestión de Cambios.",
+   "queHacer": "Reserva la noche de ejecución y reúne las cuatro aprobaciones. Cuando estén, el gestor de cambios lo pasa a Ejecución.",
+   "salida": [],
+   "siguiente": [
+    "ejecucion"
+   ],
+   "sla": 3
+  },
+  "ejecucion": {
+   "nombre": "Ejecución pase a producción",
+   "orden": 7,
+   "actor": "agileops",
+   "columna": "En producción",
+   "etapaPlan": "ejecutar",
+   "descripcion": "AgileOps ejecuta las instrucciones de producción; si es automatizado, se ejecutan solas.",
+   "queHacer": "Ejecuta el despliegue en la ventana reservada. Si falla, repórtalo para pasar a la reversión.",
+   "conjunto": "despliegue",
+   "salida": [],
+   "siguiente": [
+    "ratificacion"
+   ],
+   "falla": "rev_pase",
+   "sla": 1
+  },
+  "rev_pase": {
+   "nombre": "Reversión de pase a producción",
+   "orden": 8,
+   "rama": true,
+   "actor": "agileops",
+   "columna": "En producción",
+   "etapaPlan": null,
+   "descripcion": "Se ejecutan las instrucciones de reversión del despliegue.",
+   "queHacer": "Ejecuta la reversión del despliegue. Luego el QE ratifica la reversión.",
+   "conjunto": "reversionDespliegue",
+   "salida": [],
+   "siguiente": [
+    "reversion"
+   ],
+   "sla": 1
+  },
+  "ratificacion": {
+   "nombre": "Ratificación",
+   "orden": 9,
+   "actor": "qe",
+   "columna": "En producción",
+   "etapaPlan": "verificar",
+   "descripcion": "El QE ratifica el pase a producción.",
+   "queHacer": "Verifica métricas y alertas durante 30 minutos y ratifica. Si no pasa, repórtalo para revertir.",
+   "salida": [],
+   "siguiente": [
+    "done"
+   ],
+   "falla": "rev_pase",
+   "sla": 1
+  },
+  "reversion": {
+   "nombre": "Reversión",
+   "orden": 10,
+   "rama": true,
+   "actor": "qe",
+   "columna": "En producción",
+   "etapaPlan": null,
+   "descripcion": "Se ejecutó la reversión del despliegue: el QE ratifica también la reversión (supuesto: actor QE).",
+   "queHacer": "Ratifica que la reversión dejó el servicio como estaba. Después se cierra el pase.",
+   "salida": [],
+   "siguiente": [
+    "done"
+   ],
+   "sla": 1
+  },
+  "done": {
+   "nombre": "Done",
+   "orden": 11,
+   "actor": "agileops",
+   "columna": "En producción",
+   "etapaPlan": "cerrar",
+   "descripcion": "Cierre del pase a producción.",
+   "queHacer": "Cierra el pase con la evidencia de la ejecución.",
+   "salida": [],
+   "siguiente": [],
+   "final": true,
+   "sla": 1
+  }
+ },
+ "eventosGit": [
+  {
+   "evento": "historia",
+   "descripcion": "Se crea la historia de usuario [HU-####]",
+   "hacia": "inicio"
+  },
+  {
+   "evento": "pr-abierto",
+   "descripcion": "Se abre el PR con las instrucciones (menciona «OCD #N»)",
+   "desde": "inicio",
+   "hacia": "revisiones"
+  },
+  {
+   "evento": "pr-aprobado:lider-tecnico",
+   "descripcion": "El líder técnico aprueba el PR",
+   "desde": "revisiones",
+   "hacia": "seguridad"
+  },
+  {
+   "evento": "pr-aprobado:analista-seguridad",
+   "descripcion": "El analista de seguridad aprueba el PR",
+   "desde": "seguridad",
+   "hacia": "congelamiento"
+  },
+  {
+   "evento": "tag:cert",
+   "descripcion": "Tag ocd-N-cert exitoso (congelamiento en certificación)",
+   "desde": "congelamiento",
+   "hacia": "gestion_pase"
+  },
+  {
+   "evento": "tag:prod",
+   "descripcion": "Tag ocd-N-prod (despliegue en la ventana)",
+   "desde": "gestion_pase",
+   "hacia": "ejecucion"
+  },
+  {
+   "evento": "tag:ratificado",
+   "descripcion": "Tag ocd-N-ratificado (QE ratifica)",
+   "desde": "ratificacion",
+   "hacia": "done"
+  },
+  {
+   "evento": "tag:revertir",
+   "descripcion": "Tag ocd-N-revertir (falla y reversión)",
+   "hacia": "rev_pase"
+  }
+ ]
 }

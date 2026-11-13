@@ -22,7 +22,7 @@
 | **Simulador de Jira**: perfil Valentina, pulsar Crear | "Una persona nueva no sabe qué grupos de red ni qué aprobadores necesita. El asistente se lo dice antes de que el pase se retrase." |
 | Cambiar a Mateo, Autocompletar, Crear y simular aprobaciones | "Con todo en orden el ticket avanza hasta producción." |
 | Pestaña **📅 Pase OCD**, caso "🈵 Noche llena" | "El OCD es el pase que se agenda. El agente ve que la noche del miércoles ya tiene 3 cambios y propone el jueves." |
-| Caso "✅ OCD listo" y el calendario | "Calcula hacia atrás qué día revisa el líder, qué día Seguridad, el CAB y cuándo se avisa a las áreas." |
+| Caso "✅ OCD listo" y el calendario | "Calcula hacia atrás qué día revisa el líder, qué día Seguridad, el Comité de Gestión de Cambios y cuándo se avisa a las áreas." |
 | **Simulador**, escenario "OCD bloqueado que se corrige" | "La tarjeta pasa por el tablero: bloqueado, corregido, aprobado, en producción." |
 
 ## Extra (versión 1.3.0): el flujo real del OCD, 1 minuto
@@ -39,6 +39,6 @@
 - Si el tablero no responde, mostrar la captura del documento 08.
 
 ## Valores del caso bloqueado
-Servicio `pagos-api` · Tipo Normal · Criticidad Alta · Tamaño Grande · Día Viernes · Rollback No · sin casillas marcadas.
-Caso feliz: Tamaño Pequeño · Día Martes · Rollback "Sí, probado" · las 9 casillas.
+Servicio `pagos-api` · Tipo Normal · Criticidad Alta · Día Viernes · Rollback No · sin casillas marcadas.
+Caso feliz: Día Martes · Rollback "Sí, probado" · las 9 casillas.
 Nota: el riesgo del camino feliz (hoy Medio) baja con el tiempo; no cites un número fijo.

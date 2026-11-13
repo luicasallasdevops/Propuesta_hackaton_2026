@@ -1,5 +1,16 @@
 # Cambios
 
+## 1.5.0-poc
+Portal más limpio, con el chat como protagonista, y una guía del OCD que acompaña el flujo real.
+- **Diseño tipo ChatGPT:** buscador grande al centro, atajos como tarjetas y, al conversar, el chat ocupa la página con el campo fijo abajo. El aviso de demostración pasa a una etiqueta discreta.
+- **Flujo gráfico** al pie: prerrequisitos (matrícula, grupos de red, historia en Jira, modalidad, datos) → 8 estados del OCD → ramas si algo falla. Marca el paso actual mientras el agente guía y cada nodo explica qué hacer.
+- **Conversación más natural:** cada respuesta aparece tras una breve espera con el indicador de «escribiendo»; el detalle va colapsado con enlace a la documentación de donde sale.
+- **Matrícula e historia en cajas de texto.** La historia se busca en Jira y muestra título, tablero y quién la creó para que el usuario la confirme.
+- **Grupos de red reales:** INCT_ADMIN_INCT_PROD y VSDP-ADMIN para líderes técnicos (LT); INCT_DEVELOPER_INCT_PROD y VSDP-DEVELOPER para Team Members (TM). El agente pregunta el rol. El formulario `[OCD]` pide «Rol del solicitante».
+- **Modalidad con ejemplos** de OCD y enlace a la documentación; **criticidad** con enlace y ventana emergente; «CAB» pasa a «Comité de Gestión de Cambios»; se retira el tamaño del cambio.
+- **La fecha y la hora del pase se piden en Gestión de pase**, no al inicio; ahí se valida contra el calendario y se muestran aprobadores y plan.
+- 65 pruebas.
+
 ## 1.4.0-poc
 El asistente pasa a ser la puerta de entrada: entiende frases libres, conserva el contexto y muestra qué hizo.
 - **Chat protagonista:** primera pestaña («Asistente»), saludo cordial según la hora, menú de opciones (crear OCD paso a paso, validar mi pase, cómo funciona el OCD, qué me toca según mi rol, roles/red/licencias, plantillas), atajos permanentes y sugerencias de siguiente paso tras cada respuesta.

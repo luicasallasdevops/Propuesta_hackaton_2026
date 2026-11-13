@@ -1,6 +1,7 @@
 import { splitSections, search, assess } from "./engine.mjs";
 import { crearAsistenteOcd } from "./ocd-assistant.js";
 import { crearAgenteChat } from "./agente-chat.js";
+import { detalle } from "./ui.js";
 
 const $ = (s) => document.querySelector(s);
 const el = (tag, props = {}, ...kids) => {
@@ -37,9 +38,30 @@ function renderText(text) {
   return box;
 }
 
-/* Chat */
+/* Chat: cada respuesta del agente aparece tras una breve espera con el indicador de "escribiendo" */
 const log = $("#log");
-const say = (who, ...content) => { const m = el("div", { className: `msg ${who}` }, content); log.append(m); log.scrollTo({ top: who === "user" ? log.scrollHeight : Math.max(0, m.offsetTop - 12), behavior: "auto" }); };
+const gpt = $("#gpt");
+const cola = [];
+let ocupado = false;
+const textoDe = (nodos) => nodos.reduce((a, n) => a + (typeof n === "string" ? n.length : (n?.textContent?.length ?? 0)), 0);
+const escribiendo = () => el("div", { className: "msg bot typing", role: "status", ariaLabel: "El asistente está escribiendo" }, el("span", { className: "dots" }, el("i"), el("i"), el("i")));
+function mostrar({ who, content }) {
+  const m = el("div", { className: `msg ${who}` }, content);
+  log.append(m);
+  m.querySelector(".campo-in")?.focus({ preventScroll: true });
+  m.scrollIntoView({ block: who === "user" ? "end" : "start", behavior: "auto" });
+}
+function bombear() {
+  if (ocupado || !cola.length) return;
+  ocupado = true;
+  const it = cola.shift();
+  if (it.who === "user") { mostrar(it); ocupado = false; bombear(); return; }
+  const t = escribiendo();
+  log.append(t);
+  t.scrollIntoView({ block: "end", behavior: "auto" });
+  setTimeout(() => { t.remove(); mostrar(it); ocupado = false; bombear(); }, Math.min(2200, 900 + textoDe(it.content) * 5));
+}
+const say = (who, ...content) => { gpt.dataset.vacio = "false"; cola.push({ who, content }); bombear(); };
 
 const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, historias: ocdHist, flujo: ocdFlujo, ir: (prefill) => {
   $("#t-ocd").click();
@@ -79,12 +101,13 @@ function responderEstandar(q) {
     agente.menu("¿Cuál de estas te sirve?");
     return;
   }
-  const parts = hits.map((h) => el("div", {}, el("h3", { textContent: h.heading }), renderText(h.text)));
-  const src = hits.length ? el("div", { className: "src", textContent: "Fuente: " + hits.map((h) => `${h.docTitle} › ${h.heading}`).join(" · ") }) : "";
-  say("bot", parts, src);
+  const resumen = (t) => { const l = t.split("\n").map((x) => x.replace(/^(\d+\.|-|>)\s*/, "").replace(/`/g, "").trim()).find(Boolean) ?? ""; return l.length > 240 ? `${l.slice(0, 237)}…` : l; };
+  const parts = hits.map((h) => el("div", {}, el("h3", { textContent: h.heading }), el("p", { textContent: resumen(h.text) }),
+    detalle("Ver el detalle", renderText(h.text), { texto: `${h.docTitle} › ${h.heading}`, ruta: `knowledge/${h.doc}.md` })));
+  const src = "";
   if (wantsTpl) {
     const key = /dependabot/i.test(q) ? ["dependabot.yml"] : /release|produccion|producción|despleg/i.test(q) ? ["workflows/release-produccion.yml"] : ["workflows/ci-seguridad.yml"];
-    say("bot", el("p", { textContent: "Plantilla oficial lista para copiar:" }), ...key.map((k) => templateCard(k, tpl[k])));
+    say("bot", el("p", { textContent: "Plantilla oficial lista para copiar:" }), ...key.map((k) => detalle(`Ver la plantilla ${k}`, templateCard(k, tpl[k]), { texto: `templates/${k}`, ruta: `templates/${k}` })));
   }
   if (/ocd/i.test(q)) {
     say("bot", el("p", {}, "Si prefieres, también puedes abrir el OCD directamente en GitHub: ", el("a", { href: ocdIssueUrl(), textContent: "abrir OCD", rel: "noopener", target: "_blank" })));
@@ -113,7 +136,11 @@ for (const [etq, fn] of [["🏠 Menú", () => agente.menu()], ["📅 Crear mi OC
   b.addEventListener("click", () => { say("user", etq.replace(/^\S+\s/, "")); fn(); });
   $("#chips").append(b);
 }
-agente.saludar();
+$("#hero-t").textContent = `${agente.saludoHora()} ¿Qué quieres hacer hoy?`;
+$("#sugs").append(agente.menuNodo());
+for (const t of ["Necesito desplegar pagos-api este viernes y no tengo rollback", "Quiero crear un OCD", "¿Cómo funciona el OCD?"]) {
+  $("#sugs").append(el("button", { type: "button", textContent: t, onclick: () => { say("user", t); answer(t); } }));
+}
 
 /* Validador de pase */
 const checks = $("#checks");
@@ -124,7 +151,7 @@ $("#pase-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
   const change = {
-    servicio: String(f.get("servicio")).trim().slice(0, 80), criticidad: f.get("criticidad"), tamano: f.get("tamano"),
+    servicio: String(f.get("servicio")).trim().slice(0, 80), criticidad: f.get("criticidad"),
     dia: f.get("dia"), rollback: f.get("rollback"),
     checks: Object.fromEntries(Object.keys(policy.controles).map((k) => [k, f.get(k) === "on"])),
   };

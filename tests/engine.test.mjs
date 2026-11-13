@@ -15,19 +15,19 @@ test("busca el flujo de pase a producción", async () => {
 });
 
 test("cambio sano de bajo riesgo queda listo", () => {
-  const r = assess({ servicio: "app-x", criticidad: "Baja", tamano: "Pequeño", dia: "Martes", rollback: "Sí, probado", checks: allOn }, incidents, policy, today);
+  const r = assess({ servicio: "app-x", criticidad: "Baja", dia: "Martes", rollback: "Sí, probado", checks: allOn }, incidents, policy, today);
   assert.equal(r.nivel, "Bajo");
   assert.equal(r.estado, "Listo para aprobaciones");
 });
 
 test("sin SAST o secretos el pase se bloquea", () => {
-  const r = assess({ servicio: "app-x", criticidad: "Baja", tamano: "Pequeño", dia: "Martes", rollback: "Sí, probado", checks: { ...allOn, sast: false, secretos: false } }, incidents, policy, today);
+  const r = assess({ servicio: "app-x", criticidad: "Baja", dia: "Martes", rollback: "Sí, probado", checks: { ...allOn, sast: false, secretos: false } }, incidents, policy, today);
   assert.equal(r.estado, "Bloqueado");
   assert.equal(r.blockers.length, 2);
 });
 
 test("viernes + sin rollback + historial en pagos-api eleva el riesgo", () => {
-  const r = assess({ servicio: "pagos-api", criticidad: "Alta", tamano: "Grande", dia: "Viernes", rollback: "No", checks: { ...allOn, monitoreo: false } }, incidents, policy, today);
+  const r = assess({ servicio: "pagos-api", criticidad: "Alta", dia: "Viernes", rollback: "No", checks: { ...allOn, monitoreo: false } }, incidents, policy, today);
   assert.ok(["Alto", "Crítico"].includes(r.nivel));
   assert.ok(r.similar.length >= 2);
   assert.ok(r.actions.some((a) => a.includes("rollback")));
@@ -44,10 +44,10 @@ test("parsea el Issue Form y neutraliza menciones en el informe", () => {
 });
 
 test("el Issue Form real se interpreta completo", async () => {
-  const body = ["Servicio","pagos-api","Tipo de cambio","Normal","Criticidad del servicio","Alta","Tamaño del cambio","Grande","Día de despliegue","Viernes","Plan de rollback","No"]
+  const body = ["Servicio","pagos-api","Tipo de cambio","Normal","Criticidad del servicio","Alta","Día de despliegue","Viernes","Plan de rollback","No"]
     .reduce((a, v, i) => a + (i % 2 ? `${v}\n\n` : `### ${v}\n\n`), "") +
     "### Evidencias y controles\n\n- [x] Pruebas QA aprobadas\n- [x] Escaneo de secretos limpio\n- [ ] SAST sin hallazgos críticos o altos\n";
   const c = changeFromForm(parseIssueForm(body), policy);
-  assert.deepEqual([c.servicio, c.criticidad, c.tamano, c.dia, c.rollback], ["pagos-api", "Alta", "Grande", "Viernes", "No"]);
+  assert.deepEqual([c.servicio, c.criticidad, c.dia, c.rollback], ["pagos-api", "Alta", "Viernes", "No"]);
   assert.equal(c.checks.sast, false);
 });

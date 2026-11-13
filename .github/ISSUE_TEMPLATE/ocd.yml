@@ -14,8 +14,16 @@ body:
     id: matricula
     attributes:
       label: Matrícula
-      description: Tu matrícula de empleado, formato M-12345. El agente verifica con ella que tengas los grupos de red del servicio.
+      description: Tu matrícula de empleado, formato M-12345. El agente verifica con ella que tengas los grupos de red de tu rol.
       placeholder: "M-10212"
+    validations:
+      required: true
+  - type: dropdown
+    id: perfil
+    attributes:
+      label: Rol del solicitante
+      description: "Líder técnico (LT) necesita los grupos ADMIN (INCT_ADMIN_INCT_PROD y VSDP-ADMIN). Team Member (TM) necesita los grupos DEVELOPER (INCT_DEVELOPER_INCT_PROD y VSDP-DEVELOPER)."
+      options: [Team Member, Líder técnico]
     validations:
       required: true
   - type: input
@@ -30,7 +38,7 @@ body:
     id: tipo
     attributes:
       label: Tipo de cambio
-      description: Estándar (repetible), Normal (planificado, pasa por el CAB) o Emergencia (incidente activo).
+      description: Estándar (repetible), Normal (planificado, pasa por el Comité de Gestión de Cambios) o Emergencia (incidente activo).
       options: [Estándar, Normal, Emergencia]
     validations:
       required: true
@@ -47,13 +55,6 @@ body:
     attributes:
       label: Criticidad del servicio
       options: [Alta, Media, Baja]
-    validations:
-      required: true
-  - type: dropdown
-    id: tamano
-    attributes:
-      label: Tamaño del cambio
-      options: [Pequeño, Mediano, Grande]
     validations:
       required: true
   - type: input

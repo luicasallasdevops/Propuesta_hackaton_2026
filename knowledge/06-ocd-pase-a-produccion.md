@@ -2,14 +2,14 @@
 
 ## Qué es un OCD
 - OCD es el ticket de pase a producción que se calendariza. Reúne el cambio, sus evidencias, los aprobadores y la noche exacta de ejecución.
-- Tiene tres tipos: Estándar (repetible y de bajo riesgo), Normal (planificado, pasa por el CAB) y Emergencia (corrige un incidente activo).
+- Tiene tres tipos: Estándar (repetible y de bajo riesgo), Normal (planificado, pasa por el Comité de Gestión de Cambios) y Emergencia (corrige un incidente activo).
 - Se crea en Jira (puedes practicar en la pestaña Pase OCD). El agente lo revisa al instante y te dice qué falta.
 
 ## Quiero que me ayuden a crear el OCD
 - Escribe «quiero crear un OCD» en el chat. El asistente te pide tu matrícula (formato M-12345) y valida tus grupos de red de DevSecOps.
 - Si te faltan grupos, te pregunta si quieres que cree la solicitud en Helpdesk (cola Accesos y redes) y te muestra el ticket.
 - Después te pide tu historia (formato HU-1234). Si no la conoces, te ayuda a crearla con tres preguntas: quién se beneficia, qué quiere y para qué.
-- Luego te pide los datos del OCD: tipo, criticidad, tamaño, fecha, hora, rollback, evidencias y descripción. No te pide las instrucciones todavía. Asocia la historia al OCD.
+- Luego te pide los datos del OCD: tipo, criticidad, rollback, evidencias y descripción. No te pide las instrucciones todavía; la fecha y la hora llegan en Gestión de pase. Asocia la historia al OCD.
 - Te guía paso a paso por la gestión del OCD con el calendario. En la revisión del líder técnico valida tus instrucciones de despliegue.
 - En el OCD real, el agente repite las verificaciones con la matrícula, la historia y las instrucciones del formulario y bloquea el OCD si algo falla.
 
@@ -30,24 +30,22 @@
 2. Reúne las evidencias: pruebas QA, SAST, SCA, escaneo de secretos, runbook y monitoreo.
 3. Define el rollback y pruébalo en un ambiente previo. Sin rollback el OCD se bloquea.
 4. En Jira elige el proyecto OCD y el tipo de incidencia Pase a Producción.
-5. Asocia tu historia (HU-1234). Completa tu matrícula, servicio, tipo de cambio, criticidad, tamaño, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
+5. Asocia tu historia (HU-1234). Completa tu matrícula, servicio, tipo de cambio, criticidad, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
 6. Elige a los aprobadores del servicio: líder técnico, Product Owner, Seguridad y Change Management.
 7. Crea el ticket. El agente publica el informe con bloqueos, calendario y aprobadores, y mueve el estado.
 8. Corrige lo que el agente marque y edita el ticket. El informe se actualiza solo.
 
 ## Grupos de red para un OCD
-- Para crear y ejecutar cualquier OCD necesitas los grupos de red de DevSecOps: GR-DSO-GITHUB (GitHub y repositorios), GR-DSO-SCAN (resultados de SAST, SCA y secretos) y GR-DSO-RELEASE (ambientes protegidos de release).
-- Si no los tienes, el asistente te ofrece crear la solicitud en Helpdesk por ti. La aprobación es de tu líder técnico y tarda 3 días hábiles.
-- Cada servicio exige grupos de red en producción: acceso a servidores de aplicación (GR-APP), acceso de lectura a la base de datos (GR-DB) y la red del runner de despliegue (GR-DEPLOY).
-- No todos los servicios necesitan los tres. El asistente te muestra cuáles exige tu servicio y cuáles ya tienes.
-- Si te falta un grupo, crea una Solicitud de red en Helpdesk (cola Accesos y redes), indica el servicio y el grupo, y pide la aprobación de tu líder técnico.
-- La solicitud de red tarda 3 días hábiles. Pídela antes de abrir el OCD: pedirla el mismo día retrasa el pase.
+- Para crear y ejecutar un OCD necesitas los grupos de red de tu rol. Líder técnico (LT): INCT_ADMIN_INCT_PROD y VSDP-ADMIN. Team Member (TM): INCT_DEVELOPER_INCT_PROD y VSDP-DEVELOPER.
+- El asistente te pregunta con qué rol participas y valida tu matrícula contra esos grupos.
+- Si te falta alguno, te ofrece crear la Solicitud de acceso en Helpdesk (cola Accesos y redes). La aprobación es de tu líder técnico y tarda 3 días hábiles.
+- Pídela antes de abrir el OCD: pedirla el mismo día retrasa el pase.
 
 ## Quién es quién en un OCD
 - Líder técnico: confirma que el cambio es correcto y que el equipo puede ejecutarlo y revertirlo.
 - Product Owner: confirma que el cambio aporta valor y que el momento de salida es aceptable para el negocio.
-- Seguridad: revisa SAST, SCA, secretos y accesos. En un OCD Normal aprueba antes de la sesión del CAB.
-- Change Management: aprueba en el CAB y valida calendario, cupo y congelamientos.
+- Seguridad: revisa SAST, SCA, secretos y accesos. En un OCD Normal aprueba antes de la sesión del Comité de Gestión de Cambios.
+- Change Management: aprueba en el Comité de Gestión de Cambios y valida calendario, cupo y congelamientos.
 - Delegado CIO: se suma cuando el riesgo es Crítico o cuando se ejecuta dentro de un congelamiento.
 - En un OCD de Emergencia el Product Owner solo es informado, y Seguridad y Change Management aprueban a posteriori en máximo 24 horas.
 - Cada servicio tiene sus propios responsables. El asistente te dice quién es cada uno.
@@ -55,7 +53,7 @@
 ## Reglas del calendario
 - Ventana estándar: martes a jueves, de 22:00 a 04:00. La fecha del OCD es la noche en que empieza la ventana.
 - Cupo: máximo 3 OCD por noche. Si la noche está llena, el agente propone la primera noche libre.
-- Anticipación Normal: entre 5 y 7 días hábiles, según la sesión del CAB. El CAB sesiona martes y jueves a las 10:00.
+- Anticipación Normal: entre 5 y 7 días hábiles, según la sesión del Comité de Gestión de Cambios. El Comité de Gestión de Cambios sesiona martes y jueves a las 10:00.
 - Anticipación Estándar: 2 días hábiles. Si el riesgo sale Alto o Crítico, se trata como Normal.
 - Los fines de semana, los feriados y los congelamientos no admiten OCD, salvo Emergencia.
 - Los congelamientos son el evento comercial de fin de mes y el cierre de año.
@@ -67,8 +65,8 @@ La modalidad puede ser Automatizado, Manual, Híbrido (pasos `[AUTO]` y `[MANUAL
 ## Cómo calcula el agente las fechas
 1. Parte de la noche de ejecución y calcula hacia atrás, en días hábiles.
 2. Confirmar ventana y avisar a las áreas: 1 día hábil antes.
-3. CAB: la última sesión (martes o jueves) que ocurra 2 días hábiles antes o antes.
-4. Seguridad: el día hábil anterior al CAB. Líder técnico: el día hábil anterior a Seguridad.
+3. Comité de Gestión de Cambios: la última sesión (martes o jueves) que ocurra 2 días hábiles antes o antes.
+4. Seguridad: el día hábil anterior al Comité de Gestión de Cambios. Líder técnico: el día hábil anterior a Seguridad.
 5. Crear el OCD: el día hábil anterior a la revisión del líder técnico.
 6. Si esa fecha de creación ya pasó, el OCD se bloquea por anticipación insuficiente y el agente propone otra noche.
 
@@ -83,8 +81,17 @@ La modalidad puede ser Automatizado, Manual, Híbrido (pasos `[AUTO]` y `[MANUAL
 ## Errores frecuentes en un OCD
 - Elegir viernes o fin de semana: queda fuera de la ventana.
 - Elegir una noche que ya tiene 3 OCD.
-- Crear el OCD con menos días de anticipación de los que pide el CAB.
+- Crear el OCD con menos días de anticipación de los que pide el Comité de Gestión de Cambios.
 - No avisar a las áreas impactadas antes de la ventana.
 - Pedir los grupos de red el mismo día de la ejecución.
 - Crear el OCD sin historia o con la historia de otro servicio.
 - Escribir instrucciones sin rollback o con una contraseña en el texto.
+
+## Criticidad del servicio
+- **Alta:** una falla detiene operaciones de clientes o mueve dinero (por ejemplo pagos-api y core-cuentas). Suma más puntos de riesgo y, desde riesgo alto, exige Seguridad y el Comité de Gestión de Cambios.
+- **Media:** una falla degrada el servicio, pero existe una alternativa (canal-web, tarjetas-api).
+- **Baja:** una falla casi no afecta a clientes ni a la operación (notificaciones).
+- Los puntos exactos de cada criticidad están en `knowledge/policy.json` y se muestran en la explicación del riesgo.
+
+## Fecha del pase
+- La fecha y la hora del pase se definen en el estado Gestión de pase. Antes de ese estado el OCD se prepara sin fecha.

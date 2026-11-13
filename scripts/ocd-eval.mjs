@@ -31,7 +31,7 @@ export function evaluarOcd({ issue, bases, hoy }) {
   const conjuntos = conjuntosDeForm(fields, flujo);
   const conjuntosVal = validarConjuntos(conjuntos, modalidad, { servicio: ocd.change.servicio, criticidad: ocd.change.criticidad }, flujo);
 
-  const sol = revisarSolicitanteOcd({ servicio: ocd.change.servicio, matricula: ocd.matricula }, dir);
+  const sol = revisarSolicitanteOcd({ servicio: ocd.change.servicio, matricula: ocd.matricula, perfil: ocd.perfil }, dir);
   const revH = revisarHistoriaEInstrucciones({ historia: ocd.historia, instrucciones: "", servicio: ocd.change.servicio, criticidad: ocd.change.criticidad }, historias);
   const despliegue = conjuntosVal.lista.find((x) => x.id === "despliegue");
   const rev = {

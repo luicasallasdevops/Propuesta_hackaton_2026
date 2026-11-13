@@ -69,7 +69,6 @@ export function changeFromForm(fields, policy) {
     servicio: clean(fields["Servicio"]).slice(0, 80),
     tipo: clean(fields["Tipo de cambio"]),
     criticidad: clean(fields["Criticidad del servicio"]),
-    tamano: clean(fields["Tamaño del cambio"]),
     dia: clean(fields["Día de despliegue"]),
     rollback: clean(fields["Plan de rollback"]),
     checks,
@@ -85,7 +84,6 @@ export function assess(change, incidents, policy, today = new Date()) {
   const add = (label, pts) => { if (pts > 0) factors.push({ label, pts }); };
 
   add(`Criticidad ${change.criticidad}`, policy.criticidad[change.criticidad] ?? 0);
-  add(`Tamaño ${change.tamano}`, policy.tamano[change.tamano] ?? 0);
   add(`Rollback: ${change.rollback}`, policy.rollback[change.rollback] ?? 0);
   add(`Despliegue en ${change.dia}`, policy.diasRiesgo[change.dia] ?? 0);
 
@@ -113,7 +111,6 @@ export function assess(change, incidents, policy, today = new Date()) {
   if (change.rollback !== "Sí, probado") active.add("sin-rollback");
   if (!change.checks.sca) active.add("dependencia-vulnerable");
   if (!change.checks.monitoreo) active.add("sin-monitoreo");
-  if (change.tamano === "Grande") active.add("cambio-grande");
   if (!change.checks.red) active.add("red-no-solicitada");
   if (!change.checks.secretos) active.add("secreto-expuesto");
   const related = incidents.filter((i) => active.has(i.causa) && (i.servicio === change.servicio || similar.some((s) => s.causa === i.causa)));
@@ -248,6 +245,7 @@ export function ocdFromForm(fields, policy, cfg) {
   return {
     change: changeFromForm(fields, policy),
     matricula: clean(fields["Matrícula"]).slice(0, 12),
+    perfil: /l[ií]der/i.test(clean(fields["Rol del solicitante"])) ? "Líder técnico" : "Team Member",
     historia: clean(fields["Historia asociada"]).slice(0, 12),
     instrucciones: clean(fields["Instrucciones de despliegue"]).slice(0, 4100),
     fecha: clean(fields["Fecha de ejecución"]).slice(0, 10),
@@ -277,7 +275,7 @@ export function assessOcd(o, incidents, policy, cfg, calendario, hoy) {
 
   if (!cfg.tipos[tipo]) blockers.push("Elige el tipo de cambio: Estándar, Normal o Emergencia");
   const tipoEf = tipo === "Estándar" && ["Alto", "Crítico"].includes(nivel) ? "Normal" : tipo;
-  if (tipoEf !== tipo) advertencias.push("El riesgo es Alto o Crítico: este cambio Estándar se trata como Normal (pasa por el CAB).");
+  if (tipoEf !== tipo) advertencias.push("El riesgo es Alto o Crítico: este cambio Estándar se trata como Normal (pasa por el Comité de Gestión de Cambios).");
 
   const valida = fechaValida(o.fecha);
   if (!valida) blockers.push("Fecha de ejecución inválida: usa el formato AAAA-MM-DD");
@@ -329,7 +327,7 @@ export function renderOcdReport(o, r, policy, cfg, sol = null, rev = null) {
   L.push(`## ${icon} Evaluación del OCD: ${esc(o.change.servicio || "sin servicio")}`);
   L.push(`**Estado:** ${r.estado} · **Riesgo:** ${r.nivel} (${r.score}/100) · **Tipo:** ${esc(o.change.tipo || "sin tipo")}${r.tipoEfectivo !== o.change.tipo ? ` (tratado como ${r.tipoEfectivo})` : ""} · **Ejecución:** ${esc(o.fecha || "sin fecha")} ${r.dia ? `(${r.dia})` : ""} ${esc(o.hora || "")} · política \`${policy.version}\` / OCD \`${cfg.version}\``, "");
   if (r.blockers.length) L.push("### Bloqueos", ...r.blockers.map((b) => `- 🛑 ${esc(b)}`), "");
-  if (sol?.encontrado) L.push("### Solicitante y grupos de red", `- 👤 ${esc(sol.usuario.nombre)} (${sol.matricula})`, ...sol.gruposDso.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id} (DevSecOps): ${esc(g.nombre)}`), ...sol.grupos.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id} (servicio): ${esc(g.nombre)}`), "");
+  if (sol?.encontrado) L.push("### Solicitante y grupos de red", `- 👤 ${esc(sol.usuario.nombre)} (${sol.matricula})`, ...sol.gruposDso.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id} (grupo de red): ${esc(g.nombre)}`), ...sol.grupos.map((g) => `- ${g.tiene ? "✅" : "❌"} ${g.id} (servicio): ${esc(g.nombre)}`), "");
   if (rev?.historia) L.push("### Historia asociada", `- 📖 ${rev.historia.id} · ${esc(rev.historia.titulo)} (${esc(rev.historia.estado)})`, "");
   if (rev?.instr) L.push("### Instrucciones de despliegue", `- ${rev.instr.ok ? "✅ Válidas" : "🛑 Con bloqueos"}: ${rev.instr.pasos} paso(s) detectado(s)`, "");
   if (r.advertencias.length) L.push("### Advertencias", ...r.advertencias.map((a) => `- ⚠️ ${esc(a)}`), "");
@@ -348,12 +346,11 @@ export function renderOcdReport(o, r, policy, cfg, sol = null, rev = null) {
 /* ---------- Equipo del OCD: grupos de red y aprobadores por servicio ---------- */
 
 /** Revisa si el solicitante tiene los grupos de red del servicio y si eligió a los aprobadores que corresponden. */
-export function validarEquipoOcd({ servicio, usuarioId, elegidos = {}, tipo = "Normal" }, dir, cfg) {
+export function validarEquipoOcd({ servicio, usuarioId, elegidos = {}, tipo = "Normal", perfil = "Team Member" }, dir, cfg) {
   const svc = dir.servicios[servicio];
   const usuario = dir.usuarios[usuarioId];
   if (!svc) return { servicioConocido: false, grupos: [], roles: [], mensajes: [`No conozco el servicio "${servicio}". Elige uno de la lista.`], completo: false };
-  const tiene = new Set(usuario?.gruposRed ?? []);
-  const grupos = svc.grupos.map((id) => ({ id, ...dir.gruposRed[id], tiene: tiene.has(id) }));
+  const grupos = revisarGruposDevsecops(usuario, dir, [], perfil).grupos;
   const base = (cfg.tipos[tipo]?.aprobadores ?? []).map((a) => a.replace(/\s*\(.*\)$/, "")).filter((a) => a in (dir.servicios[servicio]?.roles ?? {}));
   const roles = [...new Set(base)].map((rol) => {
     const esperado = svc.roles[rol];
@@ -383,7 +380,7 @@ export function buscarPorMatricula(dir, texto) {
 }
 
 /** Verifica que la matrícula exista y que tenga los grupos de red que exige el servicio. */
-export function revisarSolicitanteOcd({ servicio, matricula }, dir) {
+export function revisarSolicitanteOcd({ servicio, matricula, perfil = "Team Member" }, dir) {
   const out = { encontrado: false, matricula: "", usuario: null, grupos: [], gruposDso: [], bloqueos: [], advertencias: [], acciones: [] };
   const mat = normalizarMatricula(matricula);
   if (!String(matricula ?? "").trim()) { out.bloqueos.push("Falta la matrícula del solicitante"); return out; }
@@ -392,16 +389,10 @@ export function revisarSolicitanteOcd({ servicio, matricula }, dir) {
   const u = buscarPorMatricula(dir, mat);
   if (!u) { out.bloqueos.push(`La matrícula ${mat} no existe en el directorio`); return out; }
   out.encontrado = true; out.usuario = u;
-  const dso = revisarGruposDevsecops(u, dir);
-  out.gruposDso = dso.grupos;
-  for (const g of dso.faltan) out.bloqueos.push(`La matrícula ${mat} no tiene el grupo de red de DevSecOps ${g.id} (${g.nombre})`);
-  if (dso.faltan.length) out.acciones.push(`Pide los grupos de DevSecOps ${dso.faltan.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}.`);
-  const svc = dir.servicios[servicio];
-  if (!svc) { out.advertencias.push("No tengo los grupos de red de este servicio: verifícalos con la mesa de red."); return out; }
-  out.grupos = svc.grupos.map((id) => ({ id, ...dir.gruposRed[id], tiene: u.gruposRed.includes(id) }));
-  const faltan = out.grupos.filter((g) => !g.tiene);
-  for (const g of faltan) out.bloqueos.push(`La matrícula ${mat} no tiene el grupo de red ${g.id} (${g.nombre})`);
-  if (faltan.length) out.acciones.push(`Pide los grupos de red ${faltan.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}.`);
+  const dso = revisarGruposDevsecops(u, dir, [], perfil);
+  out.gruposDso = dso.grupos; out.grupos = dso.grupos; out.perfil = perfil;
+  for (const g of dso.faltan) out.bloqueos.push(`La matrícula ${mat} no tiene el grupo de red ${g.id} (${g.nombre}), necesario como ${perfil}`);
+  if (dso.faltan.length) out.acciones.push(`Pide los grupos de red ${dso.faltan.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}.`);
   return out;
 }
 
@@ -413,10 +404,10 @@ export function combinarSolicitante(r, ...revs) {
 
 /* ---------- Grupos de red de DevSecOps, Helpdesk, historia e instrucciones del OCD ---------- */
 
-/** Grupos de red de DevSecOps que necesita quien crea un OCD. `extra` son grupos recién aprobados en la sesión. */
-export function revisarGruposDevsecops(usuario, dir, extra = []) {
-  const tiene = new Set([...(usuario?.gruposDevsecops ?? []), ...extra]);
-  const grupos = Object.entries(dir.gruposDevsecops).map(([id, g]) => ({ id, ...g, tiene: tiene.has(id) }));
+/** Grupos de red que necesita quien crea un OCD según su rol (LT = ADMIN, TM = DEVELOPER). `extra` son grupos recién aprobados en la sesión. */
+export function revisarGruposDevsecops(usuario, dir, extra = [], perfil = "Team Member") {
+  const tiene = new Set([...(usuario?.gruposRed ?? []), ...extra]);
+  const grupos = Object.entries(dir.gruposRed).filter(([, g]) => !perfil || g.perfil === perfil).map(([id, g]) => ({ id, ...g, tiene: tiene.has(id) }));
   return { grupos, faltan: grupos.filter((g) => !g.tiene), completo: grupos.every((g) => g.tiene) };
 }
 
@@ -425,7 +416,7 @@ export function crearSolicitudHelpdesk({ usuario, ids, dir, numero }) {
   return {
     key: `HD-${numero}`, cola: dir.solicitudRed.cola, estado: "Pendiente de aprobación", sla: dir.solicitudRed.sla,
     asunto: `Solicitud de red: ${ids.join(", ")}`, solicitante: `${usuario.nombre} (${usuario.matricula})`,
-    aprobador: "Líder técnico del squad", grupos: ids.map((id) => ({ id, nombre: dir.gruposDevsecops[id]?.nombre ?? dir.gruposRed[id]?.nombre ?? id })),
+    aprobador: "Líder técnico del squad", grupos: ids.map((id) => ({ id, nombre: dir.gruposRed[id]?.nombre ?? id })),
   };
 }
 

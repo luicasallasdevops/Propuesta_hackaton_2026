@@ -5,7 +5,7 @@
 ## Qué pasa hoy
 - Muchas incidencias se detectan cuando ya impactan a usuarios u operación.
 - Hay información valiosa (incidentes históricos, métricas, cambios) que no se usa de forma preventiva.
-- Para llegar a producción, los equipos deben crear tickets en tableros Kanban y pasar por aprobaciones de squads (QA, SecOps, CAB). La información de cómo hacerlo está dispersa.
+- Para llegar a producción, los equipos deben crear tickets en tableros Kanban y pasar por aprobaciones de squads (QA, SecOps, Comité de Gestión de Cambios). La información de cómo hacerlo está dispersa.
 - Tampoco es fácil saber qué roles pedir, qué grupos de red necesitan, qué licencias de GitHub deben estar activas ni qué controles de seguridad se exigen.
 
 ## Consecuencia

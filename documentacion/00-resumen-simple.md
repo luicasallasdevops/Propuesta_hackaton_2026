@@ -32,7 +32,7 @@ Un asistente con tres capacidades:
 
 ## Qué revisa el agente
 - **Bloqueos duros (no se puede pasar sin cumplirlos):** pruebas QA, análisis de código, análisis de dependencias, escaneo de secretos, aprobación del squad y plan de reversa.
-- **Factores de riesgo:** criticidad del servicio, tamaño del cambio, día de la semana, controles faltantes e incidentes recientes del mismo servicio (últimos 90 días).
+- **Factores de riesgo:** criticidad del servicio, día de la semana, controles faltantes e incidentes recientes del mismo servicio (últimos 90 días).
 - **Niveles:** Bajo (hasta 29), Medio (hasta 54), Alto (hasta 74) y Crítico (más de 74).
 
 ## Qué se ve en la demo

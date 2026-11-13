@@ -73,7 +73,7 @@ El Issue que crea la historia lo crea el `GITHUB_TOKEN`, que no dispara otros wo
 3. La modalidad la elige el developer al crear el OCD (el agente avisa si las instrucciones no la respetan).
 4. La reversión de congelamiento y la de pase las dispara quien reporta la falla (`/ocd falla` o el tag `revertir`); en modalidades automáticas, la propia cadena automática.
 5. El estado «Reversión» lo ratifica el QE.
-6. Las reglas de calendario (ventana, cupo, CAB) siguen aplicando para reservar la noche de Gestión de pase.
+6. Las reglas de calendario (ventana, cupo, Comité de Gestión de Cambios) siguen aplicando para reservar la noche de Gestión de pase.
 
 ## Cómo cambiar el flujo
 Edita `knowledge/ocd-flujo.json` (estados, actores, requisitos, plazos en días hábiles, eventos de git) y `knowledge/ocd-roles.json` (usuarios y roles); ejecuta `npm test` y `npm run build`.

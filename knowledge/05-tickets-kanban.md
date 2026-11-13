@@ -10,7 +10,7 @@
 Backlog, Preparación, Revisión QA, Revisión SecOps, Aprobado, Desplegado, Cerrado.
 
 ## Campos mínimos de un ticket de pase
-Servicio, tipo de cambio, criticidad, tamaño, día de despliegue, plan de rollback, evidencias de QA, SAST, SCA y secretos, y descripción del cambio.
+Servicio, tipo de cambio, criticidad, día de despliegue, plan de rollback, evidencias de QA, SAST, SCA y secretos, y descripción del cambio.
 
 ## Errores frecuentes que retrasan el pase
 - Abrir el ticket sin evidencias de seguridad.

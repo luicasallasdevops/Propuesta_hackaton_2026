@@ -29,15 +29,15 @@ const RECORRIDO = [
   ["📚", "Reúne evidencias", "QA, SAST, SCA, secretos, runbook y rollback probado."],
   ["🗓️", "Elige la noche", "Martes a jueves, 22:00 a 04:00, con cupo libre."],
   ["📝", "Crea el OCD en Jira", "Con fecha, hora y aprobadores. El agente responde al instante."],
-  ["👥", "Consigue aprobaciones", "Líder técnico, Product Owner, Seguridad y Change Management (CAB)."],
+  ["👥", "Consigue aprobaciones", "Líder técnico, Product Owner, Seguridad y Change Management (Comité de Gestión de Cambios)."],
   ["🚀", "Ejecuta y verifica", "Workflow protegido, 30 minutos de métricas y cierre con evidencia."],
 ];
 const TEXTO_ETAPA = {
   crear: "Se abre el ticket con las evidencias. La tarjeta nace en Solicitado.",
   agente: "El agente calcula riesgo, calendario y aprobadores, y mueve la tarjeta a Listo para aprobaciones.",
   lider: "El líder técnico confirma que el cambio es correcto y reversible.",
-  seguridad: "Seguridad revisa SAST, SCA, secretos y accesos antes del CAB.",
-  cab: "Change Management aprueba en el CAB: la tarjeta pasa a Aprobado.",
+  seguridad: "Seguridad revisa SAST, SCA, secretos y accesos antes del Comité de Gestión de Cambios.",
+  cab: "Change Management aprueba en el Comité de Gestión de Cambios: la tarjeta pasa a Aprobado.",
   agenda: "Se confirma la ventana y se avisa a las áreas impactadas.",
   ejecutar: "Empieza la ventana: se ejecuta el workflow protegido y la tarjeta pasa a En producción.",
   verificar: "Se vigilan métricas y alertas durante 30 minutos. Si algo falla, se ejecuta el rollback.",
@@ -50,7 +50,7 @@ async function init() {
   const HOY = cfg.fechaDemo;
   const porId = (id) => cal.find((c) => c.id === id);
   const checksDe = (f) => Object.fromEntries(Object.keys(policy.controles).map((k) => [k, !f.faltan.includes(k)]));
-  const entradaDe = (x) => ({ id: x.id, change: { servicio: x.servicio, tipo: x.tipo, criticidad: x.form.criticidad, tamano: x.form.tamano, rollback: x.form.rollback, checks: checksDe(x.form) }, fecha: x.fecha, hora: x.hora, ocdChecks: { comunicacion: x.form.comunicacion, verificacion: x.form.verificacion } });
+  const entradaDe = (x) => ({ id: x.id, change: { servicio: x.servicio, tipo: x.tipo, criticidad: x.form.criticidad, rollback: x.form.rollback, checks: checksDe(x.form) }, fecha: x.fecha, hora: x.hora, ocdChecks: { comunicacion: x.form.comunicacion, verificacion: x.form.verificacion } });
   const evaluar = (x, hoy) => assessOcd(entradaDe(x), incidents, policy, cfg, cal, hoy);
 
   /* ---------- Planificador ---------- */
@@ -67,7 +67,7 @@ async function init() {
     campo("Servicio", svc),
     el("datalist", { id: "ocd-svc" }, ["pagos-api", "canal-web", "core-cuentas", "tarjetas-api", "notificaciones"].map((v) => el("option", { value: v }))),
     el("div", { className: "row" }, campo("Tipo de cambio", sel("tipo", Object.keys(cfg.tipos))), campo("Criticidad", sel("criticidad", ["Alta", "Media", "Baja"]))),
-    el("div", { className: "row" }, campo("Tamaño", sel("tamano", ["Pequeño", "Mediano", "Grande"])), campo("Rollback", sel("rollback", ["Sí, probado", "Sí, sin probar", "No"]))),
+    el("div", { className: "row" }, campo("Rollback", sel("rollback", ["Sí, probado", "Sí, sin probar", "No"]))),
     el("div", { className: "row" }, campo("Fecha de ejecución", el("input", { name: "fecha", type: "date", required: true })), campo("Hora de inicio", el("input", { name: "hora", type: "time", value: "22:00", required: true }))),
     campo("Hoy (fecha de referencia)", el("input", { name: "hoy", type: "date", value: HOY, required: true })),
     el("fieldset", {}, el("legend", { textContent: "Evidencias y requisitos que ya tengo" }), checks),
@@ -76,18 +76,18 @@ async function init() {
     el("p", { className: "muted", textContent: "Carga un caso de ejemplo o completa el formulario. El agente te dirá si la noche sirve, quién debe aprobar y en qué fecha tienes que hacer cada paso." }));
 
   function cargar(v) {
-    for (const k of ["servicio", "tipo", "criticidad", "tamano", "rollback", "fecha", "hora", "hoy"]) if (v[k] !== undefined) form.elements[k].value = v[k];
+    for (const k of ["servicio", "tipo", "criticidad", "rollback", "fecha", "hora", "hoy"]) if (v[k] !== undefined) form.elements[k].value = v[k];
     for (const k of Object.keys(policy.controles)) form.elements[k].checked = !v.faltan?.includes(k);
     for (const k of Object.keys(cfg.controles)) form.elements[`ocd_${k}`].checked = v[k] !== false;
     form.requestSubmit();
   }
   const preset = (f) => ({ ...f, hoy: HOY, hora: f.hora ?? "22:00", faltan: f.faltan ?? [] });
   const CASOS = [
-    ["✅ OCD listo", preset({ servicio: "core-cuentas", tipo: "Normal", criticidad: "Media", tamano: "Pequeño", rollback: "Sí, probado", fecha: "2026-11-24" })],
-    ["🈵 Noche llena", preset({ servicio: "notificaciones", tipo: "Estándar", criticidad: "Baja", tamano: "Pequeño", rollback: "Sí, probado", fecha: "2026-11-18", hora: "23:30" })],
-    ["🛑 Viernes sin rollback", preset({ servicio: "pagos-api", tipo: "Normal", criticidad: "Alta", tamano: "Grande", rollback: "No", fecha: "2026-11-20", faltan: Object.keys(policy.controles), comunicacion: false, verificacion: false })],
-    ["🧊 En congelamiento", preset({ servicio: "canal-web", tipo: "Normal", criticidad: "Media", tamano: "Pequeño", rollback: "Sí, probado", fecha: "2026-11-26" })],
-    ["🚑 Emergencia", preset({ servicio: "notificaciones", tipo: "Emergencia", criticidad: "Alta", tamano: "Pequeño", rollback: "Sí, probado", fecha: "2026-11-27", hora: "03:00", faltan: ["runbook"] })],
+    ["✅ OCD listo", preset({ servicio: "core-cuentas", tipo: "Normal", criticidad: "Media", rollback: "Sí, probado", fecha: "2026-11-24" })],
+    ["🈵 Noche llena", preset({ servicio: "notificaciones", tipo: "Estándar", criticidad: "Baja", rollback: "Sí, probado", fecha: "2026-11-18", hora: "23:30" })],
+    ["🛑 Viernes sin rollback", preset({ servicio: "pagos-api", tipo: "Normal", criticidad: "Alta", rollback: "No", fecha: "2026-11-20", faltan: Object.keys(policy.controles), comunicacion: false, verificacion: false })],
+    ["🧊 En congelamiento", preset({ servicio: "canal-web", tipo: "Normal", criticidad: "Media", rollback: "Sí, probado", fecha: "2026-11-26" })],
+    ["🚑 Emergencia", preset({ servicio: "notificaciones", tipo: "Emergencia", criticidad: "Alta", rollback: "Sí, probado", fecha: "2026-11-27", hora: "03:00", faltan: ["runbook"] })],
   ];
   const chips = el("div", { className: "chips" }, CASOS.map(([t, v]) => el("button", { type: "button", textContent: t, onclick: () => cargar(v) })));
 
@@ -96,7 +96,7 @@ async function init() {
     e.preventDefault();
     const f = new FormData(form);
     const o = {
-      change: { servicio: String(f.get("servicio")).trim().slice(0, 80), tipo: f.get("tipo"), criticidad: f.get("criticidad"), tamano: f.get("tamano"), rollback: f.get("rollback"),
+      change: { servicio: String(f.get("servicio")).trim().slice(0, 80), tipo: f.get("tipo"), criticidad: f.get("criticidad"), rollback: f.get("rollback"),
         checks: Object.fromEntries(Object.keys(policy.controles).map((k) => [k, f.get(k) === "on"])) },
       fecha: String(f.get("fecha")), hora: String(f.get("hora")),
       ocdChecks: Object.fromEntries(Object.keys(cfg.controles).map((k) => [k, f.get(`ocd_${k}`) === "on"])),
@@ -158,7 +158,7 @@ async function init() {
       el("p", { className: "muted", textContent: `${x.tipo} · ejecución ${fmtFecha(x.fecha)} ${x.hora} · riesgo ${r.nivel} (${r.score}/100) · columna ${x.estado}` }),
       el("ul", { className: "aprob" }, Object.entries(x.aprobaciones).map(([k, v]) => el("li", { textContent: `${ICONO_APROB[v] || "•"} ${k}: ${v}` }))),
       r.blockers.length ? el("p", { className: "bloq", textContent: `🛑 ${r.blockers.join(" · ")}` }) : "",
-      el("button", { type: "button", className: "btn ghost", textContent: "Cargar en el planificador", onclick: () => { cargar({ servicio: x.servicio, tipo: x.tipo, criticidad: x.form.criticidad, tamano: x.form.tamano, rollback: x.form.rollback, fecha: x.fecha, hora: x.hora, hoy: x.creado, faltan: x.form.faltan, comunicacion: x.form.comunicacion, verificacion: x.form.verificacion }); form.scrollIntoView({ behavior: "smooth", block: "start" }); } }));
+      el("button", { type: "button", className: "btn ghost", textContent: "Cargar en el planificador", onclick: () => { cargar({ servicio: x.servicio, tipo: x.tipo, criticidad: x.form.criticidad, rollback: x.form.rollback, fecha: x.fecha, hora: x.hora, hoy: x.creado, faltan: x.form.faltan, comunicacion: x.form.comunicacion, verificacion: x.form.verificacion }); form.scrollIntoView({ behavior: "smooth", block: "start" }); } }));
   }
 
   /* ---------- Simulador paso a paso ---------- */
@@ -170,7 +170,7 @@ async function init() {
     bloqueado: { titulo: "🛑 OCD bloqueado que se corrige (OCD-2005)", pasos: () => {
       const x = porId("OCD-2005");
       const r0 = evaluar(x, x.creado);
-      const corregido = { ...entradaDe(x), change: { ...entradaDe(x).change, rollback: "Sí, probado", tamano: "Mediano", checks: Object.fromEntries(Object.keys(policy.controles).map((k) => [k, true])) }, fecha: r0.sugerida, hora: "22:00", ocdChecks: { comunicacion: true, verificacion: true } };
+      const corregido = { ...entradaDe(x), change: { ...entradaDe(x).change, rollback: "Sí, probado", checks: Object.fromEntries(Object.keys(policy.controles).map((k) => [k, true])) }, fecha: r0.sugerida, hora: "22:00", ocdChecks: { comunicacion: true, verificacion: true } };
       const r1 = assessOcd(corregido, incidents, policy, cfg, cal, x.creado);
       return [
         { col: "Solicitado", titulo: `${fmtFecha(x.creado)} · Sofía crea el OCD`, texto: `Pide ejecutar el viernes ${x.fecha}, con rollback No y sin SAST ni SCA.` },

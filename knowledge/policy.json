@@ -1,7 +1,6 @@
 {
   "version": "0.1.0-poc",
   "criticidad": {"Alta": 25, "Media": 12, "Baja": 4},
-  "tamano": {"Grande": 15, "Mediano": 7, "Pequeño": 2},
   "rollback": {"No": 20, "Sí, sin probar": 10, "Sí, probado": 0},
   "diasRiesgo": {"Viernes": 12, "Sábado": 15, "Domingo": 15},
   "controles": {
@@ -19,8 +18,8 @@
   "niveles": [
     {"hasta": 29, "nivel": "Bajo",    "aprobaciones": ["QA del squad"]},
     {"hasta": 54, "nivel": "Medio",   "aprobaciones": ["QA del squad", "Líder técnico"]},
-    {"hasta": 74, "nivel": "Alto",    "aprobaciones": ["QA del squad", "Líder técnico", "SecOps", "CAB"]},
-    {"hasta": 100,"nivel": "Crítico", "aprobaciones": ["QA del squad", "Líder técnico", "SecOps", "CAB", "Delegado CIO"]}
+    {"hasta": 74, "nivel": "Alto",    "aprobaciones": ["QA del squad", "Líder técnico", "SecOps", "Comité de Gestión de Cambios"]},
+    {"hasta": 100,"nivel": "Crítico", "aprobaciones": ["QA del squad", "Líder técnico", "SecOps", "Comité de Gestión de Cambios", "Delegado CIO"]}
   ],
   "recomendaciones": {
     "sin-rollback": "Definir y probar el rollback en un ambiente previo.",

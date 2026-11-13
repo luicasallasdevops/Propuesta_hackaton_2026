@@ -17,8 +17,8 @@ const tipoDueno = await fetch(`https://api.github.com/users/${repo.split("/")[0]
 const gh = (path = "") => `https://github.com/${repo}${path}`;
 const params = (o) => new URLSearchParams(o).toString();
 
-const RIESGOSO = { servicio: "pagos-api", criticidad: "Alta", tamano: "Grande", dia: "Viernes", rollback: "No", checks: "none" };
-const FELIZ = { servicio: "pagos-api", criticidad: "Alta", tamano: "Pequeño", dia: "Martes", rollback: "Sí, probado", checks: "all" };
+const RIESGOSO = { servicio: "pagos-api", criticidad: "Alta", dia: "Viernes", rollback: "No", checks: "none" };
+const FELIZ = { servicio: "pagos-api", criticidad: "Alta", dia: "Martes", rollback: "Sí, probado", checks: "all" };
 const ticketUrl = (c) => gh(`/issues/new?${params({ template: "pase-produccion.yml", title: `[Pase] ${c.servicio} (demo)`, servicio: c.servicio })}`);
 
 /* ---------- Acciones sobre el resto del portal ---------- */
@@ -33,7 +33,7 @@ function runPreset(c) {
   goTab("t-pase");
   const f = $("#pase-form");
   if (!f || !f.elements.servicio) return;
-  for (const k of ["servicio", "criticidad", "tamano", "dia", "rollback"]) f.elements[k].value = c[k];
+  for (const k of ["servicio", "criticidad", "dia", "rollback"]) f.elements[k].value = c[k];
   f.querySelectorAll("#checks input[type=checkbox]").forEach((i) => (i.checked = c.checks === "all"));
   f.requestSubmit();
   $("#resultado")?.scrollIntoView({ behavior: "smooth", block: "start" });

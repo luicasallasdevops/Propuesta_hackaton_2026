@@ -3,7 +3,7 @@
 ## Flujo general del pase a producción
 1. Crear el ticket "Pase a Producción" en el tablero Kanban (usar la plantilla de Issue del portal).
 2. Adjuntar evidencias: pruebas QA, resultado SAST, resultado SCA, escaneo de secretos y plan de rollback.
-3. Obtener aprobaciones del squad: QA siempre; líder técnico desde riesgo medio; SecOps y CAB desde riesgo alto.
+3. Obtener aprobaciones del squad: QA siempre; líder técnico desde riesgo medio; SecOps y Comité de Gestión de Cambios desde riesgo alto.
 4. Agendar ventana de despliegue. Ventana estándar: martes a jueves, 22:00 a 04:00. Evitar viernes, fines de semana y vísperas de festivo.
 5. Ejecutar el despliegue con el workflow de release (ambiente protegido `production` con aprobadores requeridos).
 6. Verificación posterior: revisar métricas y alertas durante 30 minutos y cerrar el ticket con evidencia.

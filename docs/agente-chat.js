@@ -2,6 +2,7 @@
 // Solo reglas deterministas y nodos DOM (sin innerHTML). Riesgo, calendario y aprobaciones los valida el motor.
 import { quitarAcentos, intencion, extraerDatos, mezclar, faltantes, respuestaACampo, evaluarCambio, precargaOcd, resumenCambio, nombreDia } from "./conversacion.mjs";
 import { fmtFechaCorta, proximaVentana } from "./engine.mjs";
+import { detalle } from "./ui.js";
 
 export function crearAgenteChat({ say, el, dir, cfg, cal, policy, incidents, asistenteOcd, preguntar, ocdIssueUrl }) {
   const HOY = cfg.fechaDemo;
@@ -112,13 +113,15 @@ export function crearAgenteChat({ say, el, dir, cfg, cal, policy, incidents, asi
       el("div", { className: "score" }, el("span", { className: `pill ${color}`, textContent: e.r.estado }),
         el("div", { className: "meter", role: "img", ariaLabel: `Riesgo ${e.r.score} de 100` }, Object.assign(el("i"), { style: `width:${e.r.score}%;background:var(--${color})` })),
         el("strong", { textContent: `${e.r.nivel} · ${e.r.score}/100` })),
-      e.r.blockers.length ? el("div", {}, p("Esto es lo que impide que pase hoy:"), lista(e.r.blockers)) : p("✅ Cumple lo necesario para pedir aprobaciones."),
-      e.r.actions.length ? el("div", {}, p("Lo que te propongo:"), lista(e.r.actions, "ol")) : "",
-      e.r.advertencias.length ? lista(e.r.advertencias.map((a) => `⚠️ ${a}`)) : "",
-      el("p", { className: "muted small", textContent: `Supuse: ${e.supuestos.join(", ")}.` }),
+      p(e.r.blockers.length ? `🛑 ${e.r.blockers.length} cosa(s) impiden que pase hoy${e.r.actions.length ? ` y te propongo ${e.r.actions.length} acción(es)` : ""}.` : "✅ Cumple lo necesario para pedir aprobaciones."),
+      detalle("Ver el detalle: bloqueos, acciones y supuestos", [
+        e.r.blockers.length ? el("div", {}, p("Esto es lo que impide que pase hoy:"), lista(e.r.blockers)) : "",
+        e.r.actions.length ? el("div", {}, p("Lo que te propongo:"), lista(e.r.actions, "ol")) : "",
+        e.r.advertencias.length ? lista(e.r.advertencias.map((a) => `⚠️ ${a}`)) : "",
+        el("p", { className: "muted small", textContent: `Supuse: ${e.supuestos.join(", ")}.` })], { texto: "Riesgo y bloqueos (wiki)", ruta: "wiki:Riesgo-y-bloqueos" }),
       traza,
       botones(acciones, el("a", { className: "qr", href: ocdIssueUrl({ servicio: c.servicio, fecha: calendario && e.fechaSugerida ? e.fechaSugerida : c.fecha, hora: e.hora }), textContent: "Crear el OCD en GitHub ↗", target: "_blank", rel: "noopener" })),
-      el("p", { className: "muted small", textContent: "Puedes seguir cambiando datos con tus palabras, por ejemplo: «mejor el martes», «ya probé el rollback» o «es un cambio grande»." }));
+      el("p", { className: "muted small", textContent: "Puedes seguir cambiando datos con tus palabras, por ejemplo: «mejor el martes» o «ya probé el rollback»." }));
   }
 
   /* ---------- Entrada de texto ---------- */
@@ -149,5 +152,5 @@ export function crearAgenteChat({ say, el, dir, cfg, cal, policy, incidents, asi
 
   function reiniciarContexto() { estado = { cambio: { faltan: [] }, pregunta: null, evaluado: false }; }
 
-  return { manejar, saludar, menu, pedirCambio, reiniciarContexto, ayudaAccesos, ayudaPlantillas, get contexto() { return estado; } };
+  return { menuNodo, saludoHora, manejar, saludar, menu, pedirCambio, reiniciarContexto, ayudaAccesos, ayudaPlantillas, get contexto() { return estado; } };
 }

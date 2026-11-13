@@ -1,147 +1,173 @@
 {
-  "version": "1.1.0-poc-ocd",
-  "fechaDemo": "2026-11-16",
-  "tipos": {
-    "Estándar": {
-      "descripcion": "Cambio repetible y de bajo riesgo. Si el riesgo sale Alto o Crítico, se trata como Normal.",
-      "aprobadores": [
-        "Líder técnico",
-        "Change Management"
-      ]
-    },
-    "Normal": {
-      "descripcion": "Cambio planificado. Pasa por el CAB, que sesiona martes y jueves.",
-      "aprobadores": [
-        "Líder técnico",
-        "Product Owner",
-        "Seguridad",
-        "Change Management"
-      ]
-    },
-    "Emergencia": {
-      "descripcion": "Corrige un incidente activo. Se ejecuta ya y se aprueba a posteriori en máximo 24 horas.",
-      "aprobadores": [
-        "Líder técnico",
-        "Product Owner (informado)",
-        "Seguridad (a posteriori)",
-        "Change Management (a posteriori)"
-      ]
-    }
+ "version": "1.1.0-poc-ocd",
+ "fechaDemo": "2026-11-16",
+ "tipos": {
+  "Estándar": {
+   "descripcion": "Cambio repetible y de bajo riesgo. Si el riesgo sale Alto o Crítico, se trata como Normal.",
+   "aprobadores": [
+    "Líder técnico",
+    "Change Management"
+   ]
   },
-  "ventana": {
-    "dias": [
-      "Martes",
-      "Miércoles",
-      "Jueves"
-    ],
-    "horaInicio": "22:00",
-    "horaFin": "04:00",
-    "maxPorNoche": 3
+  "Normal": {
+   "descripcion": "Cambio planificado. Pasa por el Comité de Gestión de Cambios, que sesiona martes y jueves.",
+   "aprobadores": [
+    "Líder técnico",
+    "Product Owner",
+    "Seguridad",
+    "Change Management"
+   ]
+  },
+  "Emergencia": {
+   "descripcion": "Corrige un incidente activo. Se ejecuta ya y se aprueba a posteriori en máximo 24 horas.",
+   "aprobadores": [
+    "Líder técnico",
+    "Product Owner (informado)",
+    "Seguridad (a posteriori)",
+    "Change Management (a posteriori)"
+   ]
+  }
+ },
+ "ventana": {
+  "dias": [
+   "Martes",
+   "Miércoles",
+   "Jueves"
+  ],
+  "horaInicio": "22:00",
+  "horaFin": "04:00",
+  "maxPorNoche": 3
+ },
+ "cab": {
+  "dias": [
+   "Martes",
+   "Jueves"
+  ],
+  "hora": "10:00"
+ },
+ "adicionalesPorNivel": {
+  "Alto": [
+   "Seguridad",
+   "Change Management"
+  ],
+  "Crítico": [
+   "Seguridad",
+   "Change Management",
+   "Delegado CIO"
+  ]
+ },
+ "etapas": {
+  "crear": {
+   "nombre": "Crear el OCD con sus evidencias",
+   "responsable": "Solicitante",
+   "columna": "Solicitado"
+  },
+  "agente": {
+   "nombre": "Pre-validación del agente",
+   "responsable": "Agente",
+   "columna": "Listo para aprobaciones"
+  },
+  "lider": {
+   "nombre": "Revisión del líder técnico",
+   "responsable": "Líder técnico",
+   "columna": "Listo para aprobaciones"
+  },
+  "seguridad": {
+   "nombre": "Revisión de Seguridad",
+   "responsable": "Seguridad",
+   "columna": "Listo para aprobaciones"
   },
   "cab": {
-    "dias": [
-      "Martes",
-      "Jueves"
-    ],
-    "hora": "10:00"
+   "nombre": "Aprobación de Change Management (Comité de Gestión de Cambios)",
+   "responsable": "Change Management",
+   "columna": "Aprobado"
   },
-  "adicionalesPorNivel": {
-    "Alto": [
-      "Seguridad",
-      "Change Management"
-    ],
-    "Crítico": [
-      "Seguridad",
-      "Change Management",
-      "Delegado CIO"
-    ]
+  "agenda": {
+   "nombre": "Confirmar la ventana y avisar a las áreas",
+   "responsable": "Solicitante",
+   "columna": "Aprobado"
   },
-  "etapas": {
-    "crear": {
-      "nombre": "Crear el OCD con sus evidencias",
-      "responsable": "Solicitante",
-      "columna": "Solicitado"
-    },
-    "agente": {
-      "nombre": "Pre-validación del agente",
-      "responsable": "Agente",
-      "columna": "Listo para aprobaciones"
-    },
-    "lider": {
-      "nombre": "Revisión del líder técnico",
-      "responsable": "Líder técnico",
-      "columna": "Listo para aprobaciones"
-    },
-    "seguridad": {
-      "nombre": "Revisión de Seguridad",
-      "responsable": "Seguridad",
-      "columna": "Listo para aprobaciones"
-    },
-    "cab": {
-      "nombre": "Aprobación de Change Management (CAB)",
-      "responsable": "Change Management",
-      "columna": "Aprobado"
-    },
-    "agenda": {
-      "nombre": "Confirmar la ventana y avisar a las áreas",
-      "responsable": "Solicitante",
-      "columna": "Aprobado"
-    },
-    "ejecutar": {
-      "nombre": "Ejecutar el pase en la ventana",
-      "responsable": "Solicitante y operaciones",
-      "columna": "En producción"
-    },
-    "verificar": {
-      "nombre": "Verificar 30 minutos (métricas y alertas)",
-      "responsable": "Solicitante",
-      "columna": "En producción"
-    },
-    "cerrar": {
-      "nombre": "Cerrar el OCD con la evidencia",
-      "responsable": "Solicitante",
-      "columna": "En producción"
-    },
-    "posteriori": {
-      "nombre": "Aprobación a posteriori (Seguridad y Change Management)",
-      "responsable": "Seguridad y Change Management",
-      "columna": "En producción"
-    }
+  "ejecutar": {
+   "nombre": "Ejecutar el pase en la ventana",
+   "responsable": "Solicitante y operaciones",
+   "columna": "En producción"
   },
-  "controles": {
-    "comunicacion": {
-      "etiqueta": "Ventana comunicada a las áreas impactadas",
-      "peso": 3
-    },
-    "verificacion": {
-      "etiqueta": "Plan de verificación posterior definido",
-      "peso": 3
-    }
+  "verificar": {
+   "nombre": "Verificar 30 minutos (métricas y alertas)",
+   "responsable": "Solicitante",
+   "columna": "En producción"
   },
-  "feriados": [
-    {
-      "fecha": "2026-12-08",
-      "motivo": "Feriado"
-    },
-    {
-      "fecha": "2026-12-25",
-      "motivo": "Feriado"
-    },
-    {
-      "fecha": "2027-01-01",
-      "motivo": "Feriado"
-    }
-  ],
-  "congelamientos": [
-    {
-      "desde": "2026-11-26",
-      "hasta": "2026-11-27",
-      "motivo": "Evento comercial de fin de mes"
-    },
-    {
-      "desde": "2026-12-18",
-      "hasta": "2027-01-04",
-      "motivo": "Cierre de año"
-    }
-  ]
+  "cerrar": {
+   "nombre": "Cerrar el OCD con la evidencia",
+   "responsable": "Solicitante",
+   "columna": "En producción"
+  },
+  "posteriori": {
+   "nombre": "Aprobación a posteriori (Seguridad y Change Management)",
+   "responsable": "Seguridad y Change Management",
+   "columna": "En producción"
+  }
+ },
+ "controles": {
+  "comunicacion": {
+   "etiqueta": "Ventana comunicada a las áreas impactadas",
+   "peso": 3
+  },
+  "verificacion": {
+   "etiqueta": "Plan de verificación posterior definido",
+   "peso": 3
+  }
+ },
+ "feriados": [
+  {
+   "fecha": "2026-12-08",
+   "motivo": "Feriado"
+  },
+  {
+   "fecha": "2026-12-25",
+   "motivo": "Feriado"
+  },
+  {
+   "fecha": "2027-01-01",
+   "motivo": "Feriado"
+  }
+ ],
+ "congelamientos": [
+  {
+   "desde": "2026-11-26",
+   "hasta": "2026-11-27",
+   "motivo": "Evento comercial de fin de mes"
+  },
+  {
+   "desde": "2026-12-18",
+   "hasta": "2027-01-04",
+   "motivo": "Cierre de año"
+  }
+ ],
+ "criticidades": {
+  "Alta": {
+   "resumen": "Una falla detiene operaciones de clientes o mueve dinero.",
+   "ejemplos": [
+    "pagos-api",
+    "core-cuentas"
+   ],
+   "efecto": "Suma más puntos de riesgo y, desde riesgo alto, exige Seguridad y Comité de Gestión de Cambios."
+  },
+  "Media": {
+   "resumen": "Una falla degrada el servicio, pero existe una alternativa.",
+   "ejemplos": [
+    "canal-web",
+    "tarjetas-api"
+   ],
+   "efecto": "Riesgo intermedio: normalmente basta el líder técnico y Change Management."
+  },
+  "Baja": {
+   "resumen": "Una falla casi no afecta a clientes ni a la operación.",
+   "ejemplos": [
+    "notificaciones"
+   ],
+   "efecto": "Riesgo bajo: el recorrido es el más corto."
+  },
+  "doc": "knowledge/06-ocd-pase-a-produccion.md"
+ }
 }

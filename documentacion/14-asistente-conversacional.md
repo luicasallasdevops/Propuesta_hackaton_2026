@@ -10,7 +10,7 @@ El chat es la puerta de entrada del portal. Entiende frases libres, conserva el 
 - Hacer una pregunta intermedia y retomar el OCD donde iba.
 
 ## Cómo entiende (sin LLM)
-`scripts/conversacion.mjs` es una capa de reglas puras y probadas: extrae intención y datos (servicio, fecha relativa o numérica, rollback, criticidad, tamaño, tipo, controles que faltan), los mezcla con el contexto y calcula qué falta. Luego llama al **mismo motor** del agente (`assessOcd`), así el riesgo, el calendario, el cupo y las aprobaciones se validan igual en el chat, en el portal y en GitHub Actions.
+`scripts/conversacion.mjs` es una capa de reglas puras y probadas: extrae intención y datos (servicio, fecha relativa o numérica, rollback, criticidad, tipo, controles que faltan), los mezcla con el contexto y calcula qué falta. Luego llama al **mismo motor** del agente (`assessOcd`), así el riesgo, el calendario, el cupo y las aprobaciones se validan igual en el chat, en el portal y en GitHub Actions.
 
 ## Traza de lo que hizo el agente
 Cada evaluación incluye un bloque desplegable con: qué **consultó** (política, calendario, historial), qué **detectó**, qué **propone**, qué **hizo** y la **evidencia** (las entradas usadas, reproducibles). Lo que el usuario no dijo se declara como supuesto.

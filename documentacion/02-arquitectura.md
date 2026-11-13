@@ -26,7 +26,7 @@ sequenceDiagram
   participant D as Desarrollador
   participant I as Issue
   participant A as Agente (Actions)
-  participant S as Squads (QA, SecOps, CAB)
+  participant S as Squads (QA, SecOps, Comité de Gestión de Cambios)
   D->>I: Abre ticket con el formulario
   I->>A: Evento issues opened/edited
   A->>A: Lee política e historial, calcula riesgo
@@ -52,7 +52,7 @@ sequenceDiagram
 | Copilot | `.github/copilot-instructions.md`, `.github/agents/` | Los agentes de Copilot de la entidad usan la misma base |
 
 ## Cálculo del riesgo (transparente)
-Puntaje de 0 a 100 = criticidad + tamaño + rollback + día de riesgo + controles faltantes + incidentes recientes del servicio. Todos los pesos están en `policy.json`.
+Puntaje de 0 a 100 = criticidad + rollback + día de riesgo + controles faltantes + incidentes recientes del servicio. Todos los pesos están en `policy.json`.
 - Bajo hasta 29, Medio hasta 54, Alto hasta 74, Crítico por encima.
 - **Bloquea** sin importar el puntaje: falta de QA, SAST, SCA, secretos, aprobación del squad o rollback.
 - Cada nivel define las aprobaciones requeridas.

@@ -18,7 +18,7 @@ test("saludos, gracias y menú se reconocen sin confundir preguntas de estándar
 
 test("extrae servicio, día, rollback y más de una frase libre", () => {
   assert.deepEqual(extraerDatos("Necesito desplegar pagos-api este viernes y todavía no tengo rollback", ctx), { servicio: "pagos-api", fecha: "2026-11-20", rollback: "No" });
-  assert.deepEqual(extraerDatos("el cambio es grande, criticidad alta y ya probé el rollback", ctx), { tamano: "Grande", criticidad: "Alta", rollback: "Sí, probado" });
+  assert.deepEqual(extraerDatos("criticidad alta y ya probé el rollback", ctx), { criticidad: "Alta", rollback: "Sí, probado" });
   assert.equal(extraerDatos("tengo plan de rollback", ctx).rollback, "Sí, sin probar");
   assert.equal(extraerDatos("a las 23:00", ctx).hora, "23:00");
   assert.deepEqual(extraerDatos("sin SAST y sin escaneo de secretos", ctx).faltan.sort(), ["sast", "secretos"]);

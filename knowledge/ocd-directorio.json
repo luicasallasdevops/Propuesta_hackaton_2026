@@ -1,21 +1,29 @@
 {
- "version": "1.1.0-poc-directorio",
+ "version": "1.5.0-poc-directorio",
  "gruposRed": {
-  "GR-APP": {
-   "nombre": "Acceso a servidores de aplicación (producción)",
-   "para": "Desplegar y ver logs del servicio"
+  "INCT_ADMIN_INCT_PROD": {
+   "nombre": "Administración del ambiente INCT PROD",
+   "perfil": "Líder técnico",
+   "para": "Aprobar y gestionar OCD y cambios en producción INCT"
   },
-  "GR-DB": {
-   "nombre": "Acceso a base de datos (producción, solo lectura)",
-   "para": "Verificar datos tras el pase"
+  "INCT_DEVELOPER_INCT_PROD": {
+   "nombre": "Desarrollo en el ambiente INCT PROD",
+   "perfil": "Team Member",
+   "para": "Preparar OCD y ver resultados en producción INCT"
   },
-  "GR-DEPLOY": {
-   "nombre": "Red del runner de despliegue",
-   "para": "Ejecutar el workflow de despliegue en la ventana"
+  "VSDP-ADMIN": {
+   "nombre": "Administración de la plataforma VSDP",
+   "perfil": "Líder técnico",
+   "para": "Aprobar y gestionar OCD y repositorios de la plataforma"
+  },
+  "VSDP-DEVELOPER": {
+   "nombre": "Desarrollo en la plataforma VSDP",
+   "perfil": "Team Member",
+   "para": "Preparar OCD y trabajar en repositorios de la plataforma"
   }
  },
  "solicitudRed": {
-  "como": "Crea una Solicitud de red en Helpdesk (cola Accesos y redes), indica el grupo y pide la aprobación de tu líder técnico.",
+  "como": "Crea una Solicitud de acceso en Helpdesk (cola Accesos y redes), indica el grupo y pide la aprobación de tu líder técnico.",
   "sla": "3 días hábiles",
   "ayuda": "Hazlo antes de abrir el OCD: pedirlo el mismo día retrasa el pase (caso INC-1080).",
   "cola": "Helpdesk · Accesos y redes"
@@ -23,11 +31,6 @@
  "servicios": {
   "pagos-api": {
    "prefijo": "PAGOS",
-   "grupos": [
-    "GR-APP",
-    "GR-DB",
-    "GR-DEPLOY"
-   ],
    "roles": {
     "Líder técnico": "P-01",
     "Product Owner": "P-02",
@@ -37,10 +40,6 @@
   },
   "canal-web": {
    "prefijo": "WEB",
-   "grupos": [
-    "GR-APP",
-    "GR-DEPLOY"
-   ],
    "roles": {
     "Líder técnico": "P-05",
     "Product Owner": "P-06",
@@ -50,11 +49,6 @@
   },
   "core-cuentas": {
    "prefijo": "CORE",
-   "grupos": [
-    "GR-APP",
-    "GR-DB",
-    "GR-DEPLOY"
-   ],
    "roles": {
     "Líder técnico": "P-07",
     "Product Owner": "P-08",
@@ -64,10 +58,6 @@
   },
   "tarjetas-api": {
    "prefijo": "TARJ",
-   "grupos": [
-    "GR-APP",
-    "GR-DEPLOY"
-   ],
    "roles": {
     "Líder técnico": "P-01",
     "Product Owner": "P-10",
@@ -77,10 +67,6 @@
   },
   "notificaciones": {
    "prefijo": "NOTI",
-   "grupos": [
-    "GR-APP",
-    "GR-DEPLOY"
-   ],
    "roles": {
     "Líder técnico": "P-05",
     "Product Owner": "P-06",
@@ -136,48 +122,36 @@
    "nombre": "Valentina Ríos",
    "detalle": "Recién ingresó al squad de pagos-api",
    "gruposRed": [
-    "GR-APP"
+    "INCT_DEVELOPER_INCT_PROD"
    ],
-   "matricula": "M-10458",
-   "gruposDevsecops": [
-    "GR-DSO-GITHUB"
-   ]
+   "matricula": "M-10458"
   },
   "experto": {
    "nombre": "Mateo Díaz",
    "detalle": "Ya ejecutó varios OCD en pagos-api",
    "gruposRed": [
-    "GR-APP",
-    "GR-DB",
-    "GR-DEPLOY"
+    "INCT_DEVELOPER_INCT_PROD",
+    "VSDP-DEVELOPER",
+    "INCT_ADMIN_INCT_PROD",
+    "VSDP-ADMIN"
    ],
-   "matricula": "M-10212",
-   "gruposDevsecops": [
-    "GR-DSO-GITHUB",
-    "GR-DSO-SCAN",
-    "GR-DSO-RELEASE"
-   ]
+   "matricula": "M-10212"
   },
   "sin-grupos": {
    "nombre": "Camilo Ortiz",
    "detalle": "Sin grupos de red asignados todavía",
    "matricula": "M-10777",
-   "gruposRed": [],
-   "gruposDevsecops": []
+   "gruposRed": []
   }
  },
- "gruposDevsecops": {
-  "GR-DSO-GITHUB": {
-   "nombre": "Acceso a GitHub Enterprise y repositorios del squad",
-   "para": "Abrir y gestionar el OCD y su código"
+ "perfiles": {
+  "Líder técnico": {
+   "sufijo": "ADMIN",
+   "descripcion": "Líderes técnicos (LT): grupos ADMIN"
   },
-  "GR-DSO-SCAN": {
-   "nombre": "Acceso a resultados de SAST, SCA y secretos",
-   "para": "Adjuntar las evidencias de seguridad"
-  },
-  "GR-DSO-RELEASE": {
-   "nombre": "Acceso a ambientes protegidos de release",
-   "para": "Ejecutar el pase en la ventana"
+  "Team Member": {
+   "sufijo": "DEVELOPER",
+   "descripcion": "Team Members (TM): grupos DEVELOPER"
   }
  }
 }

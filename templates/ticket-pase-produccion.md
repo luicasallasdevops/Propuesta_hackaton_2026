@@ -2,7 +2,6 @@
 Servicio: <nombre>
 Tipo de cambio: Estándar | Normal | Emergencia
 Criticidad: Alta | Media | Baja
-Tamaño: Pequeño | Mediano | Grande
 Día de despliegue: <día>
 Rollback: Sí, probado | Sí, sin probar | No
 Evidencias: QA, SAST, SCA, secretos, runbook, monitoreo

@@ -25,13 +25,6 @@ body:
     validations:
       required: true
   - type: dropdown
-    id: tamano
-    attributes:
-      label: Tamaño del cambio
-      options: [Pequeño, Mediano, Grande]
-    validations:
-      required: true
-  - type: dropdown
     id: dia
     attributes:
       label: Día de despliegue

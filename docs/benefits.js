@@ -51,7 +51,7 @@ const FCOLORS = ["f1", "f2", "f3", "f4", "f5", "f6"];
 
 function caso(policy, incidents, nombre, icono, cfg) {
   const checks = Object.fromEntries(Object.keys(policy.controles).map((k) => [k, cfg.todos]));
-  const r = assess({ servicio: "pagos-api", criticidad: "Alta", tamano: cfg.tamano, dia: cfg.dia, rollback: cfg.rollback, checks }, incidents, policy);
+  const r = assess({ servicio: "pagos-api", criticidad: "Alta", dia: cfg.dia, rollback: cfg.rollback, checks }, incidents, policy);
   const total = r.factors.reduce((a, f) => a + f.pts, 0) || 1;
   const top = r.factors.slice(0, 5);
   const rest = r.factors.slice(5).reduce((a, f) => a + f.pts, 0);
@@ -113,8 +113,8 @@ async function main() {
       el("h2", { textContent: "📊 Un mismo servicio, dos resultados" }),
       el("p", { className: "muted", textContent: "Calculado ahora mismo con el motor del agente (pagos-api, criticidad Alta). El riesgo del camino feliz baja con el tiempo, cuando los incidentes antiguos dejan de contar." }),
       el("div", { className: "grid2" },
-        caso(policy, incidents, "Sin preparar", "🚨", { tamano: "Grande", dia: "Viernes", rollback: "No", todos: false }),
-        caso(policy, incidents, "Bien preparado", "✅", { tamano: "Pequeño", dia: "Martes", rollback: "Sí, probado", todos: true }))),
+        caso(policy, incidents, "Sin preparar", "🚨", { dia: "Viernes", rollback: "No", todos: false }),
+        caso(policy, incidents, "Bien preparado", "✅", { dia: "Martes", rollback: "Sí, probado", todos: true }))),
 
     el("section", { className: "ben-sec" },
       el("h2", { textContent: "🔄 Antes y con el asistente" }),

@@ -41,9 +41,10 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
     el("div", { className: "jira-bar" }, el("strong", { textContent: "Jira" }), el("span", { textContent: "Crear incidencia" })),
     el("div", { className: "jira-meta" }, el("span", { className: "tag", textContent: "Proyecto: OCD" }), el("span", { className: "tag", textContent: "Tipo: Pase a Producción" })),
     campo("Solicitante", quien),
+    campo("Rol en el OCD", sel("perfil", ["Team Member", "Líder técnico"], "Team Member"), "(LT: grupos ADMIN · TM: grupos DEVELOPER)"),
     campo("Resumen", el("input", { name: "resumen", value: "Ajuste en el servicio de pagos", maxLength: 120, required: true })),
     el("div", { className: "row" }, campo("Servicio", sel("servicio", servicios, "pagos-api")), campo("Tipo de cambio", sel("tipo", Object.keys(cfg.tipos), "Normal"))),
-    el("div", { className: "row" }, campo("Criticidad", sel("criticidad", ["Alta", "Media", "Baja"], "Alta")), campo("Tamaño", sel("tamano", ["Pequeño", "Mediano", "Grande"], "Pequeño"))),
+    el("div", { className: "row" }, campo("Criticidad", sel("criticidad", ["Alta", "Media", "Baja"], "Alta"))),
     el("div", { className: "row" }, campo("Fecha de ejecución", el("input", { name: "fecha", type: "date", value: "2026-11-24", required: true }), "(noche mar a jue)"), campo("Hora de inicio", el("input", { name: "hora", type: "time", value: "22:00", required: true }))),
     campo("Plan de rollback", sel("rollback", ["Sí, probado", "Sí, sin probar", "No"], "Sí, probado")),
     campo("Modalidad", sel("modalidad", Object.keys(flujo.modalidades), "Híbrido"), "(quién ejecuta las instrucciones)"),
@@ -63,14 +64,15 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
     const f = new FormData(form);
     const elegidos = Object.fromEntries(roles.map((r) => [r, String(f.get(`ap_${r}`) || "")]));
     const o = {
-      change: { servicio: String(f.get("servicio")), tipo: String(f.get("tipo")), criticidad: String(f.get("criticidad")), tamano: String(f.get("tamano")), rollback: String(f.get("rollback")),
+      change: { servicio: String(f.get("servicio")), tipo: String(f.get("tipo")), criticidad: String(f.get("criticidad")), rollback: String(f.get("rollback")),
         checks: Object.fromEntries(Object.keys(policy.controles).map((k) => [k, f.get(k) === "on"])) },
       fecha: String(f.get("fecha")), hora: String(f.get("hora")),
       ocdChecks: Object.fromEntries(Object.keys(cfg.controles).map((k) => [k, f.get(`ocd_${k}`) === "on"])),
     };
     const usuarioId = String(f.get("usuario"));
-    const eq = validarEquipoOcd({ servicio: o.change.servicio, usuarioId, elegidos, tipo: o.change.tipo }, dir, cfg);
-    const dso = revisarGruposDevsecops(dir.usuarios[usuarioId], dir);
+    const perfil = String(f.get("perfil") || "Team Member");
+    const eq = validarEquipoOcd({ servicio: o.change.servicio, usuarioId, elegidos, tipo: o.change.tipo, perfil }, dir, cfg);
+    const dso = revisarGruposDevsecops(dir.usuarios[usuarioId], dir, [], perfil);
     const hist = validarHistoria({ historia: String(f.get("historia") || ""), servicio: o.change.servicio }, historias);
     const modalidad = String(f.get("modalidad") || "Manual");
     const conj = Object.fromEntries(Object.keys(flujo.conjuntos).map((k) => [k, String(f.get(`ins_${k}`) || "")]));
@@ -82,11 +84,11 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
   const fila = (icono, txt, cls = "") => el("li", { className: cls }, el("span", { textContent: icono, ariaHidden: "true" }), el("span", { textContent: ` ${txt}` }));
   function pintar() {
     const { o, eq, r, dso, hist, ins } = leer();
-    const gr = [...dso.grupos.map((g) => fila(g.tiene ? "✅" : "❌", `${g.id} (DevSecOps) · ${g.nombre}`, g.tiene ? "" : "mal")), ...eq.grupos.map((g) => fila(g.tiene ? "✅" : "❌", `${g.id} (servicio) · ${g.nombre}`, g.tiene ? "" : "mal"))];
+    const gr = dso.grupos.map((g) => fila(g.tiene ? "✅" : "❌", `${g.id} · ${g.nombre}`, g.tiene ? "" : "mal"));
     gruposBox.replaceChildren(el("ul", { className: "lst" }, gr));
     const rolesLis = eq.roles.map((x) => fila(ICON[x.estado], x.estado === "ok" ? `${x.rol}: ${x.elegidoNombre}` : x.estado === "falta" ? `${x.rol}: sin elegir · en este servicio es ${x.esperadoNombre}` : `${x.rol}: ${x.elegidoNombre} no corresponde · es ${x.esperadoNombre}`, x.estado === "ok" ? "" : "mal"));
     const pasos = [];
-    const faltanGrupos = [...dso.faltan, ...eq.grupos.filter((g) => !g.tiene)];
+    const faltanGrupos = dso.faltan;
     if (!hist.ok) pasos.push(`${hist.motivo}. Elige la historia del cambio; si no tienes una, pídele al chat «quiero crear un OCD» y te ayuda a crearla.`);
     if (ins && ins.bloqueos.length) pasos.push(`Corrige las instrucciones: ${ins.bloqueos[0]}.`);
     if (faltanGrupos.length) pasos.push(`Pide los grupos de red: ${faltanGrupos.map((g) => g.id).join(", ")}. ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}. ${dir.solicitudRed.ayuda}`);
@@ -98,7 +100,7 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
     panel.replaceChildren(
       el("h2", { textContent: "🤖 Asistente OCD" }),
       el("p", { className: "muted", textContent: "Revisa tu ticket mientras lo llenas. Aprende qué necesita un OCD antes de crearlo." }),
-      el("h3", { textContent: "1 · Grupos de red" }), el("p", { textContent: eq.grupos.length ? (faltanGrupos.length ? `Te faltan ${faltanGrupos.length} de ${eq.grupos.length + dso.grupos.length} (DevSecOps y del servicio).` : "Tienes todos los de DevSecOps y los que exige el servicio.") : "Servicio desconocido." }),
+      el("h3", { textContent: "1 · Grupos de red" }), el("p", { textContent: eq.grupos.length ? (faltanGrupos.length ? `Te faltan ${faltanGrupos.length} de ${dso.grupos.length} grupos de red del rol.` : "Tienes los grupos de red que exige tu rol.") : "Servicio desconocido." }),
       el("h3", { textContent: "2 · Aprobadores" }), el("ul", { className: "lst" }, rolesLis),
       el("h3", { textContent: "3 · Historia e instrucciones" }),
       el("ul", { className: "lst" }, [fila(hist.ok ? "✅" : "⬜", hist.ok ? `Historia ${hist.id}: ${hist.historia.titulo}` : hist.motivo, hist.ok ? "" : "mal"),
@@ -197,9 +199,9 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
   // El asistente del chat puede dejar el formulario cargado con lo que el usuario ya contestó.
   document.addEventListener("ocd:prefill", (e) => {
     const x = e.detail || {};
-    for (const k of ["usuario", "servicio", "tipo", "fecha"]) if (x[k]) form.elements[k].value = x[k];
+    for (const k of ["usuario", "servicio", "tipo", "fecha", "perfil"]) if (x[k]) form.elements[k].value = x[k];
     if (x.historiaObj && !historias.some((h) => h.id === x.historiaObj.id)) historias.push(x.historiaObj);
-    if (x.usuario && Array.isArray(x.gruposExtra) && dir.usuarios[x.usuario]) dir.usuarios[x.usuario].gruposDevsecops = [...new Set([...(dir.usuarios[x.usuario].gruposDevsecops ?? []), ...x.gruposExtra])];
+    if (x.usuario && Array.isArray(x.gruposExtra) && dir.usuarios[x.usuario]) dir.usuarios[x.usuario].gruposRed = [...new Set([...(dir.usuarios[x.usuario].gruposRed ?? []), ...x.gruposExtra])];
     llenarHistorias(x.historia);
     if (x.modalidad && flujo.modalidades[x.modalidad]) form.elements.modalidad.value = x.modalidad;
     if (x.instruccionesConj) for (const [k, v] of Object.entries(x.instruccionesConj)) if (instrEls[k]) instrEls[k].value = v;

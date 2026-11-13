@@ -1,9 +1,65 @@
 [
-  {"id": "HU-3101", "servicio": "pagos-api", "titulo": "Nuevo límite de montos para transferencias", "estado": "En desarrollo", "responsable": "Camila Torres"},
-  {"id": "HU-3102", "servicio": "pagos-api", "titulo": "Mostrar el motivo del rechazo de un pago", "estado": "En pruebas", "responsable": "Andrés Pineda"},
-  {"id": "HU-3110", "servicio": "core-cuentas", "titulo": "Ajuste de cálculo de intereses", "estado": "En pruebas", "responsable": "Luis Mora"},
-  {"id": "HU-3111", "servicio": "core-cuentas", "titulo": "Reporte de conciliación diaria", "estado": "En desarrollo", "responsable": "Paula Campos"},
-  {"id": "HU-3120", "servicio": "canal-web", "titulo": "Pantalla de resumen de cuenta", "estado": "Listo para pase", "responsable": "Jorge Salas"},
-  {"id": "HU-3130", "servicio": "tarjetas-api", "titulo": "Rotación automática de certificados", "estado": "Listo para pase", "responsable": "Marta Vega"},
-  {"id": "HU-3140", "servicio": "notificaciones", "titulo": "Evitar avisos duplicados de transferencia", "estado": "Listo para pase", "responsable": "Lucía Herrera"}
+ {
+  "id": "HU-3101",
+  "servicio": "pagos-api",
+  "titulo": "Nuevo límite de montos para transferencias",
+  "estado": "En desarrollo",
+  "responsable": "Camila Torres",
+  "tablero": "Tablero Pagos",
+  "creadoPor": "Camila Torres"
+ },
+ {
+  "id": "HU-3102",
+  "servicio": "pagos-api",
+  "titulo": "Mostrar el motivo del rechazo de un pago",
+  "estado": "En pruebas",
+  "responsable": "Andrés Pineda",
+  "tablero": "Tablero Pagos",
+  "creadoPor": "Andrés Pineda"
+ },
+ {
+  "id": "HU-3110",
+  "servicio": "core-cuentas",
+  "titulo": "Ajuste de cálculo de intereses",
+  "estado": "En pruebas",
+  "responsable": "Luis Mora",
+  "tablero": "Tablero Core Cuentas",
+  "creadoPor": "Luis Mora"
+ },
+ {
+  "id": "HU-3111",
+  "servicio": "core-cuentas",
+  "titulo": "Reporte de conciliación diaria",
+  "estado": "En desarrollo",
+  "responsable": "Paula Campos",
+  "tablero": "Tablero Core Cuentas",
+  "creadoPor": "Paula Campos"
+ },
+ {
+  "id": "HU-3120",
+  "servicio": "canal-web",
+  "titulo": "Pantalla de resumen de cuenta",
+  "estado": "Listo para pase",
+  "responsable": "Jorge Salas",
+  "tablero": "Tablero Canal Web",
+  "creadoPor": "Jorge Salas"
+ },
+ {
+  "id": "HU-3130",
+  "servicio": "tarjetas-api",
+  "titulo": "Rotación automática de certificados",
+  "estado": "Listo para pase",
+  "responsable": "Marta Vega",
+  "tablero": "Tablero Tarjetas",
+  "creadoPor": "Marta Vega"
+ },
+ {
+  "id": "HU-3140",
+  "servicio": "notificaciones",
+  "titulo": "Evitar avisos duplicados de transferencia",
+  "estado": "Listo para pase",
+  "responsable": "Lucía Herrera",
+  "tablero": "Tablero Notificaciones",
+  "creadoPor": "Lucía Herrera"
+ }
 ]
