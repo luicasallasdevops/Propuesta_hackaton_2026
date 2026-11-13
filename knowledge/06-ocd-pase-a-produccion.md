@@ -1,11 +1,9 @@
 # OCD: pase a producción con calendario y aprobadores
 
-> Contenido SIMULADO para la POC. Reemplazar por el procedimiento oficial de Change Management.
-
 ## Qué es un OCD
 - OCD es el ticket de pase a producción que se calendariza. Reúne el cambio, sus evidencias, los aprobadores y la noche exacta de ejecución.
 - Tiene tres tipos: Estándar (repetible y de bajo riesgo), Normal (planificado, pasa por el CAB) y Emergencia (corrige un incidente activo).
-- Se crea en Jira (en esta POC se simula en la pestaña Pase OCD). El agente lo revisa al instante y te dice qué falta.
+- Se crea en Jira (puedes practicar en la pestaña Pase OCD). El agente lo revisa al instante y te dice qué falta.
 
 ## Quiero que me ayuden a crear el OCD
 - Escribe «quiero crear un OCD» en el chat. El asistente te pide tu matrícula (formato M-12345) y valida tus grupos de red de DevSecOps.
@@ -52,7 +50,7 @@
 - Change Management: aprueba en el CAB y valida calendario, cupo y congelamientos.
 - Delegado CIO: se suma cuando el riesgo es Crítico o cuando se ejecuta dentro de un congelamiento.
 - En un OCD de Emergencia el Product Owner solo es informado, y Seguridad y Change Management aprueban a posteriori en máximo 24 horas.
-- Cada servicio tiene sus propios responsables. El simulador de Jira te dice quién es cada uno.
+- Cada servicio tiene sus propios responsables. El asistente te dice quién es cada uno.
 
 ## Reglas del calendario
 - Ventana estándar: martes a jueves, de 22:00 a 04:00. La fecha del OCD es la noche en que empieza la ventana.
@@ -60,7 +58,7 @@
 - Anticipación Normal: entre 5 y 7 días hábiles, según la sesión del CAB. El CAB sesiona martes y jueves a las 10:00.
 - Anticipación Estándar: 2 días hábiles. Si el riesgo sale Alto o Crítico, se trata como Normal.
 - Los fines de semana, los feriados y los congelamientos no admiten OCD, salvo Emergencia.
-- Los congelamientos simulados son el evento comercial de fin de mes y el cierre de año.
+- Los congelamientos son el evento comercial de fin de mes y el cierre de año.
 
 ## Flujo, estados y modalidades del OCD
 El OCD pasa por estos estados y cada uno lo mueve un rol distinto: Inicio codificación (developer), Revisiones técnicas (líder técnico), Aprobación de seguridad (analista de seguridad), Congelamiento (agileOps), Gestión de pase (gestor de cambios, con las aprobaciones del gestor del pool, líder técnico, CL-DEV y Gobierno de Gestión de Cambios), Ejecución del pase (agileOps), Ratificación (QE) y Done (agileOps). Si algo falla hay ramas de reversión: reversión de congelamiento, reversión de pase y reversión.

@@ -111,7 +111,7 @@ async function main() {
 
     el("section", { className: "ben-sec" },
       el("h2", { textContent: "📊 Un mismo servicio, dos resultados" }),
-      el("p", { className: "muted", textContent: "Calculado ahora mismo con el motor real de la POC (pagos-api, criticidad Alta). El riesgo del camino feliz baja con el tiempo, cuando los incidentes antiguos dejan de contar." }),
+      el("p", { className: "muted", textContent: "Calculado ahora mismo con el motor del agente (pagos-api, criticidad Alta). El riesgo del camino feliz baja con el tiempo, cuando los incidentes antiguos dejan de contar." }),
       el("div", { className: "grid2" },
         caso(policy, incidents, "Sin preparar", "🚨", { tamano: "Grande", dia: "Viernes", rollback: "No", todos: false }),
         caso(policy, incidents, "Bien preparado", "✅", { tamano: "Pequeño", dia: "Martes", rollback: "Sí, probado", todos: true }))),
@@ -123,8 +123,8 @@ async function main() {
         el("div", { className: "vs after" }, el("h3", { textContent: "😀 Con el asistente" }), el("ul", {}, AHORA.map(([i, t]) => el("li", {}, el("span", { textContent: i, ariaHidden: "true" }), ` ${t}`)))))),
 
     el("section", { className: "ben-sec" },
-      el("h2", { textContent: "🧮 La POC en números" }),
-      el("p", { className: "muted", textContent: "Cifras reales leídas de los datos del proyecto (contenido simulado)." }),
+      el("h2", { textContent: "🧮 El agente en números" }),
+      el("p", { className: "muted", textContent: "Cifras leídas de los datos del proyecto." }),
       el("div", { className: "nums" }, nums.map(([i, n, t]) => el("div", { className: "num-card" }, el("span", { className: "num-i", textContent: i, ariaHidden: "true" }), el("strong", { textContent: n }), el("span", { textContent: t }))))),
 
     el("section", { className: "ben-sec" },
@@ -133,7 +133,7 @@ async function main() {
       el("h3", { className: "bonus-h", textContent: "⭐ Bonificación estratégica" }),
       el("div", { className: "crit bonus" }, BONUS.map(([i, t, d]) => el("div", { className: "crit-c" }, el("span", { className: "crit-i", textContent: i, ariaHidden: "true" }), el("div", {}, el("h3", { textContent: t }), el("p", { textContent: d })))))),
 
-    el("p", { className: "muted small disc", textContent: "Los beneficios son objetivos de la POC y no mediciones: con datos reales del banco se podrán cuantificar (tiempo de pase, rechazos, incidentes evitados)." }),
+    el("p", { className: "muted small disc", textContent: "Los beneficios son objetivos: se cuantifican con la línea base del equipo (tiempo de pase, rechazos, incidentes evitados)." }),
   );
 }
 

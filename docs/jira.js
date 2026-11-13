@@ -38,9 +38,9 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
   const crear = el("button", { type: "submit", textContent: "Crear OCD" });
 
   form.append(
-    el("div", { className: "jira-bar" }, el("strong", { textContent: "Jira (simulado)" }), el("span", { textContent: "Crear incidencia" })),
+    el("div", { className: "jira-bar" }, el("strong", { textContent: "Jira" }), el("span", { textContent: "Crear incidencia" })),
     el("div", { className: "jira-meta" }, el("span", { className: "tag", textContent: "Proyecto: OCD" }), el("span", { className: "tag", textContent: "Tipo: Pase a Producción" })),
-    campo("Solicitante (simulación)", quien),
+    campo("Solicitante", quien),
     campo("Resumen", el("input", { name: "resumen", value: "Ajuste en el servicio de pagos", maxLength: 120, required: true })),
     el("div", { className: "row" }, campo("Servicio", sel("servicio", servicios, "pagos-api")), campo("Tipo de cambio", sel("tipo", Object.keys(cfg.tipos), "Normal"))),
     el("div", { className: "row" }, campo("Criticidad", sel("criticidad", ["Alta", "Media", "Baja"], "Alta")), campo("Tamaño", sel("tamano", ["Pequeño", "Mediano", "Grande"], "Pequeño"))),
@@ -142,7 +142,7 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
       el("h3", { textContent: "👥 Aprobaciones" }),
       el("ul", { className: "lst" }, Object.entries(t.aprobaciones).map(([k, v]) => el("li", {},
         el("span", { textContent: `${v === "ok" ? "✅" : v === "informado" ? "ℹ️" : "⏳"} ${k}: ${t.nombres[k] || "por asignar"} ` }),
-        v === "pendiente" ? el("button", { type: "button", className: "btn ghost chico", disabled: t.bloqueado, textContent: "Simular aprobación", onclick: () => { t.aprobaciones[k] = "ok"; pintarTicket(); } }) : ""))),
+        v === "pendiente" ? el("button", { type: "button", className: "btn ghost chico", disabled: t.bloqueado, textContent: "Marcar como aprobada", onclick: () => { t.aprobaciones[k] = "ok"; pintarTicket(); } }) : ""))),
       panelFlujo(t),
       el("div", { className: "acts" },
         el("button", { type: "button", className: "btn ghost", textContent: "✏️ Editar y corregir", onclick: () => form.scrollIntoView({ behavior: "smooth", block: "start" }) }),
@@ -210,8 +210,8 @@ export function montarJira({ cfg, cal, policy, incidents, dir, hoy, historias, f
   pintar();
   return el("div", { id: "jira-sim" },
     el("div", { className: "card jira-intro" },
-      el("p", { className: "eyebrow2", textContent: "🎫 Simulación estilo Jira" }),
-      el("p", { textContent: "Así se crea un OCD en Jira. Elige quién eres: con el perfil de Valentina (nueva en el equipo) el asistente te muestra qué te falta; con el de Mateo verás el camino sin tropiezos. En esta POC el agente corre en GitHub; en producción leería el mismo ticket desde Jira." })),
+      el("p", { className: "eyebrow2", textContent: "🎫 Crea tu OCD en Jira" }),
+      el("p", { textContent: "Así se crea un OCD en Jira. Elige quién eres: con el perfil de Valentina (nueva en el equipo) el asistente te muestra qué te falta; con el de Mateo verás el camino sin tropiezos. El agente revisa el ticket y te guía en cada paso." })),
     el("div", { className: "grid2" }, form, panel),
     ticket);
 }

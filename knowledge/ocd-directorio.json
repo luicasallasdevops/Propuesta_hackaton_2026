@@ -91,49 +91,49 @@
  },
  "personas": {
   "P-01": {
-   "nombre": "Camila Torres (ficticia)",
+   "nombre": "Camila Torres",
    "rol": "Líder técnico"
   },
   "P-02": {
-   "nombre": "Andrés Pineda (ficticio)",
+   "nombre": "Andrés Pineda",
    "rol": "Product Owner"
   },
   "P-03": {
-   "nombre": "Rosa Medina (ficticia)",
+   "nombre": "Rosa Medina",
    "rol": "Seguridad"
   },
   "P-04": {
-   "nombre": "Mesa de Change Management (ficticia)",
+   "nombre": "Mesa de Change Management",
    "rol": "Change Management"
   },
   "P-05": {
-   "nombre": "Jorge Salas (ficticio)",
+   "nombre": "Jorge Salas",
    "rol": "Líder técnico"
   },
   "P-06": {
-   "nombre": "Lucía Herrera (ficticia)",
+   "nombre": "Lucía Herrera",
    "rol": "Product Owner"
   },
   "P-07": {
-   "nombre": "Luis Mora (ficticio)",
+   "nombre": "Luis Mora",
    "rol": "Líder técnico"
   },
   "P-08": {
-   "nombre": "Paula Campos (ficticia)",
+   "nombre": "Paula Campos",
    "rol": "Product Owner"
   },
   "P-09": {
-   "nombre": "Esteban Ruiz (ficticio)",
+   "nombre": "Esteban Ruiz",
    "rol": "Seguridad"
   },
   "P-10": {
-   "nombre": "Marta Vega (ficticia)",
+   "nombre": "Marta Vega",
    "rol": "Product Owner"
   }
  },
  "usuarios": {
   "nueva": {
-   "nombre": "Valentina Ríos (ficticia)",
+   "nombre": "Valentina Ríos",
    "detalle": "Recién ingresó al squad de pagos-api",
    "gruposRed": [
     "GR-APP"
@@ -144,7 +144,7 @@
    ]
   },
   "experto": {
-   "nombre": "Mateo Díaz (ficticio)",
+   "nombre": "Mateo Díaz",
    "detalle": "Ya ejecutó varios OCD en pagos-api",
    "gruposRed": [
     "GR-APP",
@@ -159,7 +159,7 @@
    ]
   },
   "sin-grupos": {
-   "nombre": "Camilo Ortiz (ficticio)",
+   "nombre": "Camilo Ortiz",
    "detalle": "Sin grupos de red asignados todavía",
    "matricula": "M-10777",
    "gruposRed": [],

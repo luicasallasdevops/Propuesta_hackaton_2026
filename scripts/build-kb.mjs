@@ -28,4 +28,5 @@ await copyFile(join(root, "knowledge", "ocd-historias.json"), join(out, "ocd-his
 await copyFile(join(root, "knowledge", "ocd-flujo.json"), join(out, "ocd-flujo.json"));
 await copyFile(join(root, "scripts", "engine.mjs"), join(root, "docs", "engine.mjs"));
 await copyFile(join(root, "scripts", "flujo.mjs"), join(root, "docs", "flujo.mjs"));
+await copyFile(join(root, "scripts", "conversacion.mjs"), join(root, "docs", "conversacion.mjs"));
 console.log(`kb: ${Object.keys(docs).length} docs, ${Object.keys(templates).length} plantillas`);

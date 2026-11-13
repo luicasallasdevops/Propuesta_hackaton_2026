@@ -1,7 +1,5 @@
 # Roles y accesos en GitHub
 
-> Contenido SIMULADO para la POC.
-
 ## Roles disponibles en el repositorio
 - Read: consulta de código e issues. Rol por defecto para equipos de otras áreas.
 - Triage: gestiona issues y pull requests sin escribir código.

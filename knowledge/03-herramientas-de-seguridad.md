@@ -1,7 +1,5 @@
 # Herramientas de seguridad (DevSecOps)
 
-> Contenido SIMULADO para la POC.
-
 ## Controles obligatorios en el pipeline
 - SAST: análisis estático con CodeQL en cada pull request y en `main`.
 - SCA: revisión de dependencias con Dependency Review en cada pull request y Dependabot para actualizaciones.

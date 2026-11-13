@@ -12,23 +12,44 @@
   <div class="wrap bar">
     <div>
       <h1>Asistente DevSecOps</h1>
-      <p class="sub">Pregunta, valida tu pase y obtén plantillas listas. Antes de que el problema llegue a producción.</p>
+      <p class="sub">Tu asistente para pases a producción: cuéntale qué necesitas y te acompaña paso a paso.</p>
     </div>
-    <span class="badge" title="Todo el contenido es simulado">POC · datos simulados</span>
   </div>
   <nav class="wrap" role="tablist" aria-label="Secciones">
-    <button role="tab" aria-selected="true" aria-controls="p-guia" id="t-guia"><span aria-hidden="true">🧭</span> Guía paso a paso</button>
+    <button role="tab" aria-selected="true" aria-controls="p-chat" id="t-chat"><span aria-hidden="true">💬</span> Asistente</button>
+    <button role="tab" aria-selected="false" aria-controls="p-guia" id="t-guia"><span aria-hidden="true">🧭</span> Guía paso a paso</button>
     <button role="tab" aria-selected="false" aria-controls="p-ben" id="t-ben"><span aria-hidden="true">🎯</span> Beneficios</button>
     <button role="tab" aria-selected="false" aria-controls="p-ocd" id="t-ocd"><span aria-hidden="true">📅</span> Pase OCD</button>
-    <button role="tab" aria-selected="false" aria-controls="p-chat" id="t-chat"><span aria-hidden="true">💬</span> Preguntar</button>
     <button role="tab" aria-selected="false" aria-controls="p-pase" id="t-pase"><span aria-hidden="true">🛡️</span> Validar mi pase</button>
     <button role="tab" aria-selected="false" aria-controls="p-plant" id="t-plant"><span aria-hidden="true">📦</span> Plantillas</button>
     <button role="tab" aria-selected="false" aria-controls="p-como" id="t-como"><span aria-hidden="true">⚙️</span> Cómo funciona</button>
   </nav>
 </header>
 
+<div class="wrap">
+  <div class="demo-banner" role="note">
+    <span aria-hidden="true">🧪</span> <strong>Entorno de demostración</strong>
+    <details><summary>¿Qué es real y qué es demo?</summary>
+      <p><strong>Real:</strong> los Issues, el agente en GitHub Actions, las etiquetas, los comandos <code>/ocd</code> y el tablero. <strong>Demostrativo:</strong> Jira, Helpdesk, el directorio de personas, el calendario y los incidentes de ejemplo.</p>
+    </details>
+  </div>
+</div>
+
 <main class="wrap">
-  <section id="p-guia" role="tabpanel" aria-labelledby="t-guia">
+  <section id="p-chat" role="tabpanel" aria-labelledby="t-chat">
+    <div class="chat card">
+      <div class="chat-head"><span class="avatar" aria-hidden="true">🤖</span><div><strong>Asistente DevSecOps</strong><small><i class="dot-on"></i> En línea · te guío paso a paso</small></div></div>
+      <div id="log" class="log" aria-live="polite"></div>
+      <div class="chips" id="chips" aria-label="Atajos"></div>
+      <form id="chat-form" class="ask">
+        <label for="q" class="sr">Escribe tu mensaje</label>
+        <input id="q" autocomplete="off" placeholder="Escríbeme lo que necesitas… Ej: Necesito desplegar pagos-api este viernes y no tengo rollback">
+        <button type="submit">Enviar</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="p-guia" role="tabpanel" aria-labelledby="t-guia" hidden>
     <div id="guia-root"><p class="muted">Cargando la guía…</p></div>
   </section>
 
@@ -38,16 +59,6 @@
 
   <section id="p-ocd" role="tabpanel" aria-labelledby="t-ocd" hidden>
     <div id="ocd-root"><p class="muted">Cargando el módulo OCD…</p></div>
-  </section>
-
-  <section id="p-chat" role="tabpanel" aria-labelledby="t-chat" hidden>
-    <div id="log" class="log" aria-live="polite"></div>
-    <div class="chips" id="chips"></div>
-    <form id="chat-form" class="ask">
-      <label for="q" class="sr">Tu pregunta</label>
-      <input id="q" autocomplete="off" placeholder="Ej: ¿Cómo creo el ticket de pase? ¿Qué rol necesito? Dame un workflow de CodeQL">
-      <button type="submit">Enviar</button>
-    </form>
   </section>
 
   <section id="p-pase" role="tabpanel" aria-labelledby="t-pase" hidden>
@@ -88,7 +99,7 @@
         <li><strong>Aprende del pasado:</strong> cada incidente cerrado se agrega a <code>knowledge/incidents.json</code> y ajusta el riesgo de los próximos pases.</li>
       </ol>
       <h2>Escalabilidad</h2>
-      <p>Para otras tribus basta cambiar <code>policy.json</code> y los documentos. El tablero Kanban ya funciona con el agente. Para pasar de la POC a producción: migrar el token a una GitHub App, conectar la gestión de incidentes por API y alimentar el historial automáticamente.</p>
+      <p>Para otras tribus basta cambiar <code>policy.json</code> y los documentos. El tablero Kanban ya funciona con el agente. Siguientes pasos: migrar el token a una GitHub App, conectar la gestión de incidentes por API y alimentar el historial automáticamente.</p>
     </div>
   </section>
 </main>

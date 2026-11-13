@@ -1,4 +1,4 @@
-// Asistente conversacional del OCD (todo simulado, sin IA generativa, solo nodos DOM).
+// Asistente conversacional del OCD (reglas deterministas, sin IA generativa, solo nodos DOM).
 // Escenario 1: el usuario pregunta cómo crear un OCD -> el agente valida sus grupos de red de DevSecOps y, si faltan, ofrece pedirlos en Helpdesk.
 // Escenario 2: el usuario pide crear un OCD -> historia (validar o crear), datos del OCD, guía interactiva y validación de instrucciones en las revisiones técnicas.
 import {
@@ -6,6 +6,7 @@ import {
   revisarGruposDevsecops, crearSolicitudHelpdesk, normalizarHistoria, validarHistoria, armarHistoria,
   validarInstrucciones, plantillaInstrucciones, revisarSolicitanteOcd, revisarHistoriaEInstrucciones, combinarSolicitante,
 } from "./engine.mjs";
+import { extraerDatos } from "./conversacion.mjs";
 import { validarConjuntos, plantillaConjunto, ejecutaAutomatico, avanzaSolo, rolDeTexto, pendientesDeRol, rolNombre, transicionesDe } from "./flujo.mjs";
 
 const quitarAcentos = (s) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
@@ -31,8 +32,10 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   const lista = (items) => el("ul", {}, items.map((t) => el("li", { textContent: t })));
   const opcion = (etiqueta, accion) => el("button", { type: "button", className: "qr", textContent: etiqueta, onclick: () => { say("user", etiqueta); accion(); } });
   const opciones = (...b) => el("div", { className: "qrs" }, b);
-  const reiniciar = () => { st = "idle"; d = {}; };
-  const salir = (t) => { reiniciar(); return manejar(t); };
+  let pre = {};     // datos que el usuario ya dio en la conversación (servicio, fecha, rollback…)
+  let pausa = null; // OCD a medias cuando el usuario hace una pregunta en medio
+  const reiniciar = () => { st = "idle"; d = {}; pausa = null; };
+  const salir = (t) => { if (st !== "idle" && st !== "fin" && !pausa) pausa = { st, d }; st = "idle"; d = {}; return interno(t); };
   const grupos = () => revisarGruposDevsecops(d.u, dir, d.extra ?? []);
 
   /* ---------- Escenario 1: grupos de red DevSecOps ---------- */
@@ -44,9 +47,9 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   }
 
   function pedirMatricula(modo) {
-    d = { modo }; st = "matricula";
+    pausa = null; d = { modo }; st = "matricula";
     say("bot", p("Dime tu matrícula (formato M-12345). Con ella busco tus grupos de red."),
-      p("Para la demo puedes usar una de estas matrículas ficticias:"),
+      p("Elige tu matrícula de la lista o escríbela:"),
       opciones(...Object.values(dir.usuarios).map((u) => opcion(`${u.matricula} · ${nombreCorto(u)}`, () => conMatricula(u.matricula)))));
   }
 
@@ -58,6 +61,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     const u = buscarPorMatricula(dir, t);
     if (!u) { say("bot", p(`No encuentro la matrícula ${normalizarMatricula(t)} en el directorio. Revisa que esté bien escrita o pide tu alta a la mesa de accesos.`)); return true; }
     d.u = u; d.extra = [];
+    if (pre.servicio) d.svc = pre.servicio;
     revisarDso(); return true;
   }
 
@@ -76,12 +80,12 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     const ids = grupos().faltan.map((x) => x.id);
     const hd = crearSolicitudHelpdesk({ usuario: d.u, ids, dir, numero: ++nHD });
     d.hd = hd;
-    say("bot", p("Listo, creé la solicitud (simulada):"),
+    say("bot", p("Listo, creé la solicitud:"),
       el("div", { className: "card hd" },
         el("strong", { textContent: `${hd.key} · ${hd.cola}` }),
         lista([`Estado: ${hd.estado}`, `Solicitante: ${hd.solicitante}`, `Grupos: ${hd.grupos.map((x) => x.id).join(", ")}`, `Aprobador: ${hd.aprobador}`, `Tiempo estimado: ${hd.sla}`])),
-      p("En la vida real tu líder técnico la aprueba y los grupos llegan en unos días. Para la demo puedo simular esa aprobación."),
-      opciones(opcion("Simular aprobación del líder", () => { d.extra = ids; say("bot", p(`${hd.key} aprobada y grupos asignados (simulado). Ya tienes los grupos de DevSecOps.`)); despuesDeGrupos(); }),
+      p("Tu líder técnico la aprueba y los grupos llegan en unos días. Mientras tanto podemos seguir preparando tu OCD."),
+      opciones(opcion("Ya me asignaron los grupos", () => { d.extra = ids; say("bot", p(`${hd.key} aprobada y grupos asignados. Ya tienes los grupos de DevSecOps.`)); despuesDeGrupos(); }),
         opcion("Seguir sin esperar", despuesDeGrupos)));
   }
 
@@ -95,7 +99,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   function pedirHistoria() {
     st = "historia";
     say("bot", p("Para crear el OCD necesito tu historia, la HU que origina el cambio (formato HU-1234)."),
-      opciones(...historias.slice(0, 3).map((h) => opcion(h.id, () => conHistoria(h.id))), opcion("No sé mi historia, ayúdame", ayudaHistoria)));
+      opciones(...historias.filter((h) => !d.svc || h.servicio === d.svc).slice(0, 3).map((h) => opcion(`${h.id} · ${h.titulo}`, () => conHistoria(h.id))), opcion("No sé mi historia, ayúdame", ayudaHistoria)));
   }
 
   function conHistoria(t) {
@@ -141,7 +145,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     const h = armarHistoria({ rol: d.hrol, objetivo: d.hobj, beneficio: t, servicio: d.svc, numero: ++nHU });
     historias.push({ id: h.id, servicio: h.servicio, titulo: h.titulo, estado: h.estado, responsable: nombreCorto(d.u) });
     d.historia = h;
-    say("bot", p("Listo, creé tu historia (simulada):"),
+    say("bot", p("Listo, creé tu historia:"),
       el("div", { className: "card hd" }, el("strong", { textContent: `${h.id} · ${h.servicio}` }), p(h.descripcion), p("Criterios de aceptación:"), lista(h.criterios)),
       p("La asocio a tu OCD."));
     pedirModalidad(); return true;
@@ -157,11 +161,16 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   function conModalidad(k) {
     d.modalidad = k;
     say("bot", p(`Modalidad ${k}. ${k === "Híbrido" ? "Recuerda etiquetar cada paso de las instrucciones como [AUTO] o [MANUAL]." : k === "DeployGO" ? "Los cambios de estado los moverán eventos de git (PR, tags)." : k === "Automatizado" ? "Todos los pasos deben ser automáticos ([AUTO], con workflow, pipeline o script)." : "Las instrucciones las ejecuta a mano agileOps."}`));
+    for (const k of ["tipo", "criticidad", "tamano", "fecha", "hora", "rollback"]) if (pre[k]) d[k] = pre[k];
+    const ya = ["tipo", "criticidad", "tamano", "fecha", "hora", "rollback"].filter((k) => d[k]);
+    if (ya.length) say("bot", p(`Ya tengo estos datos de lo que me contaste: ${ya.map((k) => `${{ tamano: "tamaño" }[k] ?? k} ${d[k]}`).join(" · ")}. Te pregunto solo lo que falta.`));
     pedirCampo("tipo");
   }
 
   /* ---------- Datos del OCD (todos menos las instrucciones) ---------- */
+  const ORDEN = ["tipo", "criticidad", "tamano", "fecha", "hora", "rollback", "evidencias", "descripcion"];
   function pedirCampo(campo) {
+    if (["tipo", "criticidad", "tamano", "fecha", "hora", "rollback"].includes(campo) && d[campo]) return pedirCampo(ORDEN[ORDEN.indexOf(campo) + 1]);
     st = campo;
     if (campo === "fecha") {
       d.sugerida = d.tipo === "Emergencia" ? HOY : proximaVentana(d.tipo, HOY, cfg, cal);
@@ -212,7 +221,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     const { r } = datosOcd();
     d.key = `OCD-${++nOCD}`; d.r = r;
     const eq = validarEquipoOcd({ servicio: d.svc, usuarioId: d.u.id, tipo: d.tipo }, dir, cfg);
-    say("bot", el("h3", { textContent: `${d.key} creado en Jira (simulado)` }),
+    say("bot", el("h3", { textContent: `${d.key} creado en Jira` }),
       p(`${nombreCorto(d.u)} (${d.u.matricula}) · ${d.svc} · ${d.tipo} · modalidad ${d.modalidad} · ${d.fecha} ${d.hora} (${r.dia}) · historia ${d.historia.id}`),
       p(`Pre-validación del agente: ${r.estado}, riesgo ${r.nivel} (${r.score}/100).`),
       r.blockers.length ? el("div", {}, p("🛑 Esto bloquea el OCD:"), lista(r.blockers)) : p("✅ Sin bloqueos."),
@@ -243,7 +252,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     say("bot", el("h3", { textContent: `Estado ${e.orden} de ${total} · ${e.nombre}${e.rama ? " (rama: solo si algo falla)" : ""}` }),
       p(`Lo mueve: ${rolNombre(e.actor, flujo)}${etapa ? ` · ${fmtFechaCorta(etapa.fecha)}${etapa.hora ? ` ${etapa.hora}` : ""}` : ""}`),
       p(e.queHacer),
-      auto && avanzaSolo(d.modalidad, flujo) ? p("⚙️ En la modalidad " + d.modalidad + " este estado se ejecuta automáticamente (simulado). Dime si salió bien o falló para ver cada camino.") : "",
+      auto && avanzaSolo(d.modalidad, flujo) ? p("⚙️ En la modalidad " + d.modalidad + " este estado se ejecuta automáticamente. Dime si salió bien o falló para seguir por el camino correcto.") : "",
       flujo.modalidades[d.modalidad]?.gitops && evento.length ? p(`🔀 DeployGO: lo mueve el evento de git «${evento.join(" / ")}».`) : "",
       id === "gestion_pase" ? el("div", {}, p("Aprobaciones del pase:"), lista(flujo.aprobadoresPase)) : "",
       d.r.blockers.length && id === "inicio" ? p("⚠️ El agente dejó el OCD en Bloqueado. Corrige lo anterior y se vuelve a evaluar al editar el ticket. Aquí seguimos para que aprendas el flujo completo.") : "",
@@ -286,9 +295,9 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
 
   function fin() {
     st = "fin";
-    say("bot", el("h3", { textContent: `${d.key} completado (simulado)` }),
+    say("bot", el("h3", { textContent: `${d.key} completado` }),
       p("Recorriste el flujo: grupos de red, historia, modalidad, datos, instrucciones validadas, revisiones, congelamiento, gestión de pase, ejecución, ratificación y cierre."),
-      opciones(opcion("Abrir el simulador de Jira con mis datos", () => ir({ usuario: d.u.id, servicio: d.svc, tipo: d.tipo, fecha: d.fecha, historia: d.historia.id, modalidad: d.modalidad, historiaObj: { id: d.historia.id, servicio: d.svc, titulo: d.historia.titulo, estado: d.historia.estado }, gruposExtra: d.extra ?? [], instruccionesConj: d.conj ?? null })),
+      opciones(opcion("Abrir mi OCD en Jira con estos datos", () => ir({ usuario: d.u.id, servicio: d.svc, tipo: d.tipo, fecha: d.fecha, historia: d.historia.id, modalidad: d.modalidad, historiaObj: { id: d.historia.id, servicio: d.svc, titulo: d.historia.titulo, estado: d.historia.estado }, gruposExtra: d.extra ?? [], instruccionesConj: d.conj ?? null })),
         opcion("Crear otro OCD", () => iniciarCrear()), opcion("Terminar", () => { reiniciar(); say("bot", p("¡Éxito con tu OCD! Si te trabas, pregúntame lo que necesites.")); })));
   }
 
@@ -313,7 +322,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   }
 
   function mostrarRol(id) {
-    reiniciar();
+    st = "idle"; d = {};
     const items = pendientesDeRol(id, flujo);
     say("bot", p(`Como ${rolNombre(id, flujo)}, te toca mover el OCD en estos estados:`),
       lista(items.map((e) => `${e.nombre}${e.rama ? " (rama)" : ""}: ${e.queHacer}`)),
@@ -321,21 +330,60 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   }
 
   function iniciarCrear() {
+    pausa = null; pre = {};
     if (d.u) { const u = d.u, extra = d.extra ?? []; d = { modo: "crear", u, extra }; say("bot", p(`Sigo con tu matrícula ${u.matricula}.`)); revisarDso(); return; }
     pedirMatricula("crear");
   }
 
   /* ---------- Entrada de texto ---------- */
   function manejar(texto) {
+    const r = interno(texto);
+    if (r && pausa && st === "idle") ofrecerRetomar();
+    return r;
+  }
+
+  /** Si el usuario preguntó algo en medio de su OCD, se responde y se ofrece seguir donde iba. */
+  function ofrecerRetomar() {
+    if (!pausa) return;
+    say("bot", p("Tu OCD sigue guardado tal como lo dejaste. ¿Lo retomamos?"),
+      opciones(opcion("Sí, retomar mi OCD", retomar), opcion("Descartarlo", () => { pausa = null; say("bot", p("Listo, lo descarté. Cuando quieras empezamos otro.")); })));
+  }
+  function retomar() {
+    if (!pausa) return;
+    ({ st, d } = pausa); pausa = null;
+    const f = { matricula: () => pedirMatricula(d.modo ?? "crear"), historia: pedirHistoria, hsvc: ayudaHistoria, modalidad: pedirModalidad, evidencias: pedirEvidencias, guia: () => mostrarEstado(d.estado),
+      helpdesk: revisarDso, "crear?": despuesDeGrupos, oferta: () => { st = "idle"; ofrecer(); }, hrol: () => say("bot", p("¿Quién es el usuario que se beneficia? Es el «Como …» de la historia.")),
+      hobj: () => say("bot", p("¿Qué quiere lograr? Es el «quiero …».")), hben: () => say("bot", p("¿Para qué lo quiere? Es el «para …».")),
+      instr: () => say("bot", p("Seguimos con tus instrucciones: escríbelas en los cuadros de arriba y pulsa «Validar mis instrucciones».")),
+      fin: () => say("bot", p("Ya habías terminado este OCD. ¿Quieres crear otro?")) }[st];
+    if (f) { f(); return; }
+    if (ORDEN.includes(st)) pedirCampo(st);
+  }
+
+  /** Arranca la creación del OCD usando lo que el usuario ya contó. */
+  function iniciarConDatos(datos) {
+    pre = { ...datos };
+    reiniciar();
+    if (Object.keys(pre).length) say("bot", p("Perfecto, con lo que me contaste armamos tu OCD paso a paso y me quedo atento a cada validación."));
+    pedirMatricula("crear");
+  }
+
+  function interno(texto) {
     const t = String(texto ?? "").trim();
     const q = quitarAcentos(t);
     if (/^(cancelar|salir)$/.test(q) && st !== "idle") { reiniciar(); say("bot", p("Listo, lo dejamos aquí. Cuando quieras, escribe «quiero crear un OCD».")); return true; }
+    /* Si el usuario cambia un dato en medio del OCD («mejor el martes», «ya probé el rollback») se actualiza y se sigue sin reiniciar. */
+    if (ORDEN.includes(st) && !/[?¿]/.test(t)) {
+      const x = extraerDatos(t, { servicios: Object.keys(dir.servicios), hoy: HOY });
+      const cambios = ["fecha", "hora", "rollback", "tipo", "criticidad", "tamano"].filter((k) => k !== st && x[k] && x[k] !== d[k]);
+      if (cambios.length) { for (const k of cambios) d[k] = x[k]; say("bot", p(`Anotado: ${cambios.map((k) => `${k === "tamano" ? "tamaño" : k} ${x[k]}`).join(" · ")}. Sigo desde donde íbamos.`)); pedirCampo(st); return true; }
+    }
     if (st === "idle") {
       const rol = rolDeTexto(q, flujo);
       if (/(que me toca|que sigue|que debo hacer|mi turno|que me corresponde)/.test(q) && (/\bocd\b/.test(q) || rol)) { rol ? mostrarRol(rol) : preguntarRol(); return true; }
       if (/\bocd\b/.test(q) && /\b(flujo|estados?|etapas?|ciclo|pasos)\b/.test(q) && !/(crear|crea|creo)\b/.test(q)) { explicarFlujo(); return true; }
       if (/(modalidad|automatizado|hibrido|deploygo|deploy go|tipos de ocd)/.test(q)) { explicarModalidades(); return true; }
-      if (!/[?¿]/.test(t) && /\bocd\b/.test(q) && /(crear|crea|creo|armar|abrir|generar|ayud)/.test(q)) { iniciarCrear(); return true; }
+      if (!/[?¿]/.test(t) && /\bocd\b/.test(q) && /(crear|crea|creo|armar|abrir|generar|ayud)/.test(q)) { pre = {}; iniciarCrear(); return true; }
       return false;
     }
     if (st === "rol") { const r = rolDeTexto(q, flujo); if (r) { mostrarRol(r); return true; } return salir(t); }
@@ -375,11 +423,11 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     if (st === "hben") return conHben(t);
     if (st === "instr") { say("bot", p("Escribe cada conjunto en su cuadro y pulsa «Validar mis instrucciones».")); return true; }
     if (st === "fecha") {
-      const m = t.match(/\d{4}-\d{2}-\d{2}/);
-      const f = /sugerid|usar/.test(q) ? d.sugerida : m?.[0];
+      const m = extraerDatos(t, { servicios: [], hoy: HOY }).fecha;
+      const f = /sugerid|usar/.test(q) ? d.sugerida : m;
       if (!f || !fechaValida(f)) {
         if (esPregunta(t) && !m) return salir(t);
-        say("bot", p("No pude leer esa fecha. Usa el formato AAAA-MM-DD, por ejemplo 2026-11-24, o pulsa la sugerida.")); return true;
+        say("bot", p("No pude leer esa fecha. Dime, por ejemplo, «el martes», «24 de noviembre» o 2026-11-24, o pulsa la sugerida.")); return true;
       }
       d.fecha = f; pedirCampo("hora"); return true;
     }
@@ -393,5 +441,5 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     return false;
   }
 
-  return { ofrecer, iniciar: iniciarCrear, manejar, get activo() { return st !== "idle"; } };
+  return { ofrecer, iniciar: iniciarCrear, iniciarConDatos, manejar, ofrecerRetomar, preguntarRol, explicarFlujo, explicarModalidades, pausar: () => { if (st !== "idle" && st !== "fin" && !pausa) pausa = { st, d }; st = "idle"; d = {}; }, get pausado() { return !!pausa; }, get activo() { return st !== "idle"; } };
 }

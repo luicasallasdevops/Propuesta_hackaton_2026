@@ -149,7 +149,7 @@ export function renderReport(change, r, policy) {
   L.push("### Por qué este puntaje", "| Factor | Puntos |", "|---|---|", ...r.factors.map((f) => `| ${esc(f.label)} | +${f.pts} |`), "");
   if (r.similar.length) L.push("### Incidentes recientes del mismo servicio", ...r.similar.map((i) => `- **${i.id}** (${i.fecha}, ${i.severidad}): ${i.resumen}`), "");
   if (r.related.length) L.push("### Incidentes de otros servicios con la misma causa", ...r.related.map((i) => `- **${i.id}** (${i.servicio}): ${i.accion}`), "");
-  L.push("_Informe generado por el agente de pre-validación (POC, datos simulados). La decisión final es del squad y de las aprobaciones indicadas._");
+  L.push("_Informe generado por el agente de pre-validación La decisión final es del squad y de las aprobaciones indicadas._");
   return L.join("\n");
 }
 
@@ -341,7 +341,7 @@ export function renderOcdReport(o, r, policy, cfg, sol = null, rev = null) {
   L.push("### Aprobadores", ...r.aprobadores.map((a) => `- [ ] ${a}`), "");
   L.push("### Por qué este puntaje", "| Factor | Puntos |", "|---|---|", ...r.factors.map((f) => `| ${esc(f.label)} | +${f.pts} |`), "");
   if (r.similar.length) L.push("### Incidentes recientes del mismo servicio", ...r.similar.map((i) => `- **${i.id}** (${i.fecha}, ${i.severidad}): ${i.resumen}`), "");
-  L.push("_Informe del agente OCD (POC, datos simulados). Las aprobaciones y la decisión final son de las personas indicadas._");
+  L.push("_Informe del agente OCD Las aprobaciones y la decisión final son de las personas indicadas._");
   return L.join("\n");
 }
 

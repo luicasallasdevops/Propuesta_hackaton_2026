@@ -121,27 +121,27 @@
   "feriados": [
     {
       "fecha": "2026-12-08",
-      "motivo": "Feriado simulado"
+      "motivo": "Feriado"
     },
     {
       "fecha": "2026-12-25",
-      "motivo": "Feriado simulado"
+      "motivo": "Feriado"
     },
     {
       "fecha": "2027-01-01",
-      "motivo": "Feriado simulado"
+      "motivo": "Feriado"
     }
   ],
   "congelamientos": [
     {
       "desde": "2026-11-26",
       "hasta": "2026-11-27",
-      "motivo": "Evento comercial de fin de mes (simulado)"
+      "motivo": "Evento comercial de fin de mes"
     },
     {
       "desde": "2026-12-18",
       "hasta": "2027-01-04",
-      "motivo": "Cierre de año (simulado)"
+      "motivo": "Cierre de año"
     }
   ]
 }

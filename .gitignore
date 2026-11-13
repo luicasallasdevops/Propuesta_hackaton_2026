@@ -6,3 +6,4 @@ node_modules/
 docs/data/
 docs/engine.mjs
 docs/flujo.mjs
+docs/conversacion.mjs

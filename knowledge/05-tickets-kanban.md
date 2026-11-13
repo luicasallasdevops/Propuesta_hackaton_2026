@@ -1,7 +1,5 @@
 # Tickets y tablero Kanban
 
-> Contenido SIMULADO para la POC.
-
 ## Tipos de ticket
 - Pase a Producción: despliegue de un servicio. Usa la plantilla de Issue con checklist de evidencias.
 - Solicitud de acceso: rol de GitHub o de herramienta.

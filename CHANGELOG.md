@@ -1,5 +1,14 @@
 # Cambios
 
+## 1.4.0-poc
+El asistente pasa a ser la puerta de entrada: entiende frases libres, conserva el contexto y muestra qué hizo.
+- **Chat protagonista:** primera pestaña («Asistente»), saludo cordial según la hora, menú de opciones (crear OCD paso a paso, validar mi pase, cómo funciona el OCD, qué me toca según mi rol, roles/red/licencias, plantillas), atajos permanentes y sugerencias de siguiente paso tras cada respuesta.
+- **Lenguaje natural sin LLM:** `scripts/conversacion.mjs` entiende servicio, día («este viernes», «mañana», «24 de noviembre»), rollback, criticidad, tamaño, tipo y controles faltantes. Ej.: «Necesito desplegar pagos-api este viernes y todavía no tengo rollback» devuelve Bloqueado, los motivos, la próxima noche válida y un botón para preparar el OCD.
+- **Contexto:** pregunta solo lo que falta, arma la guía del OCD con lo ya dicho, acepta cambios a mitad («mejor el martes») y, si el usuario hace una pregunta intermedia, la responde y ofrece retomar el OCD donde iba.
+- **Traza visible:** cada evaluación muestra qué consultó el agente, qué detectó, qué propone, qué hizo y la evidencia reproducible, además del enlace para crear el OCD real en GitHub.
+- **Aviso único de «Entorno de demostración»** que explica qué es real (Issues, Actions, etiquetas, tablero) y qué es demostrativo (Jira, Helpdesk, directorio); se retiraron los avisos repetidos de «simulado» del portal, el chat, los informes del agente y los datos.
+- 8 pruebas nuevas (64 en total). Un modelo de lenguaje opcional queda como siguiente fase: solo interpretaría la intención y el motor seguiría validando riesgo, permisos y aprobaciones.
+
 ## 1.3.0-poc
 Flujo OCD real en tres fases, todo guiado por un solo archivo de datos (`knowledge/ocd-flujo.json`).
 - **Fase 1, flujo y agente por estado y rol:** 11 estados (Inicio codificación, Revisiones técnicas, Aprobación de seguridad, Congelamiento, Gestión de pase, Ejecución, Ratificación, Done y las ramas de reversión), 6 roles y 4 modalidades (Automatizado, Manual, Híbrido, DeployGO). Cuatro conjuntos de instrucciones (congelamiento, despliegue, reversión de congelamiento, reversión de despliegue) validados según la modalidad (`[AUTO]` y `[MANUAL]`). El chat explica el flujo y responde «¿qué me toca?» según el rol; la guía interactiva recorre los estados reales, con las ramas de falla. El formulario `[OCD]` pide la modalidad y los tres conjuntos nuevos; el informe del agente incluye el estado, los requisitos y cómo moverlo.

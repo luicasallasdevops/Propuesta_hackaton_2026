@@ -26,8 +26,7 @@ const goTab = (id) => $(`#${id}`)?.click();
 
 function ask(text) {
   goTab("t-chat");
-  const chip = [...document.querySelectorAll("#chips button")].find((b) => b.textContent === text);
-  if (chip) chip.click();
+  document.dispatchEvent(new CustomEvent("chat:ask", { detail: text }));
 }
 
 function runPreset(c) {
@@ -55,7 +54,7 @@ const STEPS = [
   },
   {
     id: "riesgoso", icono: "🚨", c: "c2", tiempo: "1 min", titulo: "Detecta un problema antes de que ocurra",
-    texto: "Simulamos un cambio delicado: un servicio de pagos, un viernes, sin plan de reversa y sin revisiones de seguridad. Mira cómo el asistente lo frena a tiempo.",
+    texto: "Mira un cambio delicado: un servicio de pagos, un viernes, sin plan de reversa y sin revisiones de seguridad. Mira cómo el asistente lo frena a tiempo.",
     acciones: [{ t: "Probar el caso riesgoso", fn: () => runPreset(RIESGOSO) }],
     resultado: "Estado Bloqueado y riesgo Crítico (100 de 100), con los motivos, qué hacer para corregirlo y los incidentes pasados que lo respaldan.",
   },
@@ -100,9 +99,9 @@ const STEPS = [
     resultado: "Plantillas de revisión de seguridad, publicación protegida y actualizaciones automáticas, con botón Copiar.",
   },
   {
-    id: "ocd", icono: "📅", c: "c10", tiempo: "5 min", titulo: "Crea tu primer OCD en Jira (simulado)",
+    id: "ocd", icono: "📅", c: "c10", tiempo: "5 min", titulo: "Crea tu primer OCD en Jira",
     texto: "Un OCD es el pase a producción que se agenda. Elige quién eres: el asistente verifica con tu matrícula si tienes los grupos de red del servicio, te dice quiénes deben aprobar (líder técnico, Product Owner, Seguridad y Change Management) y calcula las fechas.",
-    acciones: [{ t: "Abrir el simulador de Jira", fn: () => { goTab("t-ocd"); setTimeout(() => $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); } }, { t: "Que el agente me ayude a crear mi OCD", fn: () => ask("Quiero crear un OCD") }, { t: "¿Qué grupos de red necesito?", fn: () => ask("¿Qué grupos de red necesito para un OCD?") }, { t: "¿Quién aprueba un OCD?", fn: () => ask("¿Quién aprueba un OCD?") }],
+    acciones: [{ t: "Abrir el formulario de Jira", fn: () => { goTab("t-ocd"); setTimeout(() => $("#jira-sim")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); } }, { t: "Que el agente me ayude a crear mi OCD", fn: () => ask("Quiero crear un OCD") }, { t: "¿Qué grupos de red necesito?", fn: () => ask("¿Qué grupos de red necesito para un OCD?") }, { t: "¿Quién aprueba un OCD?", fn: () => ask("¿Quién aprueba un OCD?") }],
     resultado: "Con el perfil de Valentina (nueva) verás qué te falta; con el de Mateo, el camino sin tropiezos. Al crear el ticket, el agente comenta, calcula el calendario y pide las aprobaciones.",
   },
   {
@@ -255,7 +254,7 @@ const root = $("#guia-root");
 if (root) render(root);
 
 /* Botón para volver a la guía desde las pestañas a las que lleva cada paso */
-for (const id of ["p-chat", "p-pase", "p-plant", "p-ocd"]) {
+for (const id of ["p-pase", "p-plant", "p-ocd"]) {
   const panel = $(`#${id}`);
   if (!panel) continue;
   const back = el("button", { type: "button", className: "back", textContent: "🧭 Volver a la guía paso a paso", onclick: () => { goTab("t-guia"); scrollTo({ top: 0 }); } });

@@ -1,7 +1,5 @@
 # Red, grupos y conectividad
 
-> Contenido SIMULADO para la POC.
-
 ## Grupos de red necesarios
 - `net-github-runners`: salida de los runners hacia el registro de artefactos y ambientes.
 - `net-artifact-registry`: acceso al repositorio interno de artefactos e imágenes.

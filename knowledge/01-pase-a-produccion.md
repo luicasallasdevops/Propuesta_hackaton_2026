@@ -1,7 +1,5 @@
 # Pase a producción
 
-> Contenido SIMULADO para la POC. Reemplazar por los lineamientos oficiales del equipo SecOps.
-
 ## Flujo general del pase a producción
 1. Crear el ticket "Pase a Producción" en el tablero Kanban (usar la plantilla de Issue del portal).
 2. Adjuntar evidencias: pruebas QA, resultado SAST, resultado SCA, escaneo de secretos y plan de rollback.

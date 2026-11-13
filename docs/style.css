@@ -130,3 +130,26 @@ ol.lst{list-style:decimal;padding-left:1.3rem}ol.lst li{color:var(--fg)}
 .qrs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .qr{border:1px solid var(--acc);background:var(--card);color:var(--acc);border-radius:99px;padding:5px 12px;font:inherit;font-size:.86rem;cursor:pointer}
 .qr:hover{background:var(--acc);color:#fff}
+
+/* ---------- Asistente: chat protagonista ---------- */
+.demo-banner{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0;padding:6px 12px;border:1px solid color-mix(in srgb,var(--warn) 45%,var(--bd));background:color-mix(in srgb,var(--warn) 8%,var(--card));border-radius:10px;font-size:.84rem}
+.demo-banner details{display:inline}.demo-banner summary{display:inline;cursor:pointer;color:var(--acc)}.demo-banner p{margin:6px 0 2px;flex-basis:100%}
+.chat{padding:0;overflow:hidden}
+.chat-head{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bd);background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 14%,var(--card)),var(--card))}
+.chat-head small{display:block;color:var(--mut)}.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;background:var(--acc);color:#fff}
+.dot-on{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:4px}
+.chat .log{padding:16px;max-height:62vh;overflow-y:auto;margin:0;min-height:320px}
+.chat .chips{padding:0 16px}.chat .ask{padding:12px 16px 16px;border-top:1px solid var(--bd)}
+.msg{animation:aparece .25s ease-out}@keyframes aparece{from{opacity:0;transform:translateY(6px)}}
+@media(prefers-reduced-motion:reduce){.msg{animation:none}}
+.msg.bot{border-top-left-radius:3px}.msg.user{border-top-right-radius:3px}.msg p{margin:.3rem 0}
+.menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:10px 0}
+.menu-card{display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--bd);background:var(--bg);color:var(--fg);border-radius:14px;padding:12px;font:inherit;cursor:pointer;transition:transform .12s,border-color .12s}
+.menu-card:hover,.menu-card:focus-visible{border-color:var(--acc);transform:translateY(-2px)}
+.mc-i{font-size:1.7rem;flex:none}.mc-t{display:flex;flex-direction:column}.mc-t small{color:var(--mut);font-size:.8rem}
+.traza{margin:10px 0;border:1px dashed var(--bd);border-radius:10px;padding:6px 12px;background:var(--bg)}
+.traza summary{cursor:pointer;font-weight:600;font-size:.88rem}.traza h4{margin:10px 0 2px;font-size:.82rem;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.traza pre{font-size:.78rem;max-height:180px}.msg a.qr{text-decoration:none;display:inline-block}
+.muted.small,.small{font-size:.82rem}
+.chat .log{position:relative}
+nav button{white-space:nowrap}

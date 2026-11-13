@@ -1,5 +1,6 @@
 import { splitSections, search, assess } from "./engine.mjs";
 import { crearAsistenteOcd } from "./ocd-assistant.js";
+import { crearAgenteChat } from "./agente-chat.js";
 
 const $ = (s) => document.querySelector(s);
 const el = (tag, props = {}, ...kids) => {
@@ -38,7 +39,7 @@ function renderText(text) {
 
 /* Chat */
 const log = $("#log");
-const say = (who, ...content) => { const m = el("div", { className: `msg ${who}` }, content); log.append(m); m.scrollIntoView({ block: "end" }); };
+const say = (who, ...content) => { const m = el("div", { className: `msg ${who}` }, content); log.append(m); log.scrollTo({ top: who === "user" ? log.scrollHeight : Math.max(0, m.offsetTop - 12), behavior: "auto" }); };
 
 const asistenteOcd = crearAsistenteOcd({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, historias: ocdHist, flujo: ocdFlujo, ir: (prefill) => {
   $("#t-ocd").click();
@@ -54,12 +55,28 @@ const templateCard = (name, body) => el("div", { className: "tpl card" },
   el("header", {}, el("strong", { textContent: name }), copyButton(body)),
   el("pre", {}, el("code", { textContent: body })));
 
+const ocdIssueUrl = ({ servicio = "", fecha = "", hora = "" } = {}) => `${issueUrl().replace("pase-produccion.yml", "ocd.yml")}&${new URLSearchParams({ title: `[OCD] ${servicio}`, servicio, fecha, hora })}`;
+const retomarSiPausa = () => { if (asistenteOcd.pausado && !asistenteOcd.activo) asistenteOcd.ofrecerRetomar(); };
+const siguientesPasos = (...b) => say("bot", el("p", { className: "muted", textContent: "¿Seguimos? Puedo ayudarte con esto:" }), el("div", { className: "qrs" }, b.map(([t, fn]) => el("button", { type: "button", className: "qr", textContent: t, onclick: () => { say("user", t); fn(); } }))));
+
+const agente = crearAgenteChat({ say, el, dir: ocdDir, cfg: ocdCfg, cal: ocdCal, policy, incidents, asistenteOcd, preguntar: (t) => { say("user", t); answer(t); }, ocdIssueUrl });
+
 function answer(q) {
-  if (asistenteOcd.manejar(q)) return;
+  const estabaActivo = asistenteOcd.activo;
+  if (estabaActivo && /^(menu|menú|opciones|hola|buenas|buenos dias|buenos días|gracias)\b/i.test(q)) asistenteOcd.pausar();
+  else if (estabaActivo && asistenteOcd.manejar(q)) return;
+  if (agente.manejar(q)) { retomarSiPausa(); return; }
+  if (!estabaActivo && asistenteOcd.manejar(q)) return;
+  responderEstandar(q);
+  retomarSiPausa();
+}
+
+function responderEstandar(q) {
   const wantsTpl = /workflow|action|pipeline|plantilla|yaml|codeql|dependabot|release/i.test(q);
   const hits = wantsTpl ? [] : search(sections, q, 2);
   if (!hits.length && !wantsTpl) {
-    say("bot", el("p", { textContent: "No encontré eso en los estándares. Prueba con: pase a producción, rol, red, licencias, ticket, SAST o SCA." }));
+    say("bot", el("p", { textContent: "Eso todavía no lo tengo en los estándares, pero puedo ayudarte con estas cosas:" }));
+    agente.menu("¿Cuál de estas te sirve?");
     return;
   }
   const parts = hits.map((h) => el("div", {}, el("h3", { textContent: h.heading }), renderText(h.text)));
@@ -70,10 +87,12 @@ function answer(q) {
     say("bot", el("p", { textContent: "Plantilla oficial lista para copiar:" }), ...key.map((k) => templateCard(k, tpl[k])));
   }
   if (/ocd/i.test(q)) {
-    say("bot", el("p", {}, "Practica creando un OCD en el simulador de Jira de la pestaña Pase OCD, o prueba el agente real en GitHub: ", el("a", { href: issueUrl().replace("pase-produccion.yml", "ocd.yml"), textContent: "abrir OCD", rel: "noopener" })));
+    say("bot", el("p", {}, "Si prefieres, también puedes abrir el OCD directamente en GitHub: ", el("a", { href: ocdIssueUrl(), textContent: "abrir OCD", rel: "noopener", target: "_blank" })));
     asistenteOcd.ofrecer();
+    return;
   }
-  else if (/ticket|pase/i.test(q)) say("bot", el("p", {}, "Crea el ticket con el formulario y el agente lo evalúa al instante: ", el("a", { href: issueUrl(), textContent: "abrir ticket de pase", rel: "noopener" })));
+  if (/ticket|pase/i.test(q)) say("bot", el("p", {}, "Crea el ticket con el formulario y el agente lo evalúa al instante: ", el("a", { href: issueUrl(), textContent: "abrir ticket de pase", rel: "noopener", target: "_blank" })));
+  if (!asistenteOcd.pausado) siguientesPasos(["Crear mi OCD paso a paso", () => asistenteOcd.iniciarConDatos(agente.contexto.cambio.servicio ? { servicio: agente.contexto.cambio.servicio } : {})], ["Validar mi pase", () => agente.pedirCambio()], ["Ver el menú", () => agente.menu()]);
 }
 
 function issueUrl() {
@@ -88,12 +107,13 @@ $("#chat-form").addEventListener("submit", (e) => {
   if (!q) return;
   say("user", q); $("#q").value = ""; answer(q);
 });
-for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué grupos de red necesito para un OCD?", "¿Qué reglas de calendario tiene un OCD?", "Quiero crear un OCD"]) {
-  const b = el("button", { type: "button", textContent: s });
-  b.addEventListener("click", () => { say("user", s); answer(s); });
+document.addEventListener("chat:ask", (e) => { const t = String(e.detail ?? "").slice(0, 300); if (t) { say("user", t); answer(t); } });
+for (const [etq, fn] of [["🏠 Menú", () => agente.menu()], ["📅 Crear mi OCD", () => asistenteOcd.iniciarConDatos(agente.contexto.cambio.servicio ? { servicio: agente.contexto.cambio.servicio } : {})], ["🚀 Validar mi pase", () => agente.pedirCambio()], ["🧭 Cómo funciona el OCD", () => asistenteOcd.explicarFlujo()], ["👥 Mi rol", () => asistenteOcd.preguntarRol()]]) {
+  const b = el("button", { type: "button", textContent: etq });
+  b.addEventListener("click", () => { say("user", etq.replace(/^\S+\s/, "")); fn(); });
   $("#chips").append(b);
 }
-say("bot", el("p", { textContent: "Hola. Soy el asistente DevSecOps. Te explico el flujo de pase a producción, roles, red, licencias y te doy plantillas listas. También puedes validar tu pase en la pestaña \"Validar mi pase\"." }));
+agente.saludar();
 
 /* Validador de pase */
 const checks = $("#checks");
