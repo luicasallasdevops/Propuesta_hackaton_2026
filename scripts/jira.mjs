@@ -11,6 +11,13 @@ export function estadoJira(mapa, estado) {
   return mapa.estados?.[estado] ?? null;
 }
 
+/** Estado del OCD de un Issue de GitHub. Un OCD cerrado sin etiqueta de estado (al llegar a Done se retiran) está en Done. */
+export function estadoDeIssue(issue, flujo, estadoPorEtiquetas) {
+  const tiene = (issue.labels ?? []).some((l) => /^estado:/.test(l.name ?? l));
+  if (!tiene) return issue.state === "closed" ? "done" : "inicio";
+  return estadoPorEtiquetas(issue.labels, flujo);
+}
+
 /** Etiquetas de la incidencia: base + identificador del OCD + estado exacto. Jira no admite espacios en etiquetas. */
 export function etiquetasJira(mapa, numero, estado) {
   return [...mapa.etiquetasBase, `${mapa.prefijoEtiquetaOcd}${numero}`, `${mapa.prefijoEtiquetaEstado}${String(estado).replace(/[^a-z0-9_-]/g, "")}`];
@@ -113,7 +120,7 @@ async function main() {
     : [gh("api", `repos/${GH_REPO}/issues/${Number(ISSUE)}`)];
   let fallos = 0;
   for (const i of issues) {
-    const estado = ESTADO || estadoPorEtiquetas(i.labels, flujo);
+    const estado = ESTADO || estadoDeIssue(i, flujo, estadoPorEtiquetas);
     try { console.log(`#${i.number}: ${await sincronizarOcd({ jira, mapa, numero: i.number, titulo: i.title, url: i.html_url, estado })}`); }
     catch (e) { fallos++; console.error(`::error::#${i.number}: ${e.message}`); }
   }

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { estadoJira, etiquetasJira, clienteJira, sincronizarOcd, crearHistoria } from "../scripts/jira.mjs";
+import { estadoJira, etiquetasJira, clienteJira, sincronizarOcd, crearHistoria, estadoDeIssue } from "../scripts/jira.mjs";
 
 const mapa = JSON.parse(await readFile(new URL("../knowledge/ocd-jira.json", import.meta.url), "utf8"));
 const flujo = JSON.parse(await readFile(new URL("../knowledge/ocd-flujo.json", import.meta.url), "utf8"));
@@ -87,4 +87,11 @@ test("no duplica la historia si el Issue ya la creó", async () => {
 
 test("rechaza una historia incompleta", async () => {
   await assert.rejects(crearHistoria({ jira: falso().jira, mapa, campos: { ...campos, beneficio: "" }, numeroIssue: 1, urlIssue: "u" }), /Faltan datos/);
+});
+
+test("un OCD cerrado sin etiqueta de estado está en Done y uno abierto en Inicio", () => {
+  const por = (labels) => (labels.find((l) => l.name.startsWith("estado:")).name.slice(7));
+  assert.equal(estadoDeIssue({ state: "closed", labels: [{ name: "ocd" }] }, flujo, por), "done");
+  assert.equal(estadoDeIssue({ state: "open", labels: [{ name: "ocd" }] }, flujo, por), "inicio");
+  assert.equal(estadoDeIssue({ state: "open", labels: [{ name: "estado:seguridad" }] }, flujo, por), "seguridad");
 });

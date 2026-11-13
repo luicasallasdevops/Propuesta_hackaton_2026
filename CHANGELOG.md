@@ -1,5 +1,10 @@
 # Cambios
 
+## 1.6.3-poc
+Validación en vivo de Jira y ajuste de OCD cerrados.
+- Probado en vivo: `sincronizar-jira` creó las incidencias de los OCD en KAN y movió la de revisiones a In Review; el formulario «Historia de usuario» creó KAN-17.
+- Un OCD cerrado sin etiqueta de estado (llegó a Done) se refleja en Jira como Done y no como Inicio.
+
 ## 1.6.2-poc
 Progreso por fases y guía de adopción de Jira.
 - **Panel de progreso en dos fases:** Requisitos y OCD. Al completar los requisitos la fase se marca en verde y se colapsa (se puede reabrir) para dar foco al OCD. El panel es sólido y las respuestas del chat se muestran debajo, sin quedar tapadas.
