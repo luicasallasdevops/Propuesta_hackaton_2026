@@ -17,7 +17,7 @@ const params = (o) => new URLSearchParams(o).toString();
 
 const RIESGOSO = { servicio: "pagos-api", criticidad: "Alta", tamano: "Grande", dia: "Viernes", rollback: "No", checks: "none" };
 const FELIZ = { servicio: "pagos-api", criticidad: "Alta", tamano: "Pequeño", dia: "Martes", rollback: "Sí, probado", checks: "all" };
-const ticketUrl = (c) => gh(`/issues/new?${params({ template: "pase-produccion.yml", title: `[Pase] ${c.servicio} (demo)`, servicio: c.servicio, criticidad: c.criticidad, tamano: c.tamano, dia: c.dia, rollback: c.rollback })}`);
+const ticketUrl = (c) => gh(`/issues/new?${params({ template: "pase-produccion.yml", title: `[Pase] ${c.servicio} (demo)`, servicio: c.servicio })}`);
 
 /* ---------- Acciones sobre el resto del portal ---------- */
 const goTab = (id) => $(`#${id}`)?.click();
@@ -65,12 +65,13 @@ const STEPS = [
   },
   {
     id: "ticket", tiempo: "2 min", titulo: "Abre el ticket real en GitHub",
-    texto: "El formulario viene precargado con el caso. Marca las casillas de evidencias que correspondan y crea el Issue. El título debe empezar con [Pase].",
+    texto: "El título y el servicio vienen precargados. Elige el resto con los datos del caso (los de abajo) y crea el Issue. El título debe empezar con [Pase].",
+    datos: [["Caso riesgoso", "Alta · Grande · Viernes · Rollback No · sin casillas marcadas"], ["Camino feliz", "Alta · Pequeño · Martes · Rollback Sí, probado · las 9 casillas marcadas"]],
     acciones: [
       { t: "Abrir ticket del caso riesgoso", href: ticketUrl(RIESGOSO) },
       { t: "Abrir ticket del camino feliz", href: ticketUrl(FELIZ) },
     ],
-    resultado: "Un Issue nuevo con los datos del cambio. Si algún campo no se precargó, elígelo en el formulario.",
+    resultado: "Un Issue nuevo con los datos del cambio, listo para que el agente lo evalúe.",
   },
   {
     id: "agente", tiempo: "30 s", titulo: "Mira al agente trabajar",
@@ -172,6 +173,7 @@ function render(root) {
       el("div", { className: "body" },
         el("h3", {}, s.titulo, " ", el("span", { className: "chip", textContent: s.tiempo })),
         el("p", { textContent: s.texto }),
+        s.datos ? el("dl", { className: "datos" }, s.datos.map(([k, v]) => [el("dt", { textContent: k }), el("dd", { textContent: v })])) : "",
         actions,
         el("p", { className: "expect" }, el("strong", { textContent: "Qué deberías ver: " }), s.resultado),
         el("label", { className: "mark", htmlFor: check.id }, check, " Marcar como hecho")));
