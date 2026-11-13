@@ -34,9 +34,10 @@ if (process.env.AI_ENABLED === "true" && process.env.GITHUB_TOKEN) {
         ],
       }),
     });
+    if (!res.ok) console.log(`::warning title=GitHub Models::HTTP ${res.status} ${(await res.text()).slice(0, 200).replace(/\s+/g, " ")}`);
     const text = res.ok ? (await res.json()).choices?.[0]?.message?.content : null;
     if (text) report += `\n\n### 🤖 Resumen del agente (IA)\n${text.replace(/@/g, "@​").replace(/[<>]/g, "")}`;
-  } catch { /* la IA es opcional: el informe determinista ya está completo */ }
+  } catch (e) { console.log(`::warning title=GitHub Models::${e.name}: ${e.message}`); /* la IA es opcional: el informe determinista ya está completo */ }
 }
 
 const labels = [`riesgo:${result.nivel.toLowerCase()}`, result.estado === "Bloqueado" ? "bloqueado" : "listo-para-aprobacion"];
