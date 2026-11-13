@@ -42,3 +42,12 @@ npm run build   # genera docs/data y copia el motor al portal
 python3 -m http.server -d docs 8080
 ```
 Siguientes pasos: conectar el tablero Kanban y la gestión de incidentes por API, y alimentar `incidents.json` automáticamente.
+
+## Agentes gratuitos de GitHub (validado)
+| Capacidad | Plan Free | Uso en esta POC |
+|---|---|---|
+| GitHub Models vía `GITHUB_TOKEN` (`models: read`) | Sí, con límites de peticiones por minuto y por día | Resumen opcional del agente en Actions |
+| Copilot Free: agent mode en el IDE, CLI, instrucciones y agentes personalizados | Sí, con asignación limitada de créditos | `.github/copilot-instructions.md` y `.github/agents/guia-devsecops.agent.md` |
+| Copilot cloud agent (antes coding agent) y code review | No, requiere plan de pago | Fuera de la POC. La entidad ya lo tiene con Copilot Business o Enterprise |
+
+Así, lo construido hoy es gratis y los mismos archivos de conocimiento los consumen los agentes de Copilot de la entidad sin cambios.

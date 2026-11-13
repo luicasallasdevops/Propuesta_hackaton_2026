@@ -25,7 +25,7 @@ if (process.env.AI_ENABLED === "true" && process.env.GITHUB_TOKEN) {
       headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}`, "Content-Type": "application/json" },
       signal: AbortSignal.timeout(30_000),
       body: JSON.stringify({
-        model: process.env.AI_MODEL || "openai/gpt-4.1",
+        model: process.env.AI_MODEL || "openai/gpt-4.1-mini",
         temperature: 0.2,
         max_tokens: 350,
         messages: [
