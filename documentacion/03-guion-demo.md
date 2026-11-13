@@ -1,18 +1,25 @@
-# Guion de la demo (5 minutos)
+# Guion de la demo (6 minutos)
 
-**Preparación:** repo público, Pages activo, un Issue de ejemplo cerrado como respaldo.
+**Preparación (5 min antes):** portal abierto en la pestaña *Guía paso a paso*, el [tablero](https://github.com/users/luicasallasdevops/projects/1) abierto en otra pestaña y los Issues #1 (listo) y #2 (bloqueado) como respaldo.
 
 | Min | Qué mostrar | Qué decir |
 |---|---|---|
-| 0:00 | Diapositiva del problema | "Hoy preparar un pase toma semanas porque la información está dispersa." |
-| 0:30 | Portal, pestaña Preguntar: "¿Cómo creo un ticket de pase?" | "Responde con el estándar y cita la fuente." |
-| 1:15 | "Dame un workflow de CodeQL" y botón Copiar | "Plantilla oficial de SecOps con permisos mínimos." |
-| 2:00 | Validar mi pase con los valores por defecto (viernes, sin rollback, pagos-api) | "Bloqueado y crítico. Ve por qué y qué hacer, con los incidentes que lo respaldan." |
-| 3:00 | Abrir Issue con el formulario, mismos datos | "En segundos el agente comenta, etiqueta y lista las aprobaciones." |
-| 3:45 | Editar el Issue: martes, rollback probado, controles marcados | "El informe se actualiza a Listo para aprobaciones." |
-| 4:30 | Pestaña Cómo funciona y arquitectura | "Todo sobre GitHub. Otras tribus solo cambian los documentos." |
-| 5:00 | Cierre | Impacto, reutilización y hoja de ruta de 6 meses. |
+| 0:00 | Pestaña **Beneficios** (pilares y gráfico) | "El reto es anticiparse a los problemas. Hoy se descubren tarde: con pases rechazados o fallos en producción." |
+| 0:45 | **Preguntar**: "¿Cómo creo un ticket de pase?" | "Responde con el estándar oficial y cita la fuente." |
+| 1:30 | **Guía**, paso 2 (caso riesgoso) | "Pagos, viernes, sin rollback: Bloqueado, Crítico 100 de 100, con los incidentes pasados que lo respaldan." |
+| 2:15 | **Guía**, paso 3 (camino feliz) | "Mismo servicio bien preparado: Listo para aprobaciones. Solo piden las aprobaciones de su nivel." |
+| 3:00 | **Issue #2** (bloqueado): comentario y etiquetas | "Esto lo hizo el agente solo, en GitHub Actions, al abrir el ticket." |
+| 3:45 | **Tablero**: tarjeta #2 en Bloqueado y #1 en Listo | "El agente también mueve la tarjeta. Liderazgo ve el estado sin leer tickets." |
+| 4:30 | Editar el Issue #2 (martes, rollback probado, casillas) y refrescar el tablero | "Al corregir, el informe se actualiza y la tarjeta cambia de columna sola." |
+| 5:15 | **Cómo funciona** y documento 06 | "Todo sobre GitHub, con permisos mínimos. Para producción: GitHub App, tokens de 1 hora y auditoría." |
+| 5:45 | Cierre | Impacto, reutilización entre tribus y plan de 6 meses. |
 
 ## Plan B
-- Si Actions tarda, mostrar el Issue de ejemplo ya evaluado.
+- Si Actions tarda, mostrar los Issues #1 y #2, que ya están evaluados.
 - Si el portal no carga, ejecutar localmente `npm run build && python3 -m http.server -d docs 8080`.
+- Si el tablero no responde, mostrar la captura del documento 08.
+
+## Valores del caso bloqueado
+Servicio `pagos-api` · Tipo Normal · Criticidad Alta · Tamaño Grande · Día Viernes · Rollback No · sin casillas marcadas.
+Caso feliz: Tamaño Pequeño · Día Martes · Rollback "Sí, probado" · las 9 casillas.
+Nota: el riesgo del camino feliz (hoy Medio) baja con el tiempo; no cites un número fijo.
