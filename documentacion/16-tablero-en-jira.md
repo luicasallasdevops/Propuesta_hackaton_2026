@@ -24,8 +24,11 @@ Estado: implementado como espejo. GitHub sigue siendo la fuente del estado del O
 | En curso | Congelamiento, Reversión de congelamiento, Gestión de pase, Ejecución, Reversión de pase, Ratificación, Reversión |
 | Finalizada | Done |
 
+## Historias de usuario
+Cuando alguien pide que el agente cree la historia, el chat arma el «Como… quiero… para…» y abre el formulario `historia.yml` ya lleno en GitHub. Al guardarlo, el workflow `historia-jira` crea la incidencia tipo Historia en KAN (etiquetas `historia`, `servicio-<svc>`, `gh-historia-<n>`) y responde con la clave. El usuario escribe esa clave en el chat y se asocia al OCD. El token nunca pasa por el navegador.
+
 ## Pendiente
-- Historias: el chat sigue usando datos de ejemplo. Falta un job que publique las historias de Jira como JSON junto al portal (el navegador no debe usar el token).
+- Buscar historias existentes: el chat verifica solo las HU de ejemplo; las claves KAN-n se aceptan sin verificar. Falta un job que publique las historias de Jira como JSON junto al portal (el navegador no debe usar el token).
 - Si el negocio quiere ver los 11 estados como columnas, el dueño del proyecto debe crearlos en el flujo de trabajo y se actualiza el mapa.
 - Rotación del token y cuenta de servicio para producción (hoy es el token de una cuenta personal).
 - Coordinar con `yegecali`: su rama `feature/integration-jira-confluence` trae otro `jira-ocd.yml` que usa los mismos secretos sin entorno; conviene unificar en esta versión.

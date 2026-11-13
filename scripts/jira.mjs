@@ -1,7 +1,8 @@
 // Refleja el OCD de GitHub en el tablero de Jira (REST v3). Sin dependencias.
 // GitHub sigue siendo la fuente del estado: Jira es el espejo que ve el negocio. El token solo se lee de JIRA_API_TOKEN y nunca se imprime.
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
+import { parseIssueForm, armarHistoria } from "./engine.mjs";
 
 const leer = async (f) => JSON.parse(await readFile(new URL(f, import.meta.url), "utf8"));
 
@@ -30,7 +31,12 @@ export function clienteJira({ baseUrl, email, token, fetchFn = fetch }) {
   const auth = `Basic ${Buffer.from(`${email}:${token}`).toString("base64")}`;
   const pedir = async (metodo, ruta, cuerpo) => {
     const res = await fetchFn(`${base}${ruta}`, { method: metodo, headers: { Authorization: auth, Accept: "application/json", "Content-Type": "application/json" }, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
-    if (!res.ok) throw new Error(`Jira ${metodo} ${ruta.split("?")[0]} → HTTP ${res.status}`);
+    if (!res.ok) {
+      // El detalle de Jira (campos inválidos, permisos) no contiene secretos y es lo que permite corregir el problema.
+      const det = await res.json().catch(() => null);
+      const msg = [...(det?.errorMessages ?? []), ...Object.entries(det?.errors ?? {}).map(([k, v]) => `${k}: ${v}`)].join("; ").slice(0, 300);
+      throw new Error(`Jira ${metodo} ${ruta.split("?")[0]} → HTTP ${res.status}${msg ? ` (${msg})` : ""}`);
+    }
     return res.status === 204 ? null : res.json();
   };
   return { pedir, base };
@@ -70,13 +76,37 @@ export async function sincronizarOcd({ jira, mapa, numero, titulo, url, estado }
   return `${incidencia.key} ${accion}; movida a "${destino}" (estado OCD: ${estado}).`;
 }
 
+/** Crea en Jira la historia de usuario que pidió una persona (tipo Historia). Devuelve la clave y el enlace. */
+export async function crearHistoria({ jira, mapa, campos, numeroIssue, urlIssue }) {
+  const servicio = String(campos.servicio ?? "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40);
+  if (!servicio || !campos.rol || !campos.objetivo || !campos.beneficio) throw new Error("Faltan datos de la historia (servicio, como, quiero o para).");
+  const h = armarHistoria({ rol: campos.rol, objetivo: campos.objetivo, beneficio: campos.beneficio, servicio, numero: 0 });
+  const etiqueta = `${mapa.prefijoEtiquetaHistoria}${numeroIssue}`;
+  const previa = await jira.pedir("GET", `/rest/api/3/search/jql?jql=${encodeURIComponent(`project = ${mapa.proyecto} AND labels = "${etiqueta}"`)}&fields=summary`);
+  if (previa.issues?.[0]) return { key: previa.issues[0].key, url: `${jira.base}/browse/${previa.issues[0].key}`, creada: false };
+  const adf = descripcionAdf(`${h.descripcion} Criterios de aceptación: ${h.criterios.join("; ")}.`, urlIssue);
+  const nueva = await jira.pedir("POST", "/rest/api/3/issue", { fields: {
+    project: { key: mapa.proyecto }, issuetype: { name: mapa.tipoHistoria }, summary: h.titulo.charAt(0).toUpperCase() + h.titulo.slice(1),
+    labels: [...mapa.etiquetasBase.filter((l) => l !== "ocd"), "historia", `servicio-${servicio}`, etiqueta], description: adf,
+  } });
+  return { key: nueva.key, url: `${jira.base}/browse/${nueva.key}`, creada: true };
+}
+
 async function main() {
-  const { JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN, GH_REPO, MODO = "uno", ISSUE, ESTADO } = process.env;
+  const { JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN, GH_REPO, MODO = "uno", ISSUE, ESTADO, GITHUB_EVENT_PATH } = process.env;
   if (!JIRA_API_TOKEN || !JIRA_EMAIL) { console.log("::notice::JIRA_EMAIL o JIRA_API_TOKEN no están configurados: se omite Jira."); return; }
   const mapa = await leer("../knowledge/ocd-jira.json");
   const flujo = await leer("../knowledge/ocd-flujo.json");
   const { estadoPorEtiquetas } = await import("./flujo.mjs");
   const jira = clienteJira({ baseUrl: JIRA_BASE_URL ?? "https://rochadavid0797.atlassian.net", email: JIRA_EMAIL, token: JIRA_API_TOKEN });
+  if (MODO === "historia") {
+    const ev = JSON.parse(await readFile(GITHUB_EVENT_PATH, "utf8"));
+    const f = parseIssueForm(ev.issue.body);
+    const r = await crearHistoria({ jira, mapa, campos: { servicio: f["Servicio"], rol: f["Como (quién se beneficia)"], objetivo: f["Quiero (qué quiere lograr)"], beneficio: f["Para (el beneficio)"] }, numeroIssue: ev.issue.number, urlIssue: ev.issue.html_url });
+    await writeFile("/tmp/historia-comentario.md", `${r.creada ? "✅ Historia creada" : "ℹ️ La historia ya existía"} en Jira: [${r.key}](${r.url})\n\nSi estás creando un OCD en el chat, escribe la clave **${r.key}** cuando te pida la historia.\n`);
+    console.log(`${r.key} ${r.creada ? "creada" : "existente"}`);
+    return;
+  }
   const gh = (...a) => JSON.parse(execFileSync("gh", a, { encoding: "utf8", maxBuffer: 20e6 }));
   const issues = MODO === "todos"
     ? gh("api", `repos/${GH_REPO}/issues?state=all&labels=ocd&per_page=100`).filter((i) => !i.pull_request)

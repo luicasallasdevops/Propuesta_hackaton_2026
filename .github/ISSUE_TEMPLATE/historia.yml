@@ -1,0 +1,33 @@
+name: Historia de usuario (se crea en Jira)
+description: El agente crea la historia en el tablero KAN de Jira y te responde con su clave.
+title: "[HISTORIA] "
+labels: ["historia"]
+body:
+  - type: input
+    id: servicio
+    attributes:
+      label: Servicio
+      description: Servicio al que pertenece el cambio. Por ejemplo pagos-api, canal-web, core-cuentas.
+    validations:
+      required: true
+  - type: input
+    id: rol
+    attributes:
+      label: Como (quién se beneficia)
+      placeholder: cliente del banco
+    validations:
+      required: true
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Quiero (qué quiere lograr)
+      placeholder: ver el motivo del rechazo de un pago
+    validations:
+      required: true
+  - type: textarea
+    id: beneficio
+    attributes:
+      label: Para (el beneficio)
+      placeholder: resolver sus dudas sin llamar
+    validations:
+      required: true

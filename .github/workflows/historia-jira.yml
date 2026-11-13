@@ -1,0 +1,48 @@
+name: historia-jira
+
+# Crea en Jira (tablero KAN) la historia de usuario que una persona pide con el formulario "Historia de usuario".
+on:
+  issues:
+    types: [opened]
+
+permissions: {}
+
+concurrency:
+  group: historia-jira-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  crear:
+    if: startsWith(github.event.issue.title, '[HISTORIA]') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: jira
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ github.event.issue.number }}
+      MODO: historia
+      JIRA_BASE_URL: ${{ vars.JIRA_BASE_URL || 'https://rochadavid0797.atlassian.net' }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Crear la historia en Jira
+        run: node scripts/jira.mjs
+      - name: Responder en el Issue
+        run: |
+          set -euo pipefail
+          if [ -s /tmp/historia-comentario.md ]; then gh issue comment "$ISSUE" --body-file /tmp/historia-comentario.md; fi
+      - name: Avisar si falla
+        if: failure()
+        run: |
+          gh issue comment "$ISSUE" --body "⛔ No se pudo crear la historia en Jira. Revisa los secretos del entorno jira. Detalle: $RUN_URL"

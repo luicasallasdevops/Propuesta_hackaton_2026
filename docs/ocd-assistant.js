@@ -8,7 +8,7 @@ import {
 } from "./engine.mjs";
 import { extraerDatos } from "./conversacion.mjs";
 import { validarConjuntos, plantillaConjunto, ejecutaAutomatico, avanzaSolo, rolDeTexto, pendientesDeRol, rolNombre, transicionesDe } from "./flujo.mjs";
-import { detalle, campoTexto, abrirDialogo, enlace } from "./ui.js";
+import { detalle, campoTexto, abrirDialogo, enlace, repo } from "./ui.js";
 
 const DOC_FLUJO = { texto: "Flujo del OCD (documento 13)", ruta: "documentacion/13-flujo-ocd.md" };
 const DOC_GUIA = { texto: "Guía del OCD en la base de conocimiento", ruta: "knowledge/06-ocd-pase-a-produccion.md" };
@@ -34,7 +34,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   const HOY = cfg.fechaDemo;
   let st = "idle";
   let d = {};
-  let nHD = 4800, nHU = 3200, nOCD = 5000;
+  let nHD = 4800, nOCD = 5000;
   const paso = (x) => document.dispatchEvent(new CustomEvent("ocd:paso", { detail: x }));
   const p = (t) => el("p", { textContent: t });
   const lista = (items) => el("ul", {}, items.map((t) => el("li", { textContent: t })));
@@ -115,7 +115,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   }
 
   /* ---------- Historia: se busca en Jira y el usuario la confirma ---------- */
-  const campoHistoria = () => campoTexto({ etiqueta: "Historia", placeholder: "Ej: HU-3101", boton: "Buscar en Jira", maxLength: 12, onEnviar: (v) => { say("user", v); conHistoria(v); } });
+  const campoHistoria = () => campoTexto({ etiqueta: "Historia", placeholder: "Ej: HU-3101 o KAN-12", boton: "Buscar en Jira", maxLength: 12, onEnviar: (v) => { say("user", v); conHistoria(v); } });
   const demoHistorias = () => detalle("Historias de la demostración", lista(historias.map((h) => `${h.id} · ${h.titulo} (${h.servicio})`)));
 
   function pedirHistoria() {
@@ -127,12 +127,13 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
 
   function conHistoria(t) {
     if (/no\s+(se|tengo|conozco|recuerdo)|ayud|crear|nueva/.test(quitarAcentos(t))) { ayudaHistoria(); return true; }
-    const id = normalizarHistoria(t.match(/hu-?\d{4}/i)?.[0] ?? t);
+    const id = normalizarHistoria(t.match(/(hu-?\d{4}|kan-\d{1,6})/i)?.[0] ?? t);
     if (!id) {
       if (esPregunta(t)) return salir(t);
       say("bot", p("No reconozco ese formato. La historia es HU y cuatro dígitos, por ejemplo HU-3101."), campoHistoria(), opciones(opcion("No tengo historia, ayúdame a crearla", ayudaHistoria))); return true;
     }
-    const h = historias.find((x) => x.id === id);
+    let h = historias.find((x) => x.id === id);
+    if (!h && id.startsWith("KAN-")) h = { id, servicio: d.svc ?? d.hsvcNueva ?? "", titulo: d.hdraft?.titulo ?? "Historia creada por el agente en Jira", estado: "Por hacer", creadoPor: nombreCorto(d.u), tablero: "KAN (Jira)", verificar: true };
     if (!h) {
       say("bot", p(`Busqué ${id} en Jira y no existe. Revisa el número o crea una nueva.`), campoHistoria(), opciones(opcion("No tengo historia, ayúdame a crearla", ayudaHistoria)), demoHistorias()); return true;
     }
@@ -177,13 +178,16 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
   }
   function conHben(t) {
     if (t.length < 5) { say("bot", p("Cuéntame el beneficio con algo más de detalle.")); return true; }
-    const h = armarHistoria({ rol: d.hrol, objetivo: d.hobj, beneficio: t, servicio: d.svc, numero: ++nHU });
-    const nueva = { id: h.id, servicio: h.servicio, titulo: h.titulo, estado: h.estado, responsable: nombreCorto(d.u), creadoPor: nombreCorto(d.u), tablero: `Tablero ${h.servicio}` };
-    historias.push(nueva);
-    d.historia = nueva;
-    say("bot", p(`Listo, creé ${h.id} en Jira y la asocio a tu OCD.`),
-      detalle(`Ver la historia ${h.id}`, [p(h.descripcion), p("Criterios de aceptación:"), lista(h.criterios)]));
-    pedirModalidad(); return true;
+    const h = armarHistoria({ rol: d.hrol, objetivo: d.hobj, beneficio: t, servicio: d.svc, numero: 0 });
+    d.hdraft = h; st = "hkan";
+    const prm = new URLSearchParams({ template: "historia.yml", title: `[HISTORIA] ${h.titulo}`.slice(0, 120), servicio: d.svc, rol: d.hrol, objetivo: d.hobj, beneficio: t.slice(0, 140) });
+    const url = `https://github.com/${repo}/issues/new?${prm}`;
+    say("bot", p("Así queda tu historia. Para crearla en Jira (tablero KAN) la envías con un clic: se abre el formulario ya lleno en GitHub, lo guardas y el agente la crea y te responde con su clave."),
+      el("div", { className: "card hd" }, el("strong", { textContent: h.titulo }), p(h.descripcion), lista(h.criterios)),
+      el("p", {}, el("a", { className: "btn", href: url, target: "_blank", rel: "noopener noreferrer", textContent: "Crear en Jira (abre GitHub)" })),
+      p("Cuando el agente te responda con la clave (por ejemplo KAN-12), escríbela aquí:"),
+      campoTexto({ etiqueta: "Clave de la historia", placeholder: "KAN-12", boton: "Continuar", maxLength: 10, onEnviar: (v) => { say("user", v); conHistoria(v); } }));
+    return true;
   }
 
   /* ---------- Modalidad del OCD, con ejemplos y enlace a la documentación ---------- */
@@ -458,7 +462,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     ({ st, d } = pausa); pausa = null;
     const f = { matricula: () => pedirMatricula(d.modo ?? "crear"), perfil: pedirPerfil, hconf: pedirHistoria, fecha: pedirFecha, hora: () => pedirCampo("hora"), historia: pedirHistoria, hsvc: ayudaHistoria, modalidad: pedirModalidad, evidencias: pedirEvidencias, guia: () => mostrarEstado(d.estado),
       helpdesk: revisarDso, "crear?": despuesDeGrupos, oferta: () => { st = "idle"; ofrecer(); }, hrol: () => say("bot", p("¿Quién es el usuario que se beneficia? Es el «Como …» de la historia.")),
-      hobj: () => say("bot", p("¿Qué quiere lograr? Es el «quiero …».")), hben: () => say("bot", p("¿Para qué lo quiere? Es el «para …».")),
+      hobj: () => say("bot", p("¿Qué quiere lograr? Es el «quiero …».")), hben: () => say("bot", p("¿Para qué lo quiere? Es el «para …».")), hkan: () => say("bot", p("Escribe la clave que te dio el agente en Jira (por ejemplo KAN-12).")),
       instr: () => say("bot", p("Seguimos con tus instrucciones: escríbelas en los cuadros de arriba y pulsa «Validar mis instrucciones».")),
       fin: () => say("bot", p("Ya habías terminado este OCD. ¿Quieres crear otro?")) }[st];
     if (f) { f(); return; }
@@ -537,6 +541,7 @@ export function crearAsistenteOcd({ say, el, dir, cfg, cal, policy, incidents, h
     if (st === "hrol") return conHrol(t);
     if (st === "hobj") return conHobj(t);
     if (st === "hben") return conHben(t);
+    if (st === "hkan") return conHistoria(t);
     if (st === "instr") { say("bot", p("Escribe cada conjunto en su cuadro y pulsa «Validar mis instrucciones».")); return true; }
     if (st === "fecha") {
       const m = extraerDatos(t, { servicios: [], hoy: HOY }).fecha;

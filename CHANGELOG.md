@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.6.1-poc
+El agente crea historias de usuario reales en Jira.
+- Formulario «Historia de usuario» y workflow `historia-jira`: crea la historia (tipo Historia) en el tablero KAN y responde en el Issue con su clave.
+- En el chat, «No tengo historia, ayúdame a crearla» arma la historia y abre el formulario ya lleno; el usuario escribe la clave (KAN-12) y el OCD queda asociado. Las claves KAN-n se aceptan como historia.
+- Los errores de Jira ahora muestran el detalle (campos inválidos o permisos) para diagnosticar.
+
 ## 1.6.0-poc
 Integración con Jira: el OCD se refleja en el tablero KAN.
 - `scripts/jira.mjs` y `knowledge/ocd-jira.json`: crea la incidencia del OCD y la mueve según el estado del flujo (4 estados de Jira, estado exacto en una etiqueta).

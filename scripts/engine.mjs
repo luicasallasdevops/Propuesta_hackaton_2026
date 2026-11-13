@@ -420,15 +420,21 @@ export function crearSolicitudHelpdesk({ usuario, ids, dir, numero }) {
   };
 }
 
-/** Normaliza "hu3101" o "HU-3101". Devuelve "" si no tiene el formato. */
-export const normalizarHistoria = (t) => { const m = String(t ?? "").trim().toUpperCase().match(/^HU-?(\d{4})$/); return m ? `HU-${m[1]}` : ""; };
+/** Normaliza "hu3101" o "HU-3101"; también acepta la clave de una historia creada en Jira (KAN-12). Devuelve "" si no tiene el formato. */
+export const normalizarHistoria = (t) => {
+  const x = String(t ?? "").trim().toUpperCase();
+  const m = x.match(/^HU-?(\d{4})$/); if (m) return `HU-${m[1]}`;
+  const k = x.match(/^KAN-(\d{1,6})$/); return k ? `KAN-${k[1]}` : "";
+};
 
 /** La historia debe existir y ser del mismo servicio del OCD. */
 export function validarHistoria({ historia, servicio }, historias) {
   if (!String(historia ?? "").trim()) return { ok: false, motivo: "Falta la historia asociada" };
   const id = normalizarHistoria(historia);
-  if (!id) return { ok: false, motivo: "Historia inválida: usa el formato HU-1234" };
-  const h = historias.find((x) => x.id === id);
+  if (!id) return { ok: false, motivo: "Historia inválida: usa el formato HU-1234 o la clave de Jira (KAN-12)" };
+  let h = historias.find((x) => x.id === id);
+  // Una historia creada por el agente en Jira (KAN-n) no está en los datos de ejemplo: se acepta por su clave.
+  if (!h && id.startsWith("KAN-")) h = { id, servicio: servicio || "", titulo: "Historia creada en Jira", estado: "Por hacer", responsable: "", tablero: "KAN" };
   if (!h) return { ok: false, motivo: `La historia ${id} no existe` };
   if (servicio && h.servicio !== servicio) return { ok: false, motivo: `La historia ${id} es del servicio ${h.servicio}, no de ${servicio}`, historia: h };
   return { ok: true, id, historia: h };

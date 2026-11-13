@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { estadoJira, etiquetasJira, clienteJira, sincronizarOcd } from "../scripts/jira.mjs";
+import { estadoJira, etiquetasJira, clienteJira, sincronizarOcd, crearHistoria } from "../scripts/jira.mjs";
 
 const mapa = JSON.parse(await readFile(new URL("../knowledge/ocd-jira.json", import.meta.url), "utf8"));
 const flujo = JSON.parse(await readFile(new URL("../knowledge/ocd-flujo.json", import.meta.url), "utf8"));
@@ -64,4 +64,27 @@ test("actualiza la etiqueta de estado y transiciona cuando cambia", async () => 
 test("falla con claridad si Jira no ofrece la transición", async () => {
   const jira = { pedir: async (m, r) => r.startsWith("/rest/api/3/search") ? { issues: [{ key: "KAN-1", fields: { status: { name: "X" }, labels: [] } }] } : r.endsWith("/transitions") && m === "GET" ? { transitions: [] } : null };
   await assert.rejects(sincronizarOcd({ jira, mapa, numero: 1, titulo: "t", url: "u", estado: "done" }), /no hay transición/);
+});
+
+const campos = { servicio: "pagos-api", rol: "cliente del banco", objetivo: "ver el motivo del rechazo de un pago", beneficio: "resolver sus dudas sin llamar" };
+
+test("crea la historia como tipo Historia con su descripción y etiquetas", async () => {
+  const { jira, llamadas } = falso(); jira.base = "https://x.atlassian.net";
+  const r = await crearHistoria({ jira, mapa, campos, numeroIssue: 20, urlIssue: "https://github.com/o/r/issues/20" });
+  assert.deepEqual([r.key, r.creada, r.url], ["KAN-9", true, "https://x.atlassian.net/browse/KAN-9"]);
+  const f = llamadas.find((l) => l[0] === "POST").at(2).fields;
+  assert.equal(f.issuetype.name, "Historia");
+  assert.ok(f.labels.includes("gh-historia-20") && f.labels.includes("servicio-pagos-api") && !f.labels.includes("ocd"));
+  assert.match(JSON.stringify(f.description), /Como cliente del banco quiero ver el motivo/);
+});
+
+test("no duplica la historia si el Issue ya la creó", async () => {
+  const { jira, llamadas } = falso({ existente: { key: "KAN-8", fields: {} } }); jira.base = "https://x.atlassian.net";
+  const r = await crearHistoria({ jira, mapa, campos, numeroIssue: 20, urlIssue: "u" });
+  assert.deepEqual([r.key, r.creada], ["KAN-8", false]);
+  assert.equal(llamadas.some((l) => l[0] === "POST"), false);
+});
+
+test("rechaza una historia incompleta", async () => {
+  await assert.rejects(crearHistoria({ jira: falso().jira, mapa, campos: { ...campos, beneficio: "" }, numeroIssue: 1, urlIssue: "u" }), /Faltan datos/);
 });

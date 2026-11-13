@@ -3,7 +3,10 @@
  "nota": "Mapa del flujo OCD hacia el tablero Jira KAN. Jira tiene 4 estados: cada estado del OCD cae en uno de ellos y el estado exacto queda en la etiqueta ocd-estado-<id> de la incidencia. Cambiar el mapa no requiere tocar código.",
  "proyecto": "KAN",
  "tipoIncidencia": "Tarea",
- "etiquetasBase": ["devsecops-agent", "ocd"],
+ "etiquetasBase": [
+  "devsecops-agent",
+  "ocd"
+ ],
  "prefijoEtiquetaOcd": "gh-ocd-",
  "prefijoEtiquetaEstado": "ocd-estado-",
  "estados": {
@@ -18,5 +21,7 @@
   "ratificacion": "En curso",
   "reversion": "En curso",
   "done": "Finalizada"
- }
+ },
+ "tipoHistoria": "Historia",
+ "prefijoEtiquetaHistoria": "gh-historia-"
 }
