@@ -18,6 +18,7 @@
   </div>
   <nav class="wrap" role="tablist" aria-label="Secciones">
     <button role="tab" aria-selected="true" aria-controls="p-guia" id="t-guia"><span aria-hidden="true">🧭</span> Guía paso a paso</button>
+    <button role="tab" aria-selected="false" aria-controls="p-ben" id="t-ben"><span aria-hidden="true">🎯</span> Beneficios</button>
     <button role="tab" aria-selected="false" aria-controls="p-chat" id="t-chat"><span aria-hidden="true">💬</span> Preguntar</button>
     <button role="tab" aria-selected="false" aria-controls="p-pase" id="t-pase"><span aria-hidden="true">🛡️</span> Validar mi pase</button>
     <button role="tab" aria-selected="false" aria-controls="p-plant" id="t-plant"><span aria-hidden="true">📦</span> Plantillas</button>
@@ -28,6 +29,10 @@
 <main class="wrap">
   <section id="p-guia" role="tabpanel" aria-labelledby="t-guia">
     <div id="guia-root"><p class="muted">Cargando la guía…</p></div>
+  </section>
+
+  <section id="p-ben" role="tabpanel" aria-labelledby="t-ben" hidden>
+    <div id="ben-root"><p class="muted">Cargando…</p></div>
   </section>
 
   <section id="p-chat" role="tabpanel" aria-labelledby="t-chat" hidden>
@@ -83,5 +88,6 @@
 </main>
 <script type="module" src="app.js"></script>
 <script type="module" src="guide.js"></script>
+<script type="module" src="benefits.js"></script>
 </body>
 </html>

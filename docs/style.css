@@ -60,3 +60,23 @@ pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12
 @media(prefers-reduced-motion:no-preference){.dot.current{animation:pulse 2s infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--c) 10%,transparent)}}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 .back{margin:0 0 12px;background:var(--card);color:var(--acc);border:1px solid var(--acc);border-radius:99px;padding:7px 16px;font:inherit;font-weight:600;cursor:pointer}.back:hover{background:var(--acc);color:#fff}
+/* Beneficios y pilares */
+.hero2.ben{grid-template-columns:1fr;background:linear-gradient(135deg,#0a6b4f 0%,#0b5cc4 60%,#6639ba 100%);box-shadow:0 10px 30px rgb(11 92 196/.28)}
+.ben-sec{margin:22px 0}.ben-sec>h2{font-size:1.35rem;margin:0 0 10px}.small{font-size:.85rem}.disc{text-align:center;margin-top:24px}
+.pil-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.pil{--c:var(--acc);background:var(--card);border:1px solid var(--bd);border-top:6px solid var(--c);border-radius:16px;padding:18px}
+.pil h3{margin:10px 0 8px;font-size:1.1rem}.pil p{margin:.4rem 0;font-size:.94rem}.pil-r{color:var(--mut)}.chip-l{margin-top:10px!important}
+.pil-ico{width:60px;height:60px;border-radius:18px;display:grid;place-items:center;font-size:2rem;background:linear-gradient(145deg,color-mix(in srgb,var(--c) 28%,var(--card)),color-mix(in srgb,var(--c) 8%,var(--card)));border:1px solid color-mix(in srgb,var(--c) 40%,var(--bd))}
+.case{background:var(--card);border:1px solid var(--bd);border-left:6px solid var(--ok);border-radius:16px;padding:18px}.case.is-bad{border-left-color:var(--bad)}
+.case h3{margin:0 0 6px}.big-num{margin:4px 0;font-size:1rem}.big-num strong{font-size:2.6rem;line-height:1}.case-st{font-weight:600;margin:8px 0}
+.meter.big{height:16px}
+.stack{display:flex;height:22px;border-radius:99px;overflow:hidden;border:1px solid var(--bd);background:var(--bg)}.stack i{display:block;height:100%}
+.f1{background:#0969da}.f2{background:#cf222e}.f3{background:#bc4c00}.f4{background:#8250df}.f5{background:#0e7c7c}.f6{background:#bf3989}
+.legend{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:4px;font-size:.88rem}.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px}
+.vs{border-radius:16px;padding:16px 18px;border:1px solid var(--bd)}.vs h3{margin:0 0 8px}.vs ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}.vs li{display:flex;gap:10px;align-items:flex-start}.vs li span{font-size:1.4rem;line-height:1.2}
+.vs.before{background:color-mix(in srgb,var(--bad) 8%,var(--card));border-color:color-mix(in srgb,var(--bad) 35%,var(--bd))}.vs.after{background:color-mix(in srgb,var(--ok) 10%,var(--card));border-color:color-mix(in srgb,var(--ok) 40%,var(--bd))}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.num-card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+.num-i{font-size:1.6rem}.num-card strong{font-size:2.2rem;line-height:1.1;color:var(--acc)}.num-card span:last-child{font-size:.86rem;color:var(--mut)}
+.crit{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.crit-c{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px}
+.crit-i{font-size:1.8rem;line-height:1}.crit-c h3{margin:0 0 2px;font-size:1rem}.crit-c p{margin:0;font-size:.9rem;color:var(--mut)}
+.bonus-h{margin:18px 0 8px}.crit.bonus .crit-c{border-color:color-mix(in srgb,var(--warn) 50%,var(--bd));background:color-mix(in srgb,var(--warn) 7%,var(--card))}
