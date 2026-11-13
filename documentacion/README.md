@@ -18,3 +18,4 @@ Lee en este orden:
 11. [Pase a producción tipo OCD](11-pase-ocd.md): calendario, aprobadores, datos ficticios y cómo probarlo (versión 1.2.0: grupos DevSecOps, Helpdesk, historia e instrucciones).
 
 Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **simulado**.
+12. [Migración a Grupo11](12-migracion-grupo11.md): qué configurar en el repositorio de la organización.

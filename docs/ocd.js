@@ -13,7 +13,7 @@ const load = (f) => fetch(`data/${f}`).then((r) => { if (!r.ok) throw new Error(
 const root = $("#ocd-root");
 if (root) init().catch((e) => root.replaceChildren(el("p", { className: "muted", textContent: `No pude cargar el módulo OCD (${e.message}).` })));
 
-const FALLBACK_REPO = "luicasallasdevops/Propuesta_hackaton_2026";
+const FALLBACK_REPO = "hybridcloudcompany/Grupo11";
 const repo = (() => {
   const m = location.hostname.match(/^(.+)\.github\.io$/);
   const name = location.pathname.split("/")[1];

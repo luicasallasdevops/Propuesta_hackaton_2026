@@ -78,7 +78,7 @@ function answer(q) {
 
 function issueUrl() {
   const m = location.hostname.match(/^(.+)\.github\.io$/);
-  const repo = m && location.pathname.split("/")[1] ? `${m[1]}/${location.pathname.split("/")[1]}` : "luicasallasdevops/Propuesta_hackaton_2026";
+  const repo = m && location.pathname.split("/")[1] ? `${m[1]}/${location.pathname.split("/")[1]}` : "hybridcloudcompany/Grupo11";
   return `https://github.com/${repo}/issues/new?template=pase-produccion.yml`;
 }
 

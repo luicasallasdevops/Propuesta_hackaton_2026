@@ -6,12 +6,14 @@ const el = (tag, props = {}, ...kids) => {
   return n;
 };
 
-const FALLBACK_REPO = "luicasallasdevops/Propuesta_hackaton_2026";
+const FALLBACK_REPO = "hybridcloudcompany/Grupo11";
 const repo = (() => {
   const m = location.hostname.match(/^(.+)\.github\.io$/);
   const name = location.pathname.split("/")[1];
   return m && name ? `${m[1]}/${name}` : FALLBACK_REPO;
 })();
+// El tablero cuelga de una persona (users) o de una organización (orgs): se consulta una vez, sin credenciales.
+const tipoDueno = await fetch(`https://api.github.com/users/${repo.split("/")[0]}`).then((r) => (r.ok ? r.json() : {})).then((j) => (j.type === "Organization" ? "orgs" : "users")).catch(() => "users");
 const gh = (path = "") => `https://github.com/${repo}${path}`;
 const params = (o) => new URLSearchParams(o).toString();
 
@@ -82,7 +84,7 @@ const STEPS = [
   {
     id: "tablero", icono: "📋", c: "c9", tiempo: "30 s", titulo: "Sigue el pase en el tablero Kanban",
     texto: "Cada ticket es una tarjeta. El agente la coloca en Bloqueado o en Listo para aprobaciones, y las personas la avanzan hasta producción.",
-    acciones: [{ t: "Abrir el tablero", href: `https://github.com/users/${repo.split("/")[0]}/projects/1` }],
+    acciones: [{ t: "Abrir el tablero", href: `https://github.com/${tipoDueno}/${repo.split("/")[0]}/projects/1` }],
     resultado: "Una tarjeta por ticket, en la columna que corresponde al resultado del agente.",
   },
   {

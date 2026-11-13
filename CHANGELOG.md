@@ -1,5 +1,8 @@
 # Cambios
 
+## 1.2.1-poc
+- Migración al repositorio `hybridcloudcompany/Grupo11`: el tablero funciona con dueños persona u organización, enlaces y valores de respaldo actualizados y guía de configuración (documento 12).
+
 ## 1.2.0-poc
 - **Escenario 1 del OCD:** cuando el usuario pregunta cómo crear un OCD, el agente ofrece validar con su matrícula los grupos de red de DevSecOps (GR-DSO-GITHUB, GR-DSO-SCAN, GR-DSO-RELEASE). Si faltan, ofrece crear la solicitud en Helpdesk (ticket simulado HD-n con aprobación del líder).
 - **Escenario 2 del OCD:** el usuario pide crear un OCD, el agente pide su historia (HU-1234; si no la sabe, la crea con él), pide todos los datos del OCD menos las instrucciones, asocia la historia, guía paso a paso la gestión con el calendario y valida las instrucciones de despliegue al llegar a la revisión técnica (con plantilla de ayuda).

@@ -67,5 +67,5 @@ La 0.2.0 responde con un **tablero visual del flujo del pase**, que se mueve sol
 - El avance a *Aprobado* es manual; conectarlo con las aprobaciones reales es el siguiente paso.
 
 ## Dónde probarlo
-- Portal: https://luicasallasdevops.github.io/Propuesta_hackaton_2026/ (empieza por **Guía paso a paso**).
-- Repositorio: https://github.com/luicasallasdevops/Propuesta_hackaton_2026
+- Portal: https://hybridcloudcompany.github.io/Grupo11/ (empieza por **Guía paso a paso**).
+- Repositorio: https://github.com/hybridcloudcompany/Grupo11

@@ -1,6 +1,6 @@
 # Guion de la demo (6 minutos)
 
-**Preparación (5 min antes):** portal abierto en la pestaña *Guía paso a paso*, el [tablero](https://github.com/users/luicasallasdevops/projects/1) abierto en otra pestaña y los Issues #1 (listo) y #2 (bloqueado) como respaldo.
+**Preparación (5 min antes):** portal abierto en la pestaña *Guía paso a paso*, el [tablero](https://github.com/orgs/hybridcloudcompany/projects/1) abierto en otra pestaña y los Issues #1 (listo) y #2 (bloqueado) como respaldo.
 
 | Min | Qué mostrar | Qué decir |
 |---|---|---|

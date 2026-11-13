@@ -36,6 +36,6 @@ Los equipos descubren tarde lo que les falta para un pase: rechazos, días de id
 - Medir el impacto con datos reales.
 
 ## Dónde probarlo
-- Portal: https://luicasallasdevops.github.io/Propuesta_hackaton_2026/
-- Tablero: https://github.com/users/luicasallasdevops/projects/1
-- Repositorio: https://github.com/luicasallasdevops/Propuesta_hackaton_2026
+- Portal: https://hybridcloudcompany.github.io/Grupo11/
+- Tablero: https://github.com/orgs/hybridcloudcompany/projects/1
+- Repositorio: https://github.com/hybridcloudcompany/Grupo11

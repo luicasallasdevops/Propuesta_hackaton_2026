@@ -60,6 +60,6 @@ Un asistente con tres capacidades:
 - Para producción: conectar fuentes reales por API, alimentar el historial de incidentes automáticamente y definir quién mantiene las políticas.
 
 ## Dónde probarlo
-- Portal: https://luicasallasdevops.github.io/Propuesta_hackaton_2026/ (empieza por **Guía paso a paso**).
-- Repositorio: https://github.com/luicasallasdevops/Propuesta_hackaton_2026
+- Portal: https://hybridcloudcompany.github.io/Grupo11/ (empieza por **Guía paso a paso**).
+- Repositorio: https://github.com/hybridcloudcompany/Grupo11
 - Más detalle: [contexto](01-contexto-y-problema.md), [arquitectura](02-arquitectura.md), [guion de demo](03-guion-demo.md), [guía para equipos](04-guia-para-equipos.md), [seguridad y hoja de ruta](05-seguridad-decisiones-roadmap.md).
