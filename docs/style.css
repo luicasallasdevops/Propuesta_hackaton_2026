@@ -110,3 +110,18 @@ pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12
 .sim-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}.sim-bar select{width:auto;flex:1;min-width:220px}
 .narra{min-height:70px}.narra h3{margin:0 0 4px}.sim-bar .btn:disabled{opacity:.45;cursor:default}
 .cta{margin-top:20px;text-align:center}.ocd-extra{font-weight:600}
+
+/* ---------- Simulador estilo Jira ---------- */
+.z1{--z:#59636e}.z2{--z:#cf222e}.z3{--z:#1a7f37}.z4{--z:#8250df}.z5{--z:#bc4c00}
+.lz{background:var(--z,var(--acc));color:#fff;border-radius:6px;padding:2px 10px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.jira-intro{margin-bottom:12px;border-left:5px solid var(--acc)}.eyebrow2{margin:0 0 4px;font-weight:700;color:var(--acc)}
+.jira{border-top:4px solid #0052cc}.jira-bar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.jira-bar span:not(.lz){color:var(--mut);font-size:.9rem}.jira-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tag{background:color-mix(in srgb,var(--acc) 14%,var(--card));border-radius:6px;padding:1px 8px;font-size:.8rem}
+.jira h3,.asistente h3,.ticket h3{font-size:.92rem;margin:14px 0 4px}.hint{color:var(--mut);font-weight:400}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.row2{grid-template-columns:1fr}}
+.chk{display:grid;grid-template-columns:1fr;gap:2px}.lst{list-style:none;margin:4px 0;padding:0}.lst li{padding:2px 0}.lst li.mal{color:var(--bad)}
+ol.lst{list-style:decimal;padding-left:1.3rem}ol.lst li{color:var(--fg)}
+.asistente{align-self:start;position:sticky;top:8px;border-top:4px solid #6f42c1}
+.ticket{margin-top:14px;border-top:4px solid #0052cc}.chico{padding:3px 10px;font-size:.82rem}.btn:disabled{opacity:.45;cursor:default}
+.jira form .acts,.ticket .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}

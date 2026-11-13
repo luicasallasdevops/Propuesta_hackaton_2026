@@ -29,8 +29,8 @@ Un pase a producción tipo OCD es largo de preparar. Hay tres aprobadores (líde
 | Tipo | Aprobadores | Se suman |
 |---|---|---|
 | Estándar | Líder técnico, Change Management | Riesgo Alto: Seguridad. Crítico: Delegado CIO. |
-| Normal | Líder técnico, Seguridad, Change Management | Riesgo Crítico: Delegado CIO. |
-| Emergencia | Líder técnico; Seguridad y Change Management a posteriori | En congelamiento: Delegado CIO. |
+| Normal | Líder técnico, Product Owner, Seguridad, Change Management | Riesgo Crítico: Delegado CIO. |
+| Emergencia | Líder técnico; Product Owner informado; Seguridad y Change Management a posteriori | En congelamiento: Delegado CIO. |
 
 ## El calendario que calcula el agente
 Ejemplo para un OCD Normal con ejecución el jueves 19 de noviembre:
@@ -60,15 +60,30 @@ Fecha de la simulación: **lunes 16 de noviembre de 2026** (campo "Hoy" del plan
 | OCD-2001 | canal-web | Normal | Mar 10 nov | En producción | Ya ejecutado |
 | OCD-2007 | notificaciones | Emergencia | Lun 16 nov | En producción | Aprobación a posteriori pendiente |
 
+## El OCD se crea en Jira (simulado)
+El usuario real crea el OCD en **Jira** (proyecto OCD, tipo de incidencia Pase a Producción). En la POC no hay Jira: el portal lo **simula** con una pantalla estilo Jira y el motor real corre en GitHub (Issue `[OCD]` + Actions + tablero). En producción, el mismo agente leería el ticket de Jira por su API y escribiría el comentario y el estado allí.
+
+El asistente de la pantalla enseña al usuario nuevo en 3 chequeos antes de crear el ticket:
+1. **Grupos de red:** cada servicio exige los suyos (GR-APP, GR-DB, GR-DEPLOY). Compara contra los que tiene el usuario y explica cómo pedir los que faltan (ticket de Solicitud de red, 3 días hábiles).
+2. **Aprobadores:** muestra quién es el líder técnico, el Product Owner, Seguridad y Change Management **de ese servicio** y avisa si se eligió a la persona equivocada.
+3. **Calendario y riesgo:** las mismas reglas del agente (noche, cupo, congelamientos, anticipación).
+
+Al crear el ticket, el agente comenta, calcula el calendario y mueve el estado. Se puede simular cada aprobación y la ejecución en la ventana.
+
+Datos ficticios en `knowledge/ocd-directorio.json`: 5 servicios, 3 grupos de red, 10 personas y dos perfiles:
+- **Valentina Ríos** (nueva en pagos-api): solo tiene GR-APP. Verá qué le falta.
+- **Mateo Díaz** (con experiencia): tiene los tres grupos. Verá el camino sin tropiezos.
+
 ## Dónde verlo en el portal
 Pestaña **📅 Pase OCD**:
-- **Recorrido en 6 pasos** y **planificador** con 5 casos precargados (OCD listo, noche llena, viernes sin rollback, congelamiento, emergencia).
+- **Simulador de Jira** (arriba): elige a Valentina, pulsa Crear y mira el bloqueo; pulsa Autocompletar, cambia a Mateo, crea de nuevo, simula las 4 aprobaciones y ejecuta.
+- **Recorrido en 6 pasos** y **planificador rápido** con 5 casos precargados (OCD listo, noche llena, viernes sin rollback, congelamiento, emergencia).
 - **Noches de la ventana** con el cupo de cada una.
 - **Tablero Kanban** con los OCD de ejemplo; al tocar una tarjeta se ven sus aprobaciones.
 - **Simulador** que mueve una tarjeta por el tablero, paso a paso, en tres escenarios.
 
-## Cómo probarlo en vivo en GitHub
-Abre el formulario **Pase a Producción tipo OCD** (el portal lo enlaza con servicio, fecha y hora precargados). El título empieza con `[OCD]`. Los desplegables no se precargan por URL: elígelos a mano.
+## Cómo probar el agente real en GitHub
+Abre el formulario **Pase a Producción tipo OCD** (equivale al ticket de Jira en la POC) (el portal lo enlaza con servicio, fecha y hora precargados). El título empieza con `[OCD]`. Los desplegables no se precargan por URL: elígelos a mano.
 
 | Caso | Servicio | Tipo | Crit. | Tamaño | Fecha | Hora | Rollback | Casillas | Resultado |
 |---|---|---|---|---|---|---|---|---|---|
@@ -85,6 +100,7 @@ Si ya pasó el 16 de noviembre, usa un martes a jueves con al menos 7 días háb
 
 ## Límites de la POC
 - La ocupación de las noches sale de `ocd-calendario.json`. Los Issues nuevos no la actualizan. En producción se alimenta del calendario de Change Management por API.
+- El directorio de personas y de grupos de red es ficticio; en producción sale del directorio corporativo y de la gestión de accesos.
 - Las aprobaciones de las personas se simulan en el portal; en GitHub las gestiona el ambiente protegido y el tablero.
 - Feriados y congelamientos son ficticios y no cubren zonas horarias.
 

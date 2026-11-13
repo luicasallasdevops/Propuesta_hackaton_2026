@@ -1,6 +1,7 @@
 // Pase OCD: planificador con calendario y aprobadores, noches de ventana, tablero Kanban simulado y simulador paso a paso.
 // Todo se construye con nodos DOM y textContent (sin innerHTML) y usa los datos ficticios de knowledge/.
 import { assessOcd, planOcd, ventanasProximas, diaDe } from "./engine.mjs";
+import { montarJira } from "./jira.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const el = (tag, props = {}, ...kids) => {
@@ -24,12 +25,12 @@ const fmtFecha = (s) => { const d = diaDe(s); return s ? `${d.slice(0, 3)} ${s.s
 const COLUMNAS = [["Solicitado", "📥", "k1"], ["Bloqueado", "🚨", "k2"], ["Listo para aprobaciones", "✅", "k3"], ["Aprobado", "🔐", "k4"], ["En producción", "🚀", "k5"]];
 const ICONO_APROB = { ok: "✅", pendiente: "⏳", "a posteriori": "🕓" };
 const RECORRIDO = [
+  ["🌐", "Verifica tus grupos de red", "Cada servicio exige los suyos. Pídelos con 3 días hábiles de anticipación."],
   ["📚", "Reúne evidencias", "QA, SAST, SCA, secretos, runbook y rollback probado."],
   ["🗓️", "Elige la noche", "Martes a jueves, 22:00 a 04:00, con cupo libre."],
-  ["📝", "Abre el OCD", "El formulario trae la fecha y la hora. El agente responde al instante."],
-  ["👥", "Consigue aprobaciones", "Líder técnico, Seguridad y Change Management (CAB)."],
-  ["🚀", "Ejecuta en la ventana", "Workflow protegido, con aprobadores del ambiente."],
-  ["🔎", "Verifica y cierra", "30 minutos de métricas y alertas; cierra con evidencia."],
+  ["📝", "Crea el OCD en Jira", "Con fecha, hora y aprobadores. El agente responde al instante."],
+  ["👥", "Consigue aprobaciones", "Líder técnico, Product Owner, Seguridad y Change Management (CAB)."],
+  ["🚀", "Ejecuta y verifica", "Workflow protegido, 30 minutos de métricas y cierre con evidencia."],
 ];
 const TEXTO_ETAPA = {
   crear: "Se abre el ticket con las evidencias. La tarjeta nace en Solicitado.",
@@ -45,7 +46,7 @@ const TEXTO_ETAPA = {
 };
 
 async function init() {
-  const [cfg, cal, policy, incidents] = await Promise.all(["ocd.json", "ocd-calendario.json", "policy.json", "incidents.json"].map(load));
+  const [cfg, cal, policy, incidents, dir] = await Promise.all(["ocd.json", "ocd-calendario.json", "policy.json", "incidents.json", "ocd-directorio.json"].map(load));
   const HOY = cfg.fechaDemo;
   const porId = (id) => cal.find((c) => c.id === id);
   const checksDe = (f) => Object.fromEntries(Object.keys(policy.controles).map((k) => [k, !f.faltan.includes(k)]));
@@ -218,7 +219,9 @@ async function init() {
       el("div", { className: "hero-prog" }, el("div", { className: "ocd-big", textContent: "OCD" }), el("p", { className: "hero-msg", textContent: "Datos simulados" }))),
     el("h2", { className: "sec", textContent: "🧭 Tu recorrido en 6 pasos" }),
     el("ol", { className: "steps6" }, RECORRIDO.map(([ico, t, d], n) => el("li", {}, el("span", { className: "s6-i", textContent: ico }), el("strong", { textContent: `${n + 1}. ${t}` }), el("small", { textContent: d })))),
-    el("h2", { className: "sec", textContent: "🛠️ Planificador de OCD" }),
+    el("h2", { className: "sec", textContent: "🎫 Crea tu primer OCD en Jira (simulado)" }),
+    montarJira({ cfg, cal, policy, incidents, dir, hoy: HOY }),
+    el("h2", { className: "sec", textContent: "🛠️ Planificador rápido de fechas" }),
     chips,
     el("div", { className: "grid2" }, form, salida),
     el("h2", { className: "sec", textContent: "🌙 Noches de la ventana (cupo máximo 3)" }),
@@ -229,9 +232,9 @@ async function init() {
     el("h2", { className: "sec", textContent: "🎬 Simulador: cómo se mueve un OCD por el tablero" }),
     el("div", { className: "sim-bar" }, selSim, contador, ant, sig),
     mini, el("div", { className: "card" }, narra),
-    el("div", { className: "card cta" }, el("h2", { textContent: "¿Listo para probarlo en GitHub?" }),
-      el("p", { textContent: "Abre el formulario del OCD. El título empieza con [OCD] y el agente responde en unos 20 segundos con el informe y mueve la tarjeta." }),
-      el("a", { className: "btn", href: ocdUrl({ servicio: "core-cuentas", fecha: "2026-11-24", hora: "22:00" }), target: "_blank", rel: "noopener", textContent: "Crear un OCD de prueba ↗" })));
+    el("div", { className: "card cta" }, el("h2", { textContent: "¿Quieres ver al agente real?" }),
+      el("p", { textContent: "En esta POC el motor corre en GitHub: el formulario crea un Issue [OCD], y en unos 20 segundos el agente publica el informe y mueve la tarjeta del tablero. En producción el ticket vive en Jira." }),
+      el("a", { className: "btn", href: ocdUrl({ servicio: "core-cuentas", fecha: "2026-11-24", hora: "22:00" }), target: "_blank", rel: "noopener", textContent: "Probar el agente real en GitHub ↗" })));
   cargar(CASOS[0][1]);
   elegir();
 }

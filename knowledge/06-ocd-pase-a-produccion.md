@@ -5,22 +5,32 @@
 ## Qué es un OCD
 - OCD es el ticket de pase a producción que se calendariza. Reúne el cambio, sus evidencias, los aprobadores y la noche exacta de ejecución.
 - Tiene tres tipos: Estándar (repetible y de bajo riesgo), Normal (planificado, pasa por el CAB) y Emergencia (corrige un incidente activo).
-- Se crea con el formulario "Pase a Producción tipo OCD". El título empieza con [OCD] y el agente lo evalúa al instante.
+- Se crea en Jira (en esta POC se simula en la pestaña Pase OCD). El agente lo revisa al instante y te dice qué falta.
 
-## Cómo crear un OCD paso a paso
-1. Reúne las evidencias: pruebas QA, SAST, SCA, escaneo de secretos, runbook, monitoreo y grupos de red.
-2. Define el rollback y pruébalo en un ambiente previo. Sin rollback el OCD se bloquea.
-3. Elige la noche de ejecución: martes, miércoles o jueves, entre las 22:00 y las 04:00.
-4. Revisa el cupo: cada noche admite máximo 3 OCD. Consulta el calendario en la pestaña Pase OCD.
-5. Abre el formulario con la fecha y la hora. El agente publica el informe con bloqueos, calendario y aprobadores.
-6. Corrige lo que el agente marque y edita el ticket. El informe y la tarjeta se actualizan solos.
+## Cómo crear un OCD en Jira paso a paso
+1. Verifica que tienes los grupos de red del servicio. Si falta alguno, pídelo antes de abrir el OCD.
+2. Reúne las evidencias: pruebas QA, SAST, SCA, escaneo de secretos, runbook y monitoreo.
+3. Define el rollback y pruébalo en un ambiente previo. Sin rollback el OCD se bloquea.
+4. En Jira elige el proyecto OCD y el tipo de incidencia Pase a Producción.
+5. Completa servicio, tipo de cambio, criticidad, tamaño, fecha y hora. La fecha es una noche de martes a jueves entre las 22:00 y las 04:00.
+6. Elige a los aprobadores del servicio: líder técnico, Product Owner, Seguridad y Change Management.
+7. Crea el ticket. El agente publica el informe con bloqueos, calendario y aprobadores, y mueve el estado.
+8. Corrige lo que el agente marque y edita el ticket. El informe se actualiza solo.
 
-## Quién aprueba un OCD
-- Líder técnico del proyecto: confirma que el cambio es correcto y que el equipo puede ejecutarlo y revertirlo.
+## Grupos de red para un OCD
+- Cada servicio exige grupos de red en producción: acceso a servidores de aplicación (GR-APP), acceso de lectura a la base de datos (GR-DB) y la red del runner de despliegue (GR-DEPLOY).
+- No todos los servicios necesitan los tres. El asistente te muestra cuáles exige tu servicio y cuáles ya tienes.
+- Si te falta un grupo, crea un ticket de tipo Solicitud de red en Jira, indica el servicio y el grupo, y pide la aprobación de tu líder técnico.
+- La solicitud de red tarda 3 días hábiles. Pídela antes de abrir el OCD: pedirla el mismo día retrasa el pase.
+
+## Quién es quién en un OCD
+- Líder técnico: confirma que el cambio es correcto y que el equipo puede ejecutarlo y revertirlo.
+- Product Owner: confirma que el cambio aporta valor y que el momento de salida es aceptable para el negocio.
 - Seguridad: revisa SAST, SCA, secretos y accesos. En un OCD Normal aprueba antes de la sesión del CAB.
 - Change Management: aprueba en el CAB y valida calendario, cupo y congelamientos.
 - Delegado CIO: se suma cuando el riesgo es Crítico o cuando se ejecuta dentro de un congelamiento.
-- En un OCD de Emergencia, Seguridad y Change Management aprueban a posteriori en máximo 24 horas.
+- En un OCD de Emergencia el Product Owner solo es informado, y Seguridad y Change Management aprueban a posteriori en máximo 24 horas.
+- Cada servicio tiene sus propios responsables. El simulador de Jira te dice quién es cada uno.
 
 ## Reglas del calendario
 - Ventana estándar: martes a jueves, de 22:00 a 04:00. La fecha del OCD es la noche en que empieza la ventana.

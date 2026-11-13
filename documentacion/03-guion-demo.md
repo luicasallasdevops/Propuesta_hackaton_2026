@@ -14,9 +14,11 @@
 | 5:15 | **Cómo funciona** y documento 06 | "Todo sobre GitHub, con permisos mínimos. Para producción: GitHub App, tokens de 1 hora y auditoría." |
 | 5:45 | Cierre | Impacto, reutilización entre tribus y plan de 6 meses. |
 
-## Extra: pase OCD (2 minutos, opcional)
+## Extra: pase OCD (3 minutos, opcional)
 | Qué mostrar | Qué decir |
 |---|---|
+| **Simulador de Jira**: perfil Valentina, pulsar Crear | "Una persona nueva no sabe qué grupos de red ni qué aprobadores necesita. El asistente se lo dice antes de que el pase se retrase." |
+| Cambiar a Mateo, Autocompletar, Crear y simular aprobaciones | "Con todo en orden el ticket avanza hasta producción." |
 | Pestaña **📅 Pase OCD**, caso "🈵 Noche llena" | "El OCD es el pase que se agenda. El agente ve que la noche del miércoles ya tiene 3 cambios y propone el jueves." |
 | Caso "✅ OCD listo" y el calendario | "Calcula hacia atrás qué día revisa el líder, qué día Seguridad, el CAB y cuándo se avisa a las áreas." |
 | **Simulador**, escenario "OCD bloqueado que se corrige" | "La tarjeta pasa por el tablero: bloqueado, corregido, aprobado, en producción." |

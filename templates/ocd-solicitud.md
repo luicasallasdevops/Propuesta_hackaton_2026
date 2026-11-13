@@ -1,4 +1,5 @@
-# OCD: solicitud de pase a producción
+# OCD: solicitud de pase a producción (campos del ticket en Jira)
+Proyecto: OCD · Tipo de incidencia: Pase a Producción
 Servicio: <nombre>
 Tipo de cambio: Estándar | Normal | Emergencia
 Criticidad: Alta | Media | Baja
@@ -10,5 +11,6 @@ Rollback: Sí, probado | Sí, sin probar | No
 Evidencias: QA, SAST, SCA, secretos, runbook, monitoreo, red, licencias
 Requisitos del OCD: ventana comunicada, plan de verificación posterior
 
-Aprobadores: Líder técnico, Seguridad, Change Management (Delegado CIO si el riesgo es Crítico)
+Grupos de red: GR-APP, GR-DB, GR-DEPLOY (los que exija el servicio; verifica que los tienes)
+Aprobadores: Líder técnico, Product Owner, Seguridad, Change Management (Delegado CIO si el riesgo es Crítico)
 Descripción: qué cambia, qué servicios toca y cómo se verifica.

@@ -62,7 +62,7 @@ function answer(q) {
     const key = /dependabot/i.test(q) ? ["dependabot.yml"] : /release|produccion|producción|despleg/i.test(q) ? ["workflows/release-produccion.yml"] : ["workflows/ci-seguridad.yml"];
     say("bot", el("p", { textContent: "Plantilla oficial lista para copiar:" }), ...key.map((k) => templateCard(k, tpl[k])));
   }
-  if (/ocd/i.test(q)) say("bot", el("p", {}, "Planifica tu OCD con calendario y aprobadores en la pestaña Pase OCD, o abre el formulario: ", el("a", { href: issueUrl().replace("pase-produccion.yml", "ocd.yml"), textContent: "abrir OCD", rel: "noopener" })));
+  if (/ocd/i.test(q)) say("bot", el("p", {}, "Practica creando un OCD en el simulador de Jira de la pestaña Pase OCD, o prueba el agente real en GitHub: ", el("a", { href: issueUrl().replace("pase-produccion.yml", "ocd.yml"), textContent: "abrir OCD", rel: "noopener" })));
   else if (/ticket|pase/i.test(q)) say("bot", el("p", {}, "Crea el ticket con el formulario y el agente lo evalúa al instante: ", el("a", { href: issueUrl(), textContent: "abrir ticket de pase", rel: "noopener" })));
 }
 
@@ -78,7 +78,7 @@ $("#chat-form").addEventListener("submit", (e) => {
   if (!q) return;
   say("user", q); $("#q").value = ""; answer(q);
 });
-for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué reglas de calendario tiene un OCD?"]) {
+for (const s of ["¿Cómo creo un ticket de pase a producción?", "¿Qué rol necesito y cómo lo pido?", "¿Qué grupos de red necesito?", "Dame un workflow de CodeQL", "¿Qué licencias necesito?", "¿Cómo creo un OCD paso a paso?", "¿Quién aprueba un OCD?", "¿Qué grupos de red necesito para un OCD?", "¿Qué reglas de calendario tiene un OCD?"]) {
   const b = el("button", { type: "button", textContent: s });
   b.addEventListener("click", () => { say("user", s); answer(s); });
   $("#chips").append(b);

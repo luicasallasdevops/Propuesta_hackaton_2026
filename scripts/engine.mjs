@@ -165,6 +165,8 @@ const iso = (d) => d.toISOString().slice(0, 10);
 const addDays = (s, n) => iso(new Date(toDate(s).getTime() + n * 864e5));
 /** Día de la semana en español para una fecha AAAA-MM-DD ("" si es inválida). */
 export const diaDe = (s) => { const d = toDate(s); return d ? DIAS[d.getUTCDay()] : ""; };
+/** "Mar 24/11": día abreviado y fecha corta, para mostrar. */
+export const fmtFechaCorta = (s) => { const d = diaDe(s); return d ? `${d.slice(0, 3)} ${s.slice(8)}/${s.slice(5, 7)}` : "—"; };
 export const fechaValida = (s) => toDate(s) !== null;
 export const feriadoDe = (s, cfg) => cfg.feriados.find((f) => f.fecha === s);
 export const congelamientoDe = (s, cfg) => cfg.congelamientos.find((c) => s >= c.desde && s <= c.hasta);
@@ -333,4 +335,29 @@ export function renderOcdReport(o, r, policy, cfg) {
   if (r.similar.length) L.push("### Incidentes recientes del mismo servicio", ...r.similar.map((i) => `- **${i.id}** (${i.fecha}, ${i.severidad}): ${i.resumen}`), "");
   L.push("_Informe del agente OCD (POC, datos simulados). Las aprobaciones y la decisión final son de las personas indicadas._");
   return L.join("\n");
+}
+
+/* ---------- Equipo del OCD: grupos de red y aprobadores por servicio ---------- */
+
+/** Revisa si el solicitante tiene los grupos de red del servicio y si eligió a los aprobadores que corresponden. */
+export function validarEquipoOcd({ servicio, usuarioId, elegidos = {}, tipo = "Normal" }, dir, cfg) {
+  const svc = dir.servicios[servicio];
+  const usuario = dir.usuarios[usuarioId];
+  if (!svc) return { servicioConocido: false, grupos: [], roles: [], mensajes: [`No conozco el servicio "${servicio}". Elige uno de la lista.`], completo: false };
+  const tiene = new Set(usuario?.gruposRed ?? []);
+  const grupos = svc.grupos.map((id) => ({ id, ...dir.gruposRed[id], tiene: tiene.has(id) }));
+  const base = (cfg.tipos[tipo]?.aprobadores ?? []).map((a) => a.replace(/\s*\(.*\)$/, "")).filter((a) => a in (dir.servicios[servicio]?.roles ?? {}));
+  const roles = [...new Set(base)].map((rol) => {
+    const esperado = svc.roles[rol];
+    const elegido = elegidos[rol] || "";
+    const estado = !elegido ? "falta" : elegido === esperado ? "ok" : "incorrecto";
+    return { rol, esperado, esperadoNombre: dir.personas[esperado]?.nombre ?? "", elegido, elegidoNombre: dir.personas[elegido]?.nombre ?? "", estado };
+  });
+  const mensajes = [];
+  for (const g of grupos.filter((x) => !x.tiene)) mensajes.push(`Te falta el grupo de red ${g.id} (${g.nombre}). ${dir.solicitudRed.como} Tarda ${dir.solicitudRed.sla}.`);
+  for (const r of roles) {
+    if (r.estado === "falta") mensajes.push(`Falta elegir al ${r.rol}. En ${servicio} es ${r.esperadoNombre}.`);
+    if (r.estado === "incorrecto") mensajes.push(`${r.elegidoNombre} no es el ${r.rol} de ${servicio}. Corresponde a ${r.esperadoNombre}.`);
+  }
+  return { servicioConocido: true, grupos, roles, mensajes, completo: mensajes.length === 0 };
 }

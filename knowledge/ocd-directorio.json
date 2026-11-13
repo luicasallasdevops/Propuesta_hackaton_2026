@@ -1,0 +1,151 @@
+{
+ "version": "1.1.0-poc-directorio",
+ "gruposRed": {
+  "GR-APP": {
+   "nombre": "Acceso a servidores de aplicación (producción)",
+   "para": "Desplegar y ver logs del servicio"
+  },
+  "GR-DB": {
+   "nombre": "Acceso a base de datos (producción, solo lectura)",
+   "para": "Verificar datos tras el pase"
+  },
+  "GR-DEPLOY": {
+   "nombre": "Red del runner de despliegue",
+   "para": "Ejecutar el workflow de despliegue en la ventana"
+  }
+ },
+ "solicitudRed": {
+  "como": "Crea un ticket de tipo Solicitud de red en Jira, indica el servicio y el grupo, y pide la aprobación de tu líder técnico.",
+  "sla": "3 días hábiles",
+  "ayuda": "Hazlo antes de abrir el OCD: pedirlo el mismo día retrasa el pase (caso INC-1080)."
+ },
+ "servicios": {
+  "pagos-api": {
+   "prefijo": "PAGOS",
+   "grupos": [
+    "GR-APP",
+    "GR-DB",
+    "GR-DEPLOY"
+   ],
+   "roles": {
+    "Líder técnico": "P-01",
+    "Product Owner": "P-02",
+    "Seguridad": "P-03",
+    "Change Management": "P-04"
+   }
+  },
+  "canal-web": {
+   "prefijo": "WEB",
+   "grupos": [
+    "GR-APP",
+    "GR-DEPLOY"
+   ],
+   "roles": {
+    "Líder técnico": "P-05",
+    "Product Owner": "P-06",
+    "Seguridad": "P-03",
+    "Change Management": "P-04"
+   }
+  },
+  "core-cuentas": {
+   "prefijo": "CORE",
+   "grupos": [
+    "GR-APP",
+    "GR-DB",
+    "GR-DEPLOY"
+   ],
+   "roles": {
+    "Líder técnico": "P-07",
+    "Product Owner": "P-08",
+    "Seguridad": "P-09",
+    "Change Management": "P-04"
+   }
+  },
+  "tarjetas-api": {
+   "prefijo": "TARJ",
+   "grupos": [
+    "GR-APP",
+    "GR-DEPLOY"
+   ],
+   "roles": {
+    "Líder técnico": "P-01",
+    "Product Owner": "P-10",
+    "Seguridad": "P-09",
+    "Change Management": "P-04"
+   }
+  },
+  "notificaciones": {
+   "prefijo": "NOTI",
+   "grupos": [
+    "GR-APP",
+    "GR-DEPLOY"
+   ],
+   "roles": {
+    "Líder técnico": "P-05",
+    "Product Owner": "P-06",
+    "Seguridad": "P-03",
+    "Change Management": "P-04"
+   }
+  }
+ },
+ "personas": {
+  "P-01": {
+   "nombre": "Camila Torres (ficticia)",
+   "rol": "Líder técnico"
+  },
+  "P-02": {
+   "nombre": "Andrés Pineda (ficticio)",
+   "rol": "Product Owner"
+  },
+  "P-03": {
+   "nombre": "Rosa Medina (ficticia)",
+   "rol": "Seguridad"
+  },
+  "P-04": {
+   "nombre": "Mesa de Change Management (ficticia)",
+   "rol": "Change Management"
+  },
+  "P-05": {
+   "nombre": "Jorge Salas (ficticio)",
+   "rol": "Líder técnico"
+  },
+  "P-06": {
+   "nombre": "Lucía Herrera (ficticia)",
+   "rol": "Product Owner"
+  },
+  "P-07": {
+   "nombre": "Luis Mora (ficticio)",
+   "rol": "Líder técnico"
+  },
+  "P-08": {
+   "nombre": "Paula Campos (ficticia)",
+   "rol": "Product Owner"
+  },
+  "P-09": {
+   "nombre": "Esteban Ruiz (ficticio)",
+   "rol": "Seguridad"
+  },
+  "P-10": {
+   "nombre": "Marta Vega (ficticia)",
+   "rol": "Product Owner"
+  }
+ },
+ "usuarios": {
+  "nueva": {
+   "nombre": "Valentina Ríos (ficticia)",
+   "detalle": "Recién ingresó al squad de pagos-api",
+   "gruposRed": [
+    "GR-APP"
+   ]
+  },
+  "experto": {
+   "nombre": "Mateo Díaz (ficticio)",
+   "detalle": "Ya ejecutó varios OCD en pagos-api",
+   "gruposRed": [
+    "GR-APP",
+    "GR-DB",
+    "GR-DEPLOY"
+   ]
+  }
+ }
+}

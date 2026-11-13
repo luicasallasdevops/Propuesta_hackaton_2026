@@ -4,46 +4,144 @@
   "tipos": {
     "Estándar": {
       "descripcion": "Cambio repetible y de bajo riesgo. Si el riesgo sale Alto o Crítico, se trata como Normal.",
-      "aprobadores": ["Líder técnico", "Change Management"]
+      "aprobadores": [
+        "Líder técnico",
+        "Change Management"
+      ]
     },
     "Normal": {
       "descripcion": "Cambio planificado. Pasa por el CAB, que sesiona martes y jueves.",
-      "aprobadores": ["Líder técnico", "Seguridad", "Change Management"]
+      "aprobadores": [
+        "Líder técnico",
+        "Product Owner",
+        "Seguridad",
+        "Change Management"
+      ]
     },
     "Emergencia": {
       "descripcion": "Corrige un incidente activo. Se ejecuta ya y se aprueba a posteriori en máximo 24 horas.",
-      "aprobadores": ["Líder técnico", "Seguridad (a posteriori)", "Change Management (a posteriori)"]
+      "aprobadores": [
+        "Líder técnico",
+        "Product Owner (informado)",
+        "Seguridad (a posteriori)",
+        "Change Management (a posteriori)"
+      ]
     }
   },
-  "ventana": { "dias": ["Martes", "Miércoles", "Jueves"], "horaInicio": "22:00", "horaFin": "04:00", "maxPorNoche": 3 },
-  "cab": { "dias": ["Martes", "Jueves"], "hora": "10:00" },
+  "ventana": {
+    "dias": [
+      "Martes",
+      "Miércoles",
+      "Jueves"
+    ],
+    "horaInicio": "22:00",
+    "horaFin": "04:00",
+    "maxPorNoche": 3
+  },
+  "cab": {
+    "dias": [
+      "Martes",
+      "Jueves"
+    ],
+    "hora": "10:00"
+  },
   "adicionalesPorNivel": {
-    "Alto": ["Seguridad", "Change Management"],
-    "Crítico": ["Seguridad", "Change Management", "Delegado CIO"]
+    "Alto": [
+      "Seguridad",
+      "Change Management"
+    ],
+    "Crítico": [
+      "Seguridad",
+      "Change Management",
+      "Delegado CIO"
+    ]
   },
   "etapas": {
-    "crear": { "nombre": "Crear el OCD con sus evidencias", "responsable": "Solicitante", "columna": "Solicitado" },
-    "agente": { "nombre": "Pre-validación del agente", "responsable": "Agente", "columna": "Listo para aprobaciones" },
-    "lider": { "nombre": "Revisión del líder técnico", "responsable": "Líder técnico", "columna": "Listo para aprobaciones" },
-    "seguridad": { "nombre": "Revisión de Seguridad", "responsable": "Seguridad", "columna": "Listo para aprobaciones" },
-    "cab": { "nombre": "Aprobación de Change Management (CAB)", "responsable": "Change Management", "columna": "Aprobado" },
-    "agenda": { "nombre": "Confirmar la ventana y avisar a las áreas", "responsable": "Solicitante", "columna": "Aprobado" },
-    "ejecutar": { "nombre": "Ejecutar el pase en la ventana", "responsable": "Solicitante y operaciones", "columna": "En producción" },
-    "verificar": { "nombre": "Verificar 30 minutos (métricas y alertas)", "responsable": "Solicitante", "columna": "En producción" },
-    "cerrar": { "nombre": "Cerrar el OCD con la evidencia", "responsable": "Solicitante", "columna": "En producción" },
-    "posteriori": { "nombre": "Aprobación a posteriori (Seguridad y Change Management)", "responsable": "Seguridad y Change Management", "columna": "En producción" }
+    "crear": {
+      "nombre": "Crear el OCD con sus evidencias",
+      "responsable": "Solicitante",
+      "columna": "Solicitado"
+    },
+    "agente": {
+      "nombre": "Pre-validación del agente",
+      "responsable": "Agente",
+      "columna": "Listo para aprobaciones"
+    },
+    "lider": {
+      "nombre": "Revisión del líder técnico",
+      "responsable": "Líder técnico",
+      "columna": "Listo para aprobaciones"
+    },
+    "seguridad": {
+      "nombre": "Revisión de Seguridad",
+      "responsable": "Seguridad",
+      "columna": "Listo para aprobaciones"
+    },
+    "cab": {
+      "nombre": "Aprobación de Change Management (CAB)",
+      "responsable": "Change Management",
+      "columna": "Aprobado"
+    },
+    "agenda": {
+      "nombre": "Confirmar la ventana y avisar a las áreas",
+      "responsable": "Solicitante",
+      "columna": "Aprobado"
+    },
+    "ejecutar": {
+      "nombre": "Ejecutar el pase en la ventana",
+      "responsable": "Solicitante y operaciones",
+      "columna": "En producción"
+    },
+    "verificar": {
+      "nombre": "Verificar 30 minutos (métricas y alertas)",
+      "responsable": "Solicitante",
+      "columna": "En producción"
+    },
+    "cerrar": {
+      "nombre": "Cerrar el OCD con la evidencia",
+      "responsable": "Solicitante",
+      "columna": "En producción"
+    },
+    "posteriori": {
+      "nombre": "Aprobación a posteriori (Seguridad y Change Management)",
+      "responsable": "Seguridad y Change Management",
+      "columna": "En producción"
+    }
   },
   "controles": {
-    "comunicacion": { "etiqueta": "Ventana comunicada a las áreas impactadas", "peso": 3 },
-    "verificacion": { "etiqueta": "Plan de verificación posterior definido", "peso": 3 }
+    "comunicacion": {
+      "etiqueta": "Ventana comunicada a las áreas impactadas",
+      "peso": 3
+    },
+    "verificacion": {
+      "etiqueta": "Plan de verificación posterior definido",
+      "peso": 3
+    }
   },
   "feriados": [
-    { "fecha": "2026-12-08", "motivo": "Feriado simulado" },
-    { "fecha": "2026-12-25", "motivo": "Feriado simulado" },
-    { "fecha": "2027-01-01", "motivo": "Feriado simulado" }
+    {
+      "fecha": "2026-12-08",
+      "motivo": "Feriado simulado"
+    },
+    {
+      "fecha": "2026-12-25",
+      "motivo": "Feriado simulado"
+    },
+    {
+      "fecha": "2027-01-01",
+      "motivo": "Feriado simulado"
+    }
   ],
   "congelamientos": [
-    { "desde": "2026-11-26", "hasta": "2026-11-27", "motivo": "Evento comercial de fin de mes (simulado)" },
-    { "desde": "2026-12-18", "hasta": "2027-01-04", "motivo": "Cierre de año (simulado)" }
+    {
+      "desde": "2026-11-26",
+      "hasta": "2026-11-27",
+      "motivo": "Evento comercial de fin de mes (simulado)"
+    },
+    {
+      "desde": "2026-12-18",
+      "hasta": "2027-01-04",
+      "motivo": "Cierre de año (simulado)"
+    }
   ]
 }

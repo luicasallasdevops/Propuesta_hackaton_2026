@@ -80,3 +80,24 @@ test("proximaVentana devuelve una noche válida y con cupo", () => {
   assert.ok(cfg.ventana.dias.includes(diaDe(d)));
   assert.ok(!cal.some((c) => c.fecha === d && c.id === "x"));
 });
+
+test("valida grupos de red y aprobadores por servicio", async () => {
+  const { validarEquipoOcd } = await import("../scripts/engine.mjs");
+  const dir = await J("knowledge/ocd-directorio.json");
+  const nueva = validarEquipoOcd({ servicio: "pagos-api", usuarioId: "nueva", tipo: "Normal", elegidos: { "Líder técnico": "P-05", "Seguridad": "P-03" } }, dir, cfg);
+  assert.deepEqual(nueva.grupos.filter((g) => !g.tiene).map((g) => g.id), ["GR-DB", "GR-DEPLOY"]);
+  assert.deepEqual(nueva.roles.map((r) => [r.rol, r.estado]), [["Líder técnico", "incorrecto"], ["Product Owner", "falta"], ["Seguridad", "ok"], ["Change Management", "falta"]]);
+  assert.equal(nueva.completo, false);
+  const experto = validarEquipoOcd({ servicio: "pagos-api", usuarioId: "experto", tipo: "Normal", elegidos: { "Líder técnico": "P-01", "Product Owner": "P-02", "Seguridad": "P-03", "Change Management": "P-04" } }, dir, cfg);
+  assert.equal(experto.completo, true);
+  assert.equal(validarEquipoOcd({ servicio: "x", usuarioId: "nueva" }, dir, cfg).servicioConocido, false);
+});
+
+test("todo servicio del calendario y de los roles existe en el directorio", async () => {
+  const dir = await J("knowledge/ocd-directorio.json");
+  for (const c of cal) assert.ok(dir.servicios[c.servicio], c.servicio);
+  for (const s of Object.values(dir.servicios)) {
+    s.grupos.forEach((g) => assert.ok(dir.gruposRed[g]));
+    Object.entries(s.roles).forEach(([rol, id]) => assert.equal(dir.personas[id].rol, rol));
+  }
+});
