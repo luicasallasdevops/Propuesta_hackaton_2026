@@ -21,7 +21,7 @@ Un asistente agéntico, 100% sobre GitHub, que:
 ## Criterios del hackathon y cómo los cubrimos
 | Criterio | Evidencia en la POC |
 |---|---|
-| IA agéntica | El agente recupera política, razona con historial, decide y actúa en el Issue. Resumen opcional con GitHub Models. |
+| IA agéntica | El agente recupera política, razona con historial, decide y actúa en el Issue. Agentes de Copilot en el IDE con la misma base de conocimiento. |
 | Prototipo y experiencia de usuario | Portal con chat, validador y plantillas con botón Copiar. Formulario de Issue guiado. |
 | Impacto en ingeniería o negocio | Menos espera y retrabajo, menos pases que fallan. Métricas propuestas en el documento 05. |
 | Innovación y diferenciación | Convierte incidentes pasados en prevención automática dentro del mismo flujo del equipo. |

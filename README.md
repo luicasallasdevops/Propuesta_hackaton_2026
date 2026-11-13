@@ -14,7 +14,7 @@ Los equipos tardan semanas en entender cómo crear tickets, qué roles pedir, qu
 | Agente en Actions | Al abrir un ticket de pase evalúa riesgo, bloquea incumplimientos, etiqueta y comenta | `.github/workflows/agente-pase.yml`, `scripts/agent.mjs` |
 | Base de conocimiento | Estándares en Markdown versionados, política de riesgo e historial de incidentes | `knowledge/` |
 | Plantillas SecOps | CI de seguridad (CodeQL, Dependency Review), release protegido, Dependabot | `templates/` |
-| Resumen con IA (opcional) | GitHub Models resume los siguientes pasos usando solo la política recuperada | variable `AI_ENABLED=true` |
+| Agentes de Copilot | Instrucciones y agente personalizado que leen la misma base de conocimiento | `.github/copilot-instructions.md`, `.github/agents/` |
 
 ## Demo en 3 minutos
 1. Abrir el portal y preguntar "¿Cómo creo un ticket de pase?" y "Dame un workflow de CodeQL".
@@ -24,8 +24,7 @@ Los equipos tardan semanas en entender cómo crear tickets, qué roles pedir, qu
 
 ## Activación (una vez)
 1. Repo > Settings > Pages > Source: **GitHub Actions**.
-2. Opcional, resumen con IA: Settings > Secrets and variables > Actions > Variables > `AI_ENABLED` = `true`.
-3. Para producción real: activar GHAS, Push Protection y reglas de rama sobre `main`.
+2. Para producción real: activar GHAS, Push Protection y reglas de rama sobre `main`.
 
 ## Seguridad aplicada
 Permisos mínimos por job, el texto del Issue se trata solo como dato (nunca se interpola en comandos), menciones y HTML neutralizados en los comentarios, portal con CSP estricta y sin dependencias externas, acciones actualizadas por Dependabot, CodeQL sobre el propio repo, `persist-credentials: false` y cero dependencias de runtime.
@@ -45,11 +44,11 @@ python3 -m http.server -d docs 8080
 ```
 Siguientes pasos: conectar el tablero Kanban y la gestión de incidentes por API, y alimentar `incidents.json` automáticamente.
 
-## Agentes gratuitos de GitHub (validado)
+## Agentes de GitHub y su costo (validado el 12-nov-2026)
 | Capacidad | Plan Free | Uso en esta POC |
 |---|---|---|
-| GitHub Models vía `GITHUB_TOKEN` (`models: read`) | Sí, con límites de peticiones por minuto y por día | Resumen opcional del agente en Actions |
-| Copilot Free: agent mode en el IDE, CLI, instrucciones y agentes personalizados | Sí, con asignación limitada de créditos | `.github/copilot-instructions.md` y `.github/agents/guia-devsecops.agent.md` |
+| GitHub Models (API de inferencia) | **Retirado el 30-jul-2026**, ya no existe | No se usa. Se retiró del agente |
+| Copilot Free: modo agente en el IDE, CLI, instrucciones y agentes personalizados | Sí, con créditos limitados | `.github/copilot-instructions.md` y `.github/agents/guia-devsecops.agent.md` |
 | Copilot cloud agent (antes coding agent) y code review | No, requiere plan de pago | Fuera de la POC. La entidad ya lo tiene con Copilot Business o Enterprise |
 
-Así, lo construido hoy es gratis y los mismos archivos de conocimiento los consumen los agentes de Copilot de la entidad sin cambios.
+Cómo funciona la parte agéntica sin costo: en Actions el agente razona con reglas deterministas, historial y política (sin LLM), y en el IDE los agentes de Copilot leen los mismos archivos. Un resumen generado por LLM dentro de Actions necesitaría una clave de un proveedor de pago o Copilot de la entidad. Se deja como mejora futura.

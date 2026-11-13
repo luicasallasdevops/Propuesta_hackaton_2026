@@ -3,9 +3,9 @@
 ## Decisiones de diseño
 | Decisión | Motivo |
 |---|---|
-| Solo GitHub (Pages, Actions, Issues, Models) | Sin infraestructura nueva, rápido de adoptar y gratis en la POC |
+| Solo GitHub (Pages, Actions, Issues, Copilot) | Sin infraestructura nueva, rápido de adoptar y gratis en la POC |
 | Cero dependencias de runtime | Sin cadena de suministro que mantener ni vulnerabilidades heredadas |
-| Reglas deterministas para decidir, IA solo para redactar | Auditable y reproducible en un banco |
+| Reglas deterministas para decidir en Actions, Copilot como agente conversacional en el IDE | Auditable y reproducible en un banco |
 | Conocimiento como Markdown versionado | Cambios por pull request, con historial y revisión |
 | Motor único para portal y agente | Una sola lógica que probar |
 
@@ -15,12 +15,12 @@
 - Portal con CSP estricta, sin scripts ni recursos externos y sin `innerHTML` con datos de usuario.
 - Acciones en versiones recientes, con Dependabot semanal.
 - CodeQL sobre el propio repositorio.
-- IA con `models: read`, sin secretos, con contexto acotado a la política y con instrucción de no seguir órdenes del ticket.
+- Sin llamadas a servicios externos de IA en Actions: no hay claves ni datos que salgan del repositorio.
 
 ## Límites de la POC (honestidad ante el jurado)
 - Datos simulados. No hay conexión a un tablero Kanban real ni a gestión de incidentes.
 - El puntaje de riesgo es una heurística, no un modelo entrenado.
-- El resumen con IA usa GitHub Models gratis, que tiene límites de uso y es para prototipos.
+- GitHub Models se retiró el 30-jul-2026. El agente en Actions no usa un LLM; es razonamiento con reglas, política e historial.
 - Copilot cloud agent y code review requieren plan de pago. La entidad ya los tiene.
 - Las acciones están por versión mayor. En producción conviene fijarlas por SHA.
 

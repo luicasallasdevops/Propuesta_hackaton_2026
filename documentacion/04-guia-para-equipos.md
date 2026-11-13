@@ -22,8 +22,7 @@
 
 ## Activación del repositorio (una vez)
 1. Settings → Pages → Source: **GitHub Actions**.
-2. Opcional, IA: Settings → Secrets and variables → Actions → Variables → `AI_ENABLED` = `true`.
-3. Recomendado: protección de rama en `main`, Push Protection y alertas de Dependabot.
+2. Recomendado: protección de rama en `main`, Push Protection y alertas de Dependabot.
 
 ## Probar localmente
 ```

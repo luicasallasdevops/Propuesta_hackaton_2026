@@ -68,7 +68,7 @@
         <li><strong>Conocimiento centralizado:</strong> los estándares de SecOps viven como Markdown versionado en el repositorio. Un cambio de política se aprueba por pull request.</li>
         <li><strong>Agente en el portal:</strong> responde con la sección exacta del estándar y la cita como fuente. Corre en el navegador, sin enviar datos a terceros.</li>
         <li><strong>Agente en GitHub Actions:</strong> al abrir un ticket de pase, evalúa evidencias, historial de incidentes y día de despliegue. Publica el informe, etiqueta el riesgo y bloquea lo que no cumple.</li>
-        <li><strong>Resumen con IA (opcional):</strong> GitHub Models redacta los siguientes pasos usando solo la política recuperada, con permisos mínimos y sin secretos.</li>
+        <li><strong>Agentes de Copilot:</strong> las mismas instrucciones y la misma base de conocimiento las consumen los agentes de Copilot de la entidad (modo agente en el IDE y agente personalizado), sin duplicar contenido.</li>
         <li><strong>Aprende del pasado:</strong> cada incidente cerrado se agrega a <code>knowledge/incidents.json</code> y ajusta el riesgo de los próximos pases.</li>
       </ol>
       <h2>Escalabilidad</h2>

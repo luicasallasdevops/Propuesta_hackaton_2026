@@ -17,7 +17,7 @@ flowchart LR
   U1 -->|abre Issue de pase| I["Issue + formulario"]
   I -->|evento issues| A
   A -->|informe, etiquetas| I
-  A -.->|opcional| M["GitHub Models"]
+  K --> C["Agentes de Copilot en el IDE"]
 ```
 
 ## Flujo del pase
@@ -58,5 +58,6 @@ Puntaje de 0 a 100 = criticidad + tamaño + rollback + día de riesgo + controle
 - Cada nivel define las aprobaciones requeridas.
 
 ## Qué es IA y qué es regla
-- Reglas deterministas: puntaje, bloqueos y aprobaciones. Son auditables y reproducibles.
-- IA generativa (opcional): solo redacta los siguientes pasos con la política recuperada como contexto. Si falla, el informe sale igual.
+- Reglas deterministas en Actions: puntaje, bloqueos y aprobaciones. Son auditables y reproducibles, sin enviar datos a terceros.
+- IA generativa: los agentes de Copilot del IDE usan `.github/copilot-instructions.md` y el agente personalizado para responder con los mismos estándares.
+- Nota: GitHub Models, que se había considerado para un resumen en Actions, se retiró el 30-jul-2026 y no se usa.

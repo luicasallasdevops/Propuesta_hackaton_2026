@@ -19,13 +19,10 @@ jobs:
     permissions:
       contents: read
       issues: write
-      models: read      # solo para el resumen opcional con GitHub Models
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       ISSUE: ${{ github.event.issue.number }}
-      AI_ENABLED: ${{ vars.AI_ENABLED }}
-      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
         with:
