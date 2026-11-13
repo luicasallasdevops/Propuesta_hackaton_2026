@@ -1,0 +1,10 @@
+# Documentación
+
+Lee en este orden:
+1. [Contexto y problema](01-contexto-y-problema.md): qué intentamos resolver y por qué.
+2. [Arquitectura](02-arquitectura.md): piezas, flujo y diagramas.
+3. [Guion de la demo](03-guion-demo.md): 5 minutos para presentar.
+4. [Guía para equipos](04-guia-para-equipos.md): cómo usarlo, ampliarlo y reutilizarlo en otras tribus.
+5. [Seguridad, decisiones y hoja de ruta](05-seguridad-decisiones-roadmap.md): qué decidimos, límites de la POC y camino a producción.
+
+Aviso: todo el contenido de `knowledge/` (políticas, roles, incidentes) es **simulado**.

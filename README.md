@@ -2,6 +2,8 @@
 
 POC del hackathon DevSecOps 2026. Un agente que guía al equipo por los estándares de la entidad, valida el pase a producción antes de que falle y entrega plantillas seguras listas para usar. **Todo el contenido (políticas, incidentes, roles) es simulado.**
 
+> Documentación completa para el equipo en [`documentacion/`](documentacion/README.md): contexto, arquitectura, guion de demo, guía para equipos y hoja de ruta.
+
 ## El problema
 Los equipos tardan semanas en entender cómo crear tickets, qué roles pedir, qué grupos de red y licencias necesitan y qué evidencias de seguridad exigir. Los incidentes pasados no se usan para prevenir los siguientes.
 
